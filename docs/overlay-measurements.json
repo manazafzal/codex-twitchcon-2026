@@ -11,7 +11,7 @@
   },
   "immune": {
     "renderer": "gl",
-    "white_fraction": 0.0029605516975308643,
+    "white_fraction": 0.0029600694444444444,
     "console_errors": 0
   },
   "telepathy": {
@@ -21,29 +21,29 @@
   },
   "reveal": {
     "renderer": "gl",
-    "white_fraction": 0.0006732253086419753,
+    "white_fraction": 0.0016980131172839505,
     "console_errors": 0
   },
   "performance": {
     "frames": 120,
-    "mean_ms": 725.11,
-    "fps": 1.3791011019017805,
-    "p95_ms": 2001.665,
-    "wall_seconds": 87.02275465099956,
+    "mean_ms": 731.6375,
+    "fps": 1.36679708188823,
+    "p95_ms": 1384.9649999999958,
+    "wall_seconds": 87.82577631699678,
     "stats": {
       "renderer": "gl",
       "scale": 0.5,
-      "meanFrameMs": 708.2373983739838,
+      "meanFrameMs": 714.7406504065041,
       "frames": 123,
       "stars": 30,
-      "time": 87.11320000000003,
+      "time": 87.91309999999996,
       "queuedWords": 0
     }
   },
   "transparent": {
-    "fraction_alpha_below_255": 0.9386222029320987
+    "fraction_alpha_below_255": 0.9657016782407407
   },
   "quarter": {
-    "left_column_contrast_ratio": 4.789214265147968
+    "left_column_contrast_ratio": 5.005283797318937
   }
 }

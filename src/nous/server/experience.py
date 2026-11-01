@@ -35,7 +35,11 @@ class RecordedDemo:
         while True:
             from nous.concepts.library import load_concepts
 
-            yield ViewState(load_concepts()).snapshot()
+            initial = ViewState(load_concepts()).snapshot()
+            initial.state["badge"] = Badge(
+                "SIMULATED ×40", "RECORDING · Pretend chat · Test AI", 40
+            ).to_dict()
+            yield initial
             recordings = self.data.get("rounds", [self.data])
             recording = recordings[number % len(recordings)]
             previous = 0.0
@@ -54,6 +58,7 @@ class RecordedDemo:
 
 class Experience:
     def __init__(self, *, auth_base: str = AUTH_BASE, helix_base: str = HELIX_BASE) -> None:
+        self.kind = "welcome"
         self.factory: Callable[[], AsyncIterator[Event]] | None = None
         self.changed = asyncio.Event()
         self.version = 0
@@ -61,7 +66,10 @@ class Experience:
         self.auth_base, self.helix_base = auth_base, helix_base
         self.login_task: asyncio.Task | None = None
         self.signed_in = False
-        self.login: dict[str, Any] = {"status": "idle", "message": "Let's connect your Twitch."}
+        self.login: dict[str, Any] = {
+            "status": "idle",
+            "message": "Ready! Try the demo. No Twitch needed.",
+        }
         self.client_id = os.getenv("NOUS_TWITCH_CLIENT_ID") or settings().get("client_id", "")
         self.server: Any = None
         self.current_board = Leaderboard()
@@ -80,6 +88,7 @@ class Experience:
             self.server.leaderboard = board
 
     def demo(self) -> None:
+        self.kind = "demo"
         self.session = None
         self.game_board(Leaderboard())
         self.use(self.demo_events)
@@ -121,7 +130,8 @@ class Experience:
             self.session.set_immune(enabled)
 
     async def events(self) -> AsyncIterator[Event]:
-        yield Badge("SIMULATED ×0", "Choose Try the demo to start", 0)
+        if self.factory is None:
+            yield Badge("SIMULATED ×0", "Choose Try the demo to start", 0)
         while True:
             self.changed.clear()
             if self.factory is None:
@@ -133,7 +143,15 @@ class Experience:
 
                 self.server.presentation = Presentation(load_concepts())
                 self.server.last_tick = None
-                yield ViewState(load_concepts()).snapshot()
+                initial = ViewState(load_concepts()).snapshot()
+                if self.kind == "live":
+                    initial.state["badge"] = Badge("LIVE").to_dict()
+                    initial.state["connections"] = {"twitch": "reconnecting"}
+                elif self.kind == "demo":
+                    initial.state["badge"] = Badge(
+                        "SIMULATED ×40", "Getting your demo ready", 40
+                    ).to_dict()
+                yield initial
             queue: asyncio.Queue = asyncio.Queue(maxsize=64)
             factory, version = self.factory, self.version
 
@@ -283,6 +301,7 @@ class Experience:
                     "We couldn't find that channel. Use its Twitch name and click Retry."
                 )
         self.session = session
+        self.kind = "live"
         self.game_board(self.board)
         self.use(live.events)
         self.login = {

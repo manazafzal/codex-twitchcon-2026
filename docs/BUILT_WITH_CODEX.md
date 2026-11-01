@@ -96,4 +96,6 @@ The overlay now asks what chat is trying to make the AI think about, shows a cou
 - [64de04a — install, welcome and offline recording](https://github.com/manazafzal/codex-twitchcon-2026/commit/64de04a)
 - [2c672f7 — simple commands, light participation and welcomes](https://github.com/manazafzal/codex-twitchcon-2026/commit/2c672f7)
 
-Final check counts and refreshed visual evidence follow after the complete run.
+- [b884aef — readable rounds, safe Nerd panel and complete first-run flow](https://github.com/manazafzal/codex-twitchcon-2026/commit/b884aef)
+
+Actual browser captures are in [the first-run walkthrough](first-run.md). Inspecting the recording caught two additional reveal defects: the countdown overwrote the reveal caption, and hidden aggregate shares remained visible after reveal. Both are corrected without publishing raw shares before reveal. Source restarts also retain the correct source badge. Final complete-check counts follow after the film run.

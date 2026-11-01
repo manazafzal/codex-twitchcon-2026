@@ -234,6 +234,7 @@ def test_connected_tick_waits_for_chat_and_demo_scores_stay_separate(monkeypatch
                     await asyncio.sleep(0.02)
                 assert status["status"] == "live"
                 assert app[APP_KEY].leaderboard is experience.board
+                assert app[APP_KEY].state.data["badge"]["label"] == "LIVE"
                 await client.post("/api/demo", json={}, headers=headers)
                 assert app[APP_KEY].leaderboard is not experience.board
                 assert experience.board.stream["viewer"]["points"] == 7

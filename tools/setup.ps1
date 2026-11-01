@@ -20,7 +20,19 @@ try {
             if ($LASTEXITCODE -ne 0) { $Launcher = $null }
         } catch { $Launcher = $null }
     }
+    $ExistingPython = $null
     if (-not $Launcher) {
+        $Candidate = Get-Command python -ErrorAction SilentlyContinue
+        if ($Candidate -and $Candidate.Source -notlike '*WindowsApps*') {
+            try {
+                & $Candidate.Source -c "import sys; assert (3,11) <= sys.version_info < (3,14)" 2>$null
+                if ($LASTEXITCODE -eq 0) { $ExistingPython = $Candidate.Source }
+            } catch { $ExistingPython = $null }
+        }
+    }
+    if ($ExistingPython) {
+        Run-Checked $ExistingPython @('-m','venv','.venv')
+    } elseif (-not $Launcher) {
         $Winget = Get-Command winget -ErrorAction SilentlyContinue
         if (-not $Winget) { throw 'Install Python 3.11 from python.org/downloads/windows, then double-click setup.bat again. Tick Add Python to PATH during installation.' }
         Write-Host 'Installing Python. Windows may ask you to allow this...'
@@ -34,7 +46,11 @@ try {
     $Python = Join-Path $PWD '.venv\Scripts\python.exe'
     Write-Host 'Installing the helper tools. The first setup takes a few minutes...'
     Run-Checked $Python @('-m','pip','install','--upgrade','pip')
-    Run-Checked $Python @('-m','pip','install','--prefer-binary','-e','.[model]')
+    Run-Checked $Python @('-m','pip','install','--prefer-binary','-e','.')
+    Write-Host 'Getting the AI helper ready. The recording works even if this step pauses...'
+    try { Run-Checked $Python @('-m','pip','install','--prefer-binary','-e','.[model]') } catch {
+        Write-Host 'The AI helper paused. The recorded demo is ready; run setup.bat again later for the AI.' -ForegroundColor Yellow
+    }
     Write-Host 'Downloading the AI brain (about 1 GB)...'
     try { Run-Checked $Python @('-m','nous.install') } catch {
         Write-Host 'The AI download paused. You can still try the recorded demo. Run setup.bat again later to retry.' -ForegroundColor Yellow

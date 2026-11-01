@@ -8,7 +8,7 @@ Measured with **Chromium 154.0.8037.57 built on Debian GNU/Linux 13 (trixie)**, 
 
 | Mean frame | Measured playback | 95th percentile |
 | --- | --- | --- |
-| 725.11 ms | 1.38 fps | 2001.66 ms |
+| 731.64 ms | 1.37 fps | 1384.96 ms |
 
 This software renderer is CPU-bound. **Hardware-GPU 60 fps is unverified.** The 30 fps film cadence is a virtual output rate and is not a playback-speed claim. The scale governor reduces resolution by .125 after a 60-frame mean above 22 ms, stopping at .5; this measurement starts at that minimum. Canvas-only rendering is available with `?nogl`.
 
@@ -20,11 +20,11 @@ Five scenes captured at 1920×1080. The brightness limit is 0.5% of pixels with 
 | --- | --- | --- | --- |
 | war | gl | 0.1522% | 0 |
 | attack | gl | 0.2048% | 0 |
-| immune | gl | 0.2961% | 0 |
+| immune | gl | 0.2960% | 0 |
 | telepathy | gl | 0.1849% | 0 |
-| reveal | gl | 0.0673% | 0 |
+| reveal | gl | 0.1698% | 0 |
 
-Transparent capture: **93.86%** of pixels have alpha below 255 (minimum 90%). Quarter-size left-column contrast: **4.79:1** (minimum 4.5:1). Contrast compares the 99th-percentile glyph-interior luminance with the 20th-percentile adjacent ground in the left answer region; antialiased boundaries are excluded. This is a raster region check, not a guarantee for arbitrary OBS footage.
+Transparent capture: **96.57%** of pixels have alpha below 255 (minimum 90%). Quarter-size left-column contrast: **5.01:1** (minimum 4.5:1). Contrast compares the 99th-percentile glyph-interior luminance with the 20th-percentile adjacent ground in the left answer region; antialiased boundaries are excluded. This is a raster region check, not a guarantee for arbitrary OBS footage.
 
 Browser tests also verify every canvas has an accessible label, computed text sizes are at least 17 stage pixels, and full Mind Share and ridge labels fit without overflow. Long-name coverage includes Time Travel. Five screenshots plus [transparent](screenshots/transparent.png) and [quarter-size](screenshots/quarter.png) captures are in [screenshots/](screenshots/).
 
