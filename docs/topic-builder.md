@@ -29,7 +29,7 @@ All four admission rules are fixed:
 
 Every check states its actual n and whether it ran. Early failures leave later checks explicitly unrun. These small admission samples are not a population-level effectiveness claim. Passing the four checks is still insufficient if fresh alarm calibration or the expanded v4 classifier fit fails. The builder recalibrates the whole catalog, rejects overlapping classifier partitions, recomputes PCA coordinates and hashes the expanded library before publication.
 
-Live builds use a background task and serialized access to shared model weights. Only the engine owner installs a completed result, between rounds. A secret round must finish before publication. The recorded `round` event's `catalog` phase carries the new public catalog without adding a new event kind; snapshots and the word masker refresh together. Frame replay retains new names and colours. Engine replay explicitly refuses recordings that change library bases and directs the user to `--frames`.
+Live builds use a background task and serialized access to shared model weights. Only the engine owner installs a completed result, between rounds. A secret round must finish before publication. The recorded `round` event's `catalog` phase carries the new public catalog without adding a new event kind; snapshots and the word masker refresh together. Changing the library invalidates earlier colour evidence: installation returns to territory colours and removes the old displayed accuracy until new evaluation is available. Frame replay retains new names and colours. Engine replay explicitly refuses recordings that change library bases and directs the user to `--frames`.
 
 ## Packs and honest limits
 

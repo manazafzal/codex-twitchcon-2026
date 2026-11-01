@@ -335,7 +335,11 @@ def test_installation_waits_for_completed_secret_round(topic_builder):
         session.install_library(result.library)
     assert session.library.hash == topic_builder.base.hash
     session.telepathy.cancel()
+    session.engine.colour_source = "readout"
+    session.probe_accuracy = .9
     session.install_library(result.library)
+    assert session.engine.colour_source == "applied"
+    assert session.probe_accuracy is None
     assert session.engine.readout.library is result.library
     assert set(session.engine.atlas.points) == set(result.library.ids)
     assert session.telepathy.concepts == result.library.concepts

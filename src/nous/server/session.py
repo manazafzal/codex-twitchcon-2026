@@ -515,6 +515,8 @@ class Session:
         from nous.engine.readout import Readout
 
         self.library = self.engine.library = library
+        self.engine.colour_source = "applied"
+        self.probe_accuracy = None
         self.engine.readout = Readout(library, window=self.engine.readout.window.maxlen or 12)
         self.engine.atlas = AtlasSignals(library)
         self.engine.monitor.reset()
