@@ -1,0 +1,2192 @@
+[
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "none"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "none"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "standardize"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "lda",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 8,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 16,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 32,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 48,
+    "whitening": "zca"
+  },
+  {
+    "classifier": "logistic",
+    "clusters": 0,
+    "layers": [
+      16,
+      20,
+      22
+    ],
+    "metrics": {},
+    "n": 0,
+    "planned_n": 360,
+    "reason": "Local trained model unavailable; no runtime download or substitute evidence",
+    "status": "unrun",
+    "train_size": 66,
+    "whitening": "zca"
+  }
+]

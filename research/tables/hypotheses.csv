@@ -1,0 +1,9 @@
+clusters,decision,hypothesis,n,reason,status
+0,unrun; required component unavailable,H1,0,Paired keyword difference,unrun
+0,unrun; required component unavailable,H2,0,Complete dose grid unavailable,unrun
+0,unrun; required component unavailable,H3,0,Nonnegative paired bounds on both outcomes against both baselines,unrun
+0,unrun; required component unavailable,H4,0,Blind all-concept cosine readout,unrun
+0,unrun; required component unavailable,H5,0,"Relative reduction, task proxy and neutral false alarms; ratio undefined for zero control",unrun
+0,unrun; required component unavailable,H6,0,"Disjoint held-out families, seeds and hashes",unrun
+0,unrun; required component unavailable,H7,0,Matched injected accuracy and independent neutral detector comparison,unrun
+0,unrun; required component unavailable,H8,0,Paired mean middle-layer minus late-layer hit,unrun

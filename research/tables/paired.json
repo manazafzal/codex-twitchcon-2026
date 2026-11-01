@@ -1,0 +1,188 @@
+[
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H1 dose minus control",
+    "mean": null,
+    "metric": "keyword_hit",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 0.15 minus 0",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 0.3 minus 0.15",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 0.45 minus 0.3",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 0.6 minus 0.45",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 0.75 minus 0.6",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 1 minus 0.75",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 1.25 minus 1",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H2 task 1.5 minus 1.25",
+    "mean": null,
+    "metric": "task_kept",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H3 others minus neutral",
+    "mean": null,
+    "metric": "keyword_hit",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H3 others minus neutral",
+    "mean": null,
+    "metric": "cosine_top1",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H3 others minus raw",
+    "mean": null,
+    "metric": "keyword_hit",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H3 others minus raw",
+    "mean": null,
+    "metric": "cosine_top1",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "comparison": "H4 cosine minus target keyword",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Primary generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "cluster_ci95": null,
+    "clusters": 0,
+    "comparison": "H5 immune on minus off",
+    "mean": null,
+    "metric": "keyword_hit",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched complete generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "comparison": "H5 relative reduction",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Matched immune generations unavailable",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "comparison": "H7 classifier minus cosine false alarms",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Independent classifier calibration unavailable",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "comparison": "H8 middle minus late",
+    "n": 0,
+    "planned_n": 180,
+    "reason": "Complete matched layer grid unavailable",
+    "status": "unrun"
+  }
+]

@@ -1,0 +1,24 @@
+| alpha | clusters | immune | layer | n | planned_n | readout | reason | status | topical | vector |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0 | False | 16 | 0 | 180 | 12 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 12 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 13 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 13 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 14 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 14 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 15 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 15 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 16 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 16 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 17 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 17 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 18 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 18 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 19 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 19 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 20 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 20 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 21 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 21 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0 | 0 | False | 16 | 0 | 180 | 22 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |
+| 0.45 | 0 | False | 16 | 0 | 180 | 22 | Local trained model unavailable; no runtime download or substitute evidence | unrun | False | others |

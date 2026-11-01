@@ -1,0 +1,185 @@
+{
+  "artifacts": {
+    "figures/alarm.png": "ea3ce0e0130c4bc2977997c4086820f823407ffd94db5a6dc69a84fbfb7065bf",
+    "figures/alarm.svg": "869eed364a6fa529496b15222c0cd09b5869919c0ae77a014fe97a48495e54fb",
+    "figures/attribution.png": "355b26ca45470e5f46c1bb3c2154c4fda680f2a4c421f7bd5713133d9da2e97c",
+    "figures/attribution.svg": "922fbc043257e593ddab4017b4a61031cddd89316330335d218e5a37ea05b0bf",
+    "figures/dose.png": "36b58e3a5fd2b5750ee3d684a5f87455c5ccf2279bc7a3ce7f6f4b1edeffa635",
+    "figures/dose.svg": "af4a7f0d2bfd78997c3dec2787a2fc713fcefef9d30db8f9b17fc7862a2dc0b5",
+    "figures/false_alarms.png": "fe106e628d323f9c312661810e398a1af0f9e61259dcb06d29a8f7cf4f357af5",
+    "figures/false_alarms.svg": "16e5c87f44933318a24e13afc915d44e02b7e5d5e2809a9b0fbf226feb3c91d8",
+    "figures/immune.png": "479b14e9a2f3154d3c869f713bd6d892a311772a3fe41de36da97becc6d1eda8",
+    "figures/immune.svg": "8c3e2a40a0a88307258aad6efe2f4eca01de2945abdb763c8c9bf57d9e60719f",
+    "figures/injection_layer.png": "1f4f2dc40b1adef5d84efb06cd46d1abe19b3a3bc4f96b0d4d0b13b896d2e227",
+    "figures/injection_layer.svg": "64e53264ce23cd3026fa932140b6ead39caeeec479a9ce4b9c32165706a12215",
+    "figures/readout_layer.png": "7b3a713341a88838aef016674a757716b69a4b0a7139bb9e8af62817c344354c",
+    "figures/readout_layer.svg": "1f4afa5e2e4cc1daeb0aa75bba27e9402257b005cc69dd0257e9202e70a350bb",
+    "figures/roc.png": "07edd67266a1cdedfc5215d102f745d339feb3d3d5f8d5de62df6a555feec77b",
+    "figures/roc.svg": "a7c8a90703263fbd0a2c40013d98a4a91ba2a2969c672288a48982d19a7e40fb",
+    "figures/v4.png": "4731d216fcd20e256f4898900cd2a8a44a3151fea24fe8b54e2cc36b38ef04c4",
+    "figures/v4.svg": "f0930733f7138b09f064cc38a77926ea80c9d6a8fc5df82920999cd7aa763fd7",
+    "figures/vector.png": "1910a6415a2933a6fd64365547ac8f32803aaccddfe129660f6e5ec57aaa8fb4",
+    "figures/vector.svg": "2565c44f8febc480bd3c9c568e1c15caf46de79ca1189a8dba5aaf5b62c0ac6b",
+    "tables/alarm.csv": "0932a06ab69ee208ee5f3946f7b11bdeedf678de968dd940d39ff861983e4051",
+    "tables/alarm.json": "de2a7248cac27293754ea8910a257db339c0768505d5282c35a68e302b2b75fd",
+    "tables/alarm.md": "22707c3cd7cffbc5bdc0eedc9097d17c5b4f4710baf8fce90e04882b8e6f2a22",
+    "tables/dose.csv": "20beff67d97a54c35e596d35279088cc04f7f3c3f415895e531dfd336e10bb51",
+    "tables/dose.json": "6954261108f854c3032aa854fa0a7cbee35df701406b7a864b985c127105a590",
+    "tables/dose.md": "d882cb89e6f5cde43f907f6068b801a6e650a541573500fc8bf85dca28b3cb47",
+    "tables/hypotheses.csv": "3ae21f02435db57ca2629ed865386bccdd54f3585d69972063fdd3a58c9b3b14",
+    "tables/hypotheses.json": "1e4e08e781c9fa6f9d397418931073ed988feda335e155e41082348b902adcac",
+    "tables/hypotheses.md": "ea8840f5cde538e94ad7fb64cdb49c4315c0f26f07c2daa874b042d41478c5d0",
+    "tables/immune.csv": "6eac0e993b54cac4b11d38ebd4867c5607a09462e7b457fe348b5fd69cef9a41",
+    "tables/immune.json": "7db50ef3e3af64faaf1db5fb3776a7dcf891d3fc7021588cfc8382f5b31eba7b",
+    "tables/immune.md": "151c6992070ca1244ba737b63945c4a04336c4897b0ac76f7e63f9b5cd72e5b5",
+    "tables/injection_layer.csv": "195b626df9a13bab14cb40934cd326894848e956f4d7bcdd8f94269f740a6a78",
+    "tables/injection_layer.json": "997ccedb611a2490f1c67226b1639e7ca9de29528b51cf0f07d725c72d4f57e4",
+    "tables/injection_layer.md": "98360327376b3ca972692e931740064d9cf367a5690488e2164e889803cd464d",
+    "tables/paired.csv": "4f42eb8b2217d321efaa5249500ec4cec1607d8a78f337099b2c38beb0fc1296",
+    "tables/paired.json": "e5a83dcf0f9f160e6f238540fe7c19da851ba2ac141de173139fe440aeabf9cc",
+    "tables/paired.md": "cd30388679428c9533d76c62d567be1611db51c670c15c58ee1e30b5ea2cb9a0",
+    "tables/paired_control.csv": "1a67dcbc779b9de18ea8c493929b11289805bb6936fbb6b3a4dfa7f030699172",
+    "tables/paired_control.json": "5aae85d5207f3df15867edbf8a541638e59a2971ea4561d823667b63f840307d",
+    "tables/paired_control.md": "9dcdc5adb188f162c5647613f4a4896f93df252e43396843c27577319d242a0b",
+    "tables/readout_layer.csv": "e055db3f4e8cbd5903e6e22c9708fddeae6d6c5da81219462e3a57e03f4565eb",
+    "tables/readout_layer.json": "59cab1ae57bc393072b15c31c1397093a477f98cf81c07de952d1d24119fad15",
+    "tables/readout_layer.md": "cd0ef4e6213b9d908dae1a3b4feb7abf59d19fe49409abba7bbe2989fe1598aa",
+    "tables/v4.csv": "cfc75a6b93eccf02845f480acf261981140f5fc2dbcfca24d68f6f56842e1d2e",
+    "tables/v4.json": "6c89c17a88af656c38b9d434aa3c3bc28bd17388ad22cfbe0d3d43adea39e878",
+    "tables/v4.md": "0ebb6fe0402867618c789dfc66dd3e8b95b878c1a54e11e90d0654e7bac0a816",
+    "tables/vector.csv": "ff618480c24979dadfe2a4f0cb81a2e1ccfb6d5eaa108647687660060059e8a6",
+    "tables/vector.json": "ca65a05800534d428ea5e6e3b23a7e54d1c4c096ae845e12c014e796eac3ad34",
+    "tables/vector.md": "34562567d53f55a5aa83a4796a95567eff319992c0562cfcb316a8e2303a3189"
+  },
+  "availability": "unavailable",
+  "bootstrap_resamples": 2000,
+  "completed_generation_answers": 0,
+  "config": {
+    "alarm_percentiles": [
+      95,
+      97,
+      99,
+      99.5,
+      99.9
+    ],
+    "alarm_runs": [
+      3,
+      8
+    ],
+    "alarm_z": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "alphas": [
+      0,
+      0.15,
+      0.3,
+      0.45,
+      0.6,
+      0.75,
+      1,
+      1.25,
+      1.5
+    ],
+    "bootstrap": 2000,
+    "concepts": 30,
+    "contrast_samples": 8,
+    "injection_layers": [
+      4,
+      8,
+      9,
+      12,
+      13,
+      16,
+      18,
+      20
+    ],
+    "max_tokens": 32,
+    "median_norm": 26.78,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "model_path": null,
+    "neutral_generations": 60,
+    "prompts": 6,
+    "readout_layers": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "v4_classifiers": [
+      "lda",
+      "logistic"
+    ],
+    "v4_layers": [
+      [
+        16
+      ],
+      [
+        20
+      ],
+      [
+        22
+      ],
+      [
+        16,
+        20
+      ],
+      [
+        16,
+        20,
+        22
+      ]
+    ],
+    "v4_training_sizes": [
+      8,
+      16,
+      32,
+      48,
+      66
+    ],
+    "v4_whitening": [
+      "none",
+      "standardize",
+      "zca"
+    ],
+    "vectors": [
+      "others",
+      "neutral",
+      "raw",
+      "paired",
+      "whitened",
+      "random"
+    ]
+  },
+  "config_sha256": "24b395d0e0e729a7dae9502742e93f14a344134d907b5b23066ed4f07fe3c71c",
+  "cpu": "x86_64",
+  "errors": [],
+  "execution": "CPU deterministic algorithms, one thread; no network",
+  "git_hash": "fa5eab803edbc6e26d2822c538d9e6211b4f477b",
+  "hypotheses_sha256": "3cbff3604c2af9b237eed9a9afa04ec4874d75cfbc26dd811fadde737ab18954",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "model_file_sha256": {},
+  "numpy": "2.5.4",
+  "package_versions": {
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.4",
+    "torch": "2.15.0+cpu",
+    "transformers": "4.57.6"
+  },
+  "provenance": {},
+  "python": "3.12.14",
+  "registration_commit": "b1a090fc7d7325207f792b9cfe88dc3a01014d9b",
+  "schema": 1,
+  "seed": 0,
+  "source": "realmodel"
+}

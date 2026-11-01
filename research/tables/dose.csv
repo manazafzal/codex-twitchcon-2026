@@ -1,0 +1,10 @@
+alpha,clusters,immune,layer,n,planned_n,readout,reason,status,topical,vector
+0,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+0.15,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+0.3,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+0.45,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+0.6,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+0.75,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+1,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+1.25,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others
+1.5,0,False,16,0,180,20,Local trained model unavailable; no runtime download or substitute evidence,unrun,False,others

@@ -1,0 +1,66 @@
+[
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H1",
+    "n": 0,
+    "reason": "Paired keyword difference",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H2",
+    "n": 0,
+    "reason": "Complete dose grid unavailable",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H3",
+    "n": 0,
+    "reason": "Nonnegative paired bounds on both outcomes against both baselines",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H4",
+    "n": 0,
+    "reason": "Blind all-concept cosine readout",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H5",
+    "n": 0,
+    "reason": "Relative reduction, task proxy and neutral false alarms; ratio undefined for zero control",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H6",
+    "n": 0,
+    "reason": "Disjoint held-out families, seeds and hashes",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H7",
+    "n": 0,
+    "reason": "Matched injected accuracy and independent neutral detector comparison",
+    "status": "unrun"
+  },
+  {
+    "clusters": 0,
+    "decision": "unrun; required component unavailable",
+    "hypothesis": "H8",
+    "n": 0,
+    "reason": "Paired mean middle-layer minus late-layer hit",
+    "status": "unrun"
+  }
+]
