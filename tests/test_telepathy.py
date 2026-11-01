@@ -1,8 +1,8 @@
 import pytest
 
-from thoughtquake.concepts.library import load_concepts
-from thoughtquake.engine.mixer import FakeClock
-from thoughtquake.game.telepathy import Phase, Telepathy
+from nous.concepts.library import load_concepts
+from nous.engine.mixer import FakeClock
+from nous.game.telepathy import Phase, Telepathy
 
 
 def game():

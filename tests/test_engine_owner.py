@@ -2,15 +2,15 @@ import ast
 import asyncio
 from pathlib import Path
 
-from thoughtquake.engine.commands import SetMode
-from thoughtquake.engine.events import Connection, Token
-from thoughtquake.model.mock_backend import MockBackend
-from thoughtquake.server.session import Session
-from thoughtquake.sim.crowd import Crowd
+from nous.engine.commands import SetMode
+from nous.engine.events import Connection, Token
+from nous.model.mock_backend import MockBackend
+from nous.server.session import Session
+from nous.sim.crowd import Crowd
 
 
 def test_external_code_never_accesses_mixer_private_state():
-    root = Path(__file__).parents[1] / "src/thoughtquake"
+    root = Path(__file__).parents[1] / "src/nous"
     for path in root.rglob("*.py"):
         if path.name == "mixer.py":
             continue

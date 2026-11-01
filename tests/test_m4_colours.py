@@ -3,10 +3,10 @@ import json
 import numpy as np
 import pytest
 
-from thoughtquake.engine.events import Push, Token
-from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.mixer import FakeClock, Mixer
-from thoughtquake.model.mock_backend import MockBackend
+from nous.engine.events import Push, Token
+from nous.engine.generate import Generator
+from nous.engine.mixer import FakeClock, Mixer
+from nous.model.mock_backend import MockBackend
 
 
 class ChangingHidden(MockBackend):

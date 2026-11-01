@@ -4,7 +4,7 @@ from dataclasses import is_dataclass
 from html.parser import HTMLParser
 from importlib.resources import files
 
-from thoughtquake.engine import events
+from nous.engine import events
 
 
 class Page(HTMLParser):
@@ -22,7 +22,7 @@ class Page(HTMLParser):
 
 
 def test_every_event_has_an_overlay_handler():
-    js = files("thoughtquake.overlay").joinpath("app.js").read_text()
+    js = files("nous.overlay").joinpath("app.js").read_text()
     handlers = js.split("const handlers = {", 1)[1].split("function dispatch", 1)[0]
     for _, cls in inspect.getmembers(events, inspect.isclass):
         if is_dataclass(cls) and issubclass(cls, events.Event):
@@ -31,7 +31,7 @@ def test_every_event_has_an_overlay_handler():
 
 
 def test_pages_share_renderer_and_all_dom_targets_exist():
-    overlay = files("thoughtquake.overlay")
+    overlay = files("nous.overlay")
     js = overlay.joinpath("app.js").read_text()
     for filename in ("index.html", "fixture.html"):
         page = Page()
@@ -42,7 +42,7 @@ def test_pages_share_renderer_and_all_dom_targets_exist():
         assert "app.js" in page.scripts
     assert "fixture.js" in js
     assert overlay.joinpath("index.html").read_text() == overlay.joinpath("fixture.html").read_text()
-    assert "THOUGHTQUAKE_FIXTURE" in overlay.joinpath("fixture.js").read_text()
+    assert "NOUS_FIXTURE" in overlay.joinpath("fixture.js").read_text()
     css = overlay.joinpath("style.css").read_text()
     assert "width: 1920px" in css and "height: 1080px" in css
     assert "120ms" in css and "600ms" in css

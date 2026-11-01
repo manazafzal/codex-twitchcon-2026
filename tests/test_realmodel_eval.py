@@ -4,18 +4,18 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from thoughtquake.concepts.library import ConceptLibrary
-from thoughtquake.engine.events import Mode, Token
-from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.mixer import FakeClock, ForcedMixer
-from thoughtquake.evaluation import evaluate
-from thoughtquake.model.hf_backend import HFBackend
-from thoughtquake.server.secrecy import BlindProjection
+from nous.concepts.library import ConceptLibrary
+from nous.engine.events import Mode, Token
+from nous.engine.generate import Generator
+from nous.engine.mixer import FakeClock, ForcedMixer
+from nous.evaluation import evaluate
+from nous.model.hf_backend import HFBackend
+from nous.server.secrecy import BlindProjection
 
 pytestmark = [
     pytest.mark.realmodel,
     pytest.mark.skipif(
-        os.getenv("THOUGHTQUAKE_REAL") != "1", reason="Local trained weights are not enabled"
+        os.getenv("NOUS_REAL") != "1", reason="Local trained weights are not enabled"
     ),
 ]
 
@@ -23,14 +23,14 @@ pytestmark = [
 @pytest.fixture(scope="module")
 def backend():
     try:
-        return HFBackend(local_path=os.getenv("THOUGHTQUAKE_MODEL_PATH"))
+        return HFBackend(local_path=os.getenv("NOUS_MODEL_PATH"))
     except (OSError, ImportError):
         pytest.skip("Trained weights are not available locally")
 
 
 @pytest.fixture(scope="module")
 def library():
-    path = Path(os.getenv("THOUGHTQUAKE_LIBRARY", "library/qwen2.5-0.5b-instruct.npz"))
+    path = Path(os.getenv("NOUS_LIBRARY", "library/qwen2.5-0.5b-instruct.npz"))
     if not path.exists():
         pytest.skip("Trained library is unavailable")
     return ConceptLibrary.load(path)
@@ -76,7 +76,7 @@ def test_real_tokens_do_not_reveal_concepts(backend, library):
         library.ids[0], alpha=0.45, median_norm=library.median_residual_norm, clock=clock
     )
     engine = Generator(backend, library, mixer)
-    from thoughtquake.engine.events import Push
+    from nous.engine.events import Push
 
     for i in range(60):
         engine.push(Push(f"sim_{i:03}", library.ids[0], 0, "SIMULATED"))

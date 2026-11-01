@@ -5,12 +5,12 @@ from dataclasses import replace
 
 from aiohttp.test_utils import TestClient, TestServer
 
-from thoughtquake.concepts.library import load_concepts
-from thoughtquake.engine.events import Guess, Layout, Mode, Push, Tamper, Tick, Token
-from thoughtquake.replay.recorder import Recorder
-from thoughtquake.server.app import APP_KEY, create_app
-from thoughtquake.server.leaderboard import Leaderboard
-from thoughtquake.server.secrecy import BlindProjection
+from nous.concepts.library import load_concepts
+from nous.engine.events import Guess, Layout, Mode, Push, Tamper, Tick, Token
+from nous.replay.recorder import Recorder
+from nous.server.app import APP_KEY, create_app
+from nous.server.leaderboard import Leaderboard
+from nous.server.secrecy import BlindProjection
 
 
 def payload_strings(value):
@@ -131,7 +131,7 @@ def test_recording_client_whole_blind_round_api_html_and_board(tmp_path):
                 for event in sequence:
                     await server.publish(event)
                     # A sentinel status lets the client drain all emitted layout/text frames.
-                    from thoughtquake.engine.events import Connection
+                    from nous.engine.events import Connection
 
                     await server.publish(Connection("test", "boundary"))
                     while True:
@@ -162,7 +162,7 @@ def test_recording_client_whole_blind_round_api_html_and_board(tmp_path):
 
 
 def test_raw_snapshots_are_scrubbed_and_logs_hold_until_reveal(tmp_path):
-    from thoughtquake.server.state import ViewState
+    from nous.server.state import ViewState
 
     library = load_concepts()
     state = ViewState(library)

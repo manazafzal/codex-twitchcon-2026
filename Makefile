@@ -1,9 +1,9 @@
 .PHONY: check eval demo
 check:
 	ruff check .
-	mypy src/thoughtquake/engine src/thoughtquake/model src/thoughtquake/concepts src/thoughtquake/evaluation.py
+	mypy src/nous/engine src/nous/model src/nous/concepts src/nous/evaluation.py
 	pytest -q
 eval:
-	thoughtquake eval
+	nous eval
 demo:
-	thoughtquake demo --mock
+	nous demo --mock

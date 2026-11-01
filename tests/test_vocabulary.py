@@ -2,7 +2,7 @@ import ast
 import re
 from pathlib import Path
 
-from thoughtquake.cli import main
+from nous.cli import main
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -72,7 +72,7 @@ def test_detector_catches_case_and_word_boundaries():
 
 
 def test_overlay_keeps_simulated_badge_logic():
-    script = (ROOT / "src/thoughtquake/overlay/app.js").read_text()
+    script = (ROOT / "src/nous/overlay/app.js").read_text()
     assert "SIMULATED ×" in script
     assert "handlers.badge" in script
     assert "event.label" in script

@@ -5,17 +5,17 @@ import json
 from dataclasses import asdict, replace
 from pathlib import Path
 
-from thoughtquake.concepts.builder import build_library
-from thoughtquake.concepts.library import load_concepts
-from thoughtquake.engine.events import Badge, Layout, Mode, Push, Token
-from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.mixer import FakeClock, Mixer
-from thoughtquake.engine.rounds import FixedInjection
-from thoughtquake.model.mock_backend import MockBackend
-from thoughtquake.model.tiny_backend import TinyBackend
-from thoughtquake.server.presentation import Presentation
-from thoughtquake.server.session import mock_library
-from thoughtquake.server.state import ViewState
+from nous.concepts.builder import build_library
+from nous.concepts.library import load_concepts
+from nous.engine.events import Badge, Layout, Mode, Push, Token
+from nous.engine.generate import Generator
+from nous.engine.mixer import FakeClock, Mixer
+from nous.engine.rounds import FixedInjection
+from nous.model.mock_backend import MockBackend
+from nous.model.tiny_backend import TinyBackend
+from nous.server.presentation import Presentation
+from nous.server.session import mock_library
+from nous.server.state import ViewState
 
 
 def capture(backend, library):
@@ -98,8 +98,8 @@ def main():
         "mock": capture(MockBackend(), mock_library()),
         "concepts": [asdict(c) for c in library.concepts],
     }
-    Path("src/thoughtquake/overlay/trace_data.js").write_text(
-        "/* Recorded development traces; never production data. */\nwindow.THOUGHTQUAKE_TRACES = "
+    Path("src/nous/overlay/trace_data.js").write_text(
+        "/* Recorded development traces; never production data. */\nwindow.NOUS_TRACES = "
         + json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         + ";\n"
     )

@@ -1,4 +1,4 @@
-# THOUGHTQUAKE evaluation
+# NOUS evaluation
 
 Source: mock · TINY MODEL / CI
 

@@ -16,9 +16,9 @@ SCENE_TIMES = {"attack": 3.5, "reveal": 8.5}
 
 
 async def advance(browser, seconds):
-    await browser.evaluate(f"""(()=>{{const atlas=ThoughtquakeAtlas,draw=atlas.draw;
+    await browser.evaluate(f"""(()=>{{const atlas=NousAtlas,draw=atlas.draw;
         atlas.draw=()=>{{}};try{{for(let i=0;i<{round(seconds * 30)};i++)
-        ThoughtquakeOverlay.step(1/30);}}finally{{atlas.draw=draw;}}atlas.draw();}})()""")
+        NousOverlay.step(1/30);}}finally{{atlas.draw=draw;}}atlas.draw();}})()""")
 
 
 async def measure(output):
@@ -31,7 +31,7 @@ async def measure(output):
             (output / f"{scene}.png").write_bytes(png)
             image = pixels(png)
             results[scene] = {
-                "renderer": await browser.evaluate("ThoughtquakeAtlas.renderer"),
+                "renderer": await browser.evaluate("NousAtlas.renderer"),
                 "white_fraction": float(np.all(image[:, :, :3] >= 250, axis=2).mean()),
                 "console_errors": len(browser.errors),
             }
@@ -51,7 +51,7 @@ async def measure(output):
             "fps": 1000 / float(np.mean(timing)),
             "p95_ms": float(np.percentile(timing, 95)),
             "wall_seconds": time.perf_counter() - start,
-            "stats": await browser.evaluate("ThoughtquakeOverlay.stats()"),
+            "stats": await browser.evaluate("NousOverlay.stats()"),
         }
     async with Browser("manual&scale=.5&bg=transparent") as browser:
         await advance(browser, 10)
@@ -133,10 +133,10 @@ Browser tests also verify every canvas has an accessible label, computed text si
 ```sh
 make check
 python -m tools.measure_overlay
-python -m tools.film --verify --output /tmp/thoughtquake.mp4
+python -m tools.film --verify --output /tmp/nous.mp4
 ```
 
-The scripts enable development fixtures only within their process. To view them separately: `THOUGHTQUAKE_DEV_FIXTURES=1 thoughtquake demo --mock`, then open `/fixture.html?scene=war` (also attack, immune, telepathy, reveal). Use `backend=tiny` for captured random-init model states and text. No test downloads a browser, font, model or JavaScript dependency.
+The scripts enable development fixtures only within their process. To view them separately: `NOUS_DEV_FIXTURES=1 nous demo --mock`, then open `/fixture.html?scene=war` (also attack, immune, telepathy, reveal). Use `backend=tiny` for captured random-init model states and text. No test downloads a browser, font, model or JavaScript dependency.
 
 Not verified: trained-model visuals, hardware GPU performance, OBS composition over actual stream footage, and live Twitch viewing. The requested milestone geometry and 17 px minimum supersede SPEC §15's previous layout and type minimum.
 """)

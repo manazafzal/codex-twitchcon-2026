@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from thoughtquake.engine.events import (
+from nous.engine.events import (
     Badge,
     Mode,
     Push,

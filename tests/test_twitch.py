@@ -10,12 +10,12 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
 
-from thoughtquake.concepts.library import load_concepts
-from thoughtquake.engine.mixer import FakeClock
-from thoughtquake.twitch.auth import SCOPES, AuthError, OAuth, Token, TokenStore
-from thoughtquake.twitch.chat_send import ChatSender
-from thoughtquake.twitch.eventsub import EVENTSUB_URL, EventSub
-from thoughtquake.twitch.parse import ChatParser
+from nous.concepts.library import load_concepts
+from nous.engine.mixer import FakeClock
+from nous.twitch.auth import SCOPES, AuthError, OAuth, Token, TokenStore
+from nous.twitch.chat_send import ChatSender
+from nous.twitch.eventsub import EVENTSUB_URL, EventSub
+from nous.twitch.parse import ChatParser
 
 FIXTURES = Path(__file__).parent / "fixtures/twitch"
 
@@ -561,11 +561,11 @@ def test_atomic_store_keeps_old_file_if_replace_fails(monkeypatch, tmp_path):
 
 
 def test_live_session_routes_pushes_records_and_disables_crowd(tmp_path):
-    from thoughtquake.engine.events import Badge, Connection, Push
-    from thoughtquake.replay.player import Player
-    from thoughtquake.server.session import Session
-    from thoughtquake.sim.crowd import Crowd
-    from thoughtquake.twitch.live import LiveSession
+    from nous.engine.events import Badge, Connection, Push
+    from nous.replay.player import Player
+    from nous.server.session import Session
+    from nous.sim.crowd import Crowd
+    from nous.twitch.live import LiveSession
 
     async def run():
         api = FakeTwitch()
@@ -609,8 +609,8 @@ def test_live_session_routes_pushes_records_and_disables_crowd(tmp_path):
 
 
 def test_twitch_identity_spam_control_survives_display_name_change():
-    from thoughtquake.engine.events import Push
-    from thoughtquake.engine.mixer import Mixer
+    from nous.engine.events import Push
+    from nous.engine.mixer import Mixer
 
     clock = FakeClock()
     mixer = Mixer(clock=clock)
@@ -621,12 +621,12 @@ def test_twitch_identity_spam_control_survives_display_name_change():
 
 
 def test_explicit_simulation_retains_secondary_badge_in_live_and_replay(tmp_path):
-    from thoughtquake.engine.events import Badge, Connection
-    from thoughtquake.replay.player import Player
-    from thoughtquake.replay.recorder import Recorder
-    from thoughtquake.server.session import Session
-    from thoughtquake.server.state import ViewState
-    from thoughtquake.sim.crowd import Crowd
+    from nous.engine.events import Badge, Connection
+    from nous.replay.player import Player
+    from nous.replay.recorder import Recorder
+    from nous.server.session import Session
+    from nous.server.state import ViewState
+    from nous.sim.crowd import Crowd
 
     async def badge():
         session = Session(crowd=Crowd(twitch_connected=True, explicit_sim=True), source="LIVE")
@@ -657,9 +657,9 @@ def test_explicit_simulation_retains_secondary_badge_in_live_and_replay(tmp_path
 
 
 def test_live_recording_closes_even_before_workers_start(monkeypatch, tmp_path):
-    from thoughtquake.server.session import Session
-    from thoughtquake.sim.crowd import Crowd
-    from thoughtquake.twitch import live
+    from nous.server.session import Session
+    from nous.sim.crowd import Crowd
+    from nous.twitch import live
 
     instances = []
     real_recorder = live.Recorder

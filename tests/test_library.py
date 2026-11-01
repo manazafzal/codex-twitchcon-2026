@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from thoughtquake.concepts.builder import build_library
-from thoughtquake.concepts.library import ConceptLibrary, config_hash, load_concepts, match_concept
-from thoughtquake.model.mock_backend import MockBackend
+from nous.concepts.builder import build_library
+from nous.concepts.library import ConceptLibrary, config_hash, load_concepts, match_concept
+from nous.model.mock_backend import MockBackend
 
 
 def test_library_roundtrip_and_hash(tmp_path, library):
@@ -60,7 +60,7 @@ def test_builder_is_deterministic_and_uses_97th_percentile():
 
 
 def test_builder_difference_of_means_and_neutral_calibration(monkeypatch):
-    from thoughtquake.concepts import builder
+    from nous.concepts import builder
 
     prompts = []
     count = 0
@@ -99,7 +99,7 @@ def test_builder_difference_of_means_and_neutral_calibration(monkeypatch):
 
 
 def test_mean_hidden_weights_tokens_equally():
-    from thoughtquake.concepts.builder import mean_hidden
+    from nous.concepts.builder import mean_hidden
 
     class Embeddings:
         def token_hidden(self, text, layer):

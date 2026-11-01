@@ -4,14 +4,14 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
-from thoughtquake.concepts.library import ConceptLibrary, load_concepts
-from thoughtquake.concepts.probe import Example, check_partitions, fit_lda, lda_scores
-from thoughtquake.engine.events import Push, Tamper
-from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.immune import AlarmMonitor
-from thoughtquake.engine.mixer import FakeClock, ForcedMixer
-from thoughtquake.engine.readout import Readout
-from thoughtquake.evaluation import (
+from nous.concepts.library import ConceptLibrary, load_concepts
+from nous.concepts.probe import Example, check_partitions, fit_lda, lda_scores
+from nous.engine.events import Push, Tamper
+from nous.engine.generate import Generator
+from nous.engine.immune import AlarmMonitor
+from nous.engine.mixer import FakeClock, ForcedMixer
+from nous.engine.readout import Readout
+from nous.evaluation import (
     METRICS,
     Trial,
     estimate,
@@ -21,12 +21,12 @@ from thoughtquake.evaluation import (
     wilson,
     write_report,
 )
-from thoughtquake.model.mock_backend import MockBackend
-from thoughtquake.server.session import mock_library
+from nous.model.mock_backend import MockBackend
+from nous.server.session import mock_library
 
 
 def test_others_vectors_calibration_and_all_array_checks(monkeypatch, tmp_path):
-    from thoughtquake.concepts import builder
+    from nous.concepts import builder
 
     class Backend:
         injection_layer, readout_layer, hidden_size, num_layers = 16, 20, 3, 24
@@ -62,7 +62,7 @@ def test_others_vectors_calibration_and_all_array_checks(monkeypatch, tmp_path):
     monkeypatch.setattr(builder, "neutral_set", neutral)
     library = builder.build_library(Backend(), load_concepts()[:3], samples=1)
     expected = np.stack(list(means.values()))
-    from thoughtquake.engine.immune import unit
+    from nous.engine.immune import unit
 
     np.testing.assert_allclose(library.V, unit(expected - (expected.sum(axis=0) - expected) / 2))
     assert library.config["excluded_positions"] == [0]
@@ -309,7 +309,7 @@ def test_alpha_zero_text_detector_control_has_no_hit():
 
 
 def test_training_data_basis_survives_fitting(tmp_path):
-    from thoughtquake.evaluation_data import load_examples, save_examples
+    from nous.evaluation_data import load_examples, save_examples
 
     library = ConceptLibrary(
         load_concepts()[:3],
@@ -331,8 +331,8 @@ def test_training_data_basis_survives_fitting(tmp_path):
 
 
 def test_fixed_rounds_preserve_modern_alpha_and_legacy_strength():
-    from thoughtquake.engine.mixer import Mixer
-    from thoughtquake.engine.rounds import FixedInjection
+    from nous.engine.mixer import Mixer
+    from nous.engine.rounds import FixedInjection
 
     for war, expected in ((Mixer(alpha=0.45, median_norm=26.78), 0.45 * 26.78), (Mixer(), 20)):
         fixed = FixedInjection(war, "ocean")
@@ -350,9 +350,9 @@ def test_eval_rejects_fitted_seed_overlap():
 
 
 def test_fit_cli_reuses_local_split_data_without_loading_model(tmp_path, monkeypatch):
-    from thoughtquake.cli import main
-    from thoughtquake.evaluation_data import save_examples
-    from thoughtquake.model.hf_backend import HFBackend
+    from nous.cli import main
+    from nous.evaluation_data import save_examples
+    from nous.model.hf_backend import HFBackend
 
     train, validation, test = partitions()
     library = ConceptLibrary(

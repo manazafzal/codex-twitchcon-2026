@@ -2,7 +2,7 @@ import asyncio
 from importlib.resources import files
 from pathlib import Path
 
-from thoughtquake.sim.crowd import Crowd, load_script
+from nous.sim.crowd import Crowd, load_script
 
 
 def test_seeded_script_waves_and_names():
@@ -34,4 +34,4 @@ def test_seeded_script_waves_and_names():
 def test_committed_script_is_packaged():
     root = Path(__file__).resolve().parents[1]
     assert load_script(root / "golden/demo_script.json") == load_script()
-    assert files("thoughtquake.sim").joinpath("demo_script.json").is_file()
+    assert files("nous.sim").joinpath("demo_script.json").is_file()

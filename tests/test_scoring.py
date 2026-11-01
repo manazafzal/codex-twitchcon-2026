@@ -4,9 +4,9 @@ import signal
 
 import pytest
 
-from thoughtquake.engine.mixer import FakeClock
-from thoughtquake.server.leaderboard import Leaderboard
-from thoughtquake.server.scoring import Scoring
+from nous.engine.mixer import FakeClock
+from nous.server.leaderboard import Leaderboard
+from nous.server.scoring import Scoring
 
 
 def test_scoring_formula_cooldown_caps_and_guess_ranks():

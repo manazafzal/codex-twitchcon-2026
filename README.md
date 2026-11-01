@@ -1,4 +1,6 @@
-# THOUGHTQUAKE
+# NOUS
+
+Nous is the Greek word for mind: chat reaches into a mind, and the mind defends itself.
 
 Chat factions contest the Subject's mind territory, watched by a Mind-Reader
 and a Neural Immune System. M1–M4 provide the local engine, browser overlay, labelled offline crowd,
@@ -9,18 +11,18 @@ python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
 make check
-thoughtquake demo --mock
+nous demo --mock
 ```
 
 Open **http://127.0.0.1:8080/** for the overlay, or
 **http://127.0.0.1:8080/fixture.html** for the development hero view when
-`THOUGHTQUAKE_DEV_FIXTURES=1` is set.
+`NOUS_DEV_FIXTURES=1` is set.
 The fixture uses a canned event list and the same renderer as the live view.
 Append `?bg=transparent` for OBS. The canvas scales from 1920×1080.
 
 Every demo is labelled **SIMULATED ×40** and **TINY MODEL / CI**. Mock text is
 scripted to test presentation; its vectors and scores are test fixtures, not
-model-quality evidence. `thoughtquake demo` uses random-init Tiny Qwen2 when the
+model-quality evidence. `nous demo` uses random-init Tiny Qwen2 when the
 optional model dependencies are installed, otherwise the mock. Neither downloads
 weights. Install `.[dev,model]` for Tiny tests; tests allow only local loopback sockets.
 
@@ -31,9 +33,9 @@ It defaults off when its `twitch_connected` integration flag is set. Live Twitch
 Record and replay:
 
 ```sh
-thoughtquake demo --mock --record work/demo.jsonl
-thoughtquake replay work/demo.jsonl --frames
-thoughtquake replay work/demo.jsonl --engine
+nous demo --mock --record work/demo.jsonl
+nous replay work/demo.jsonl --frames
+nous replay work/demo.jsonl --engine
 ```
 
 Frame replay needs no model and renders recorded output, with the source badge
@@ -90,19 +92,19 @@ colours require a real-model eval with window agreement ≥ 0.75 for the schedul
 
 The Neural Immune System clamps projections along known library injection
 directions. It does not defend against arbitrary prompt injection.
-`thoughtquake build-library --model-path /local/qwen` uses local Qwen2.5 weights
+`nous build-library --model-path /local/qwen` uses local Qwen2.5 weights
 to generate contrast sets and neutral calibration. Runtime never downloads weights.
 
 Offline evaluation and readout fitting:
 
 ```sh
-thoughtquake calibrate-alarm --library library/qwen2.5-0.5b-instruct.npz --seed 1
-thoughtquake fit-readout --library library/qwen2.5-0.5b-instruct.npz
-thoughtquake eval --library library/qwen2.5-0.5b-instruct.npz --output results
-thoughtquake eval --mock --output work/eval-ci
+nous calibrate-alarm --library library/qwen2.5-0.5b-instruct.npz --seed 1
+nous fit-readout --library library/qwen2.5-0.5b-instruct.npz
+nous eval --library library/qwen2.5-0.5b-instruct.npz --output results
+nous eval --mock --output work/eval-ci
 ```
 
-Set `THOUGHTQUAKE_MODEL_PATH` to locally provisioned weights. Evaluation writes
+Set `NOUS_MODEL_PATH` to locally provisioned weights. Evaluation writes
 ordered JSON/Markdown tables with sample counts, concept-cluster uncertainty,
 matched controls and provenance. Missing trained artifacts stop a real run; they
 never trigger a mock substitute. CI output is explicitly **TINY MODEL / CI**.
@@ -111,8 +113,8 @@ See [architecture and evidence limits](docs/architecture.md). No trained-model
 quality, throughput or false-alarm result has been verified in this checkout.
 
 Live chat setup: register a **Public** Twitch app, set
-`THOUGHTQUAKE_TWITCH_CLIENT_ID`, run `thoughtquake auth`, then
-`thoughtquake run --channel NAME [--sim] [--record FILE]`. The source badge is
+`NOUS_TWITCH_CLIENT_ID`, run `nous auth`, then
+`nous run --channel NAME [--sim] [--record FILE]`. The source badge is
 **LIVE**. Simulation is disabled unless explicitly requested and then retains its
 own badge. A built library can be supplied with `--library`; otherwise the model
 output remains explicitly labelled **TINY MODEL / CI**. See the streamer guide

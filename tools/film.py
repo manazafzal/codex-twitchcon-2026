@@ -38,7 +38,7 @@ async def film(*, seconds=20, fps=30, output=None, scene="war", backend="mock", 
     try:
         async with Browser(f"manual&scale=.5&scene={scene}&backend={backend}", *size) as browser:
             for _ in range(round(seconds * fps)):
-                await browser.evaluate(f"window.ThoughtquakeOverlay.step({1 / fps!r})")
+                await browser.evaluate(f"window.NousOverlay.step({1 / fps!r})")
                 frame = await browser.screenshot()
                 hashes.append(hashlib.sha256(frame).hexdigest())
                 if encoder:
@@ -56,7 +56,7 @@ async def film(*, seconds=20, fps=30, output=None, scene="war", backend="mock", 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--hashes", type=Path, default=Path("/tmp/thoughtquake-film.json"))
+    parser.add_argument("--hashes", type=Path, default=Path("/tmp/nous-film.json"))
     parser.add_argument(
         "--scene", choices=["war", "attack", "immune", "telepathy", "reveal"], default="war"
     )

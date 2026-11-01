@@ -14,7 +14,7 @@ import aiohttp
 import numpy as np
 from aiohttp.test_utils import TestServer
 
-from thoughtquake.server.app import create_app
+from nous.server.app import create_app
 
 CHROME = shutil.which("chromium") or shutil.which("google-chrome")
 
@@ -29,7 +29,7 @@ class Browser:
         if not CHROME:
             raise RuntimeError("Chrome is unavailable")
         self.temp = tempfile.TemporaryDirectory(
-            prefix="thoughtquake-chrome-", ignore_cleanup_errors=True
+            prefix="nous-chrome-", ignore_cleanup_errors=True
         )
         self.server = TestServer(create_app())
         await self.server.start_server()
@@ -96,12 +96,12 @@ class Browser:
         url = str(self.server.make_url("/fixture.html")) + "?" + self.query
         await self.call("Page.navigate", url=url)
         for _ in range(200):
-            if await self.evaluate("!!window.ThoughtquakeOverlay?.fixture"):
+            if await self.evaluate("!!window.NousOverlay?.fixture"):
                 break
             await asyncio.sleep(0.025)
         else:
             state = await self.evaluate(
-                "({url:location.href,body:document.body?.textContent,scripts:Array.from(document.scripts).map(s=>s.src),ui:!!window.ThoughtquakeOverlay,trace:!!window.THOUGHTQUAKE_TRACES})"
+                "({url:location.href,body:document.body?.textContent,scripts:Array.from(document.scripts).map(s=>s.src),ui:!!window.NousOverlay,trace:!!window.NOUS_TRACES})"
             )
             await self.__aexit__()
             raise RuntimeError(f"Fixture did not start: {self.errors} {state}")
@@ -203,4 +203,4 @@ def pixels(png):
 
 
 def fixture_environment():
-    os.environ["THOUGHTQUAKE_DEV_FIXTURES"] = "1"
+    os.environ["NOUS_DEV_FIXTURES"] = "1"

@@ -2,15 +2,15 @@ import asyncio
 
 import numpy as np
 
-from thoughtquake.engine.events import Control, Guess, Immune, Mode, Push, Round, Token
-from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.mixer import FakeClock, Mixer
-from thoughtquake.game.telepathy import Phase
-from thoughtquake.model.mock_backend import MockBackend
-from thoughtquake.replay.player import Player
-from thoughtquake.replay.recorder import Recorder
-from thoughtquake.server.session import Session, mock_library
-from thoughtquake.sim.crowd import Crowd
+from nous.engine.events import Control, Guess, Immune, Mode, Push, Round, Token
+from nous.engine.generate import Generator
+from nous.engine.mixer import FakeClock, Mixer
+from nous.game.telepathy import Phase
+from nous.model.mock_backend import MockBackend
+from nous.replay.player import Player
+from nous.replay.recorder import Recorder
+from nous.server.session import Session, mock_library
+from nous.sim.crowd import Crowd
 
 
 def test_telepathy_director_injects_secret_scores_reveals_and_replays(monkeypatch, tmp_path):

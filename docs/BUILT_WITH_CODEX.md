@@ -49,3 +49,10 @@ Review caught and fixed double-standardizing SD scores, active-only ranking, a c
 - [4f47c83 — measured CI report, raw trials and uncertainty tables](https://github.com/manazafzal/codex-twitchcon-2026/commit/4f47c83)
 
 The post-report vocabulary and evaluation suite passed with 17 tests; ruff and whitespace checks passed. No runtime code changed after the complete check.
+
+
+## NOUS rename
+
+The product, package, CLI, environment prefix, browser titles/globals, tests, documentation, Makefile and repository evaluation skill now use NOUS. Nous is Greek for mind: chat reaches into a mind, and the mind defends itself. This is a standalone rename commit before further backend fixes. Source badges and event fields are unchanged. Local config now uses the NOUS directory; existing credentials outside this checkout were not moved.
+
+Rename validation: ruff and scoped mypy passed; 131 non-browser tests passed. Screenshots were refreshed with the NOUS wordmark; browser preflight checks all five scenes, fallback, full labels and transparency. The final milestone check also runs the full deterministic film comparison. A case-insensitive repository search found no earlier product name in tracked text or paths. No trained-model measurement was inferred from the rename.

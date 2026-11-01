@@ -16,7 +16,7 @@
   },
   "telepathy": {
     "renderer": "gl",
-    "white_fraction": 0.0018484760802469137,
+    "white_fraction": 0.0018494405864197532,
     "console_errors": 0
   },
   "reveal": {
@@ -26,22 +26,22 @@
   },
   "performance": {
     "frames": 120,
-    "mean_ms": 732.1933333333334,
-    "fps": 1.3657594988573145,
-    "p95_ms": 1350.7350000000013,
-    "wall_seconds": 87.88041013600014,
+    "mean_ms": 725.11,
+    "fps": 1.3791011019017805,
+    "p95_ms": 2001.665,
+    "wall_seconds": 87.02275465099956,
     "stats": {
       "renderer": "gl",
       "scale": 0.5,
-      "meanFrameMs": 709.6491935483871,
-      "frames": 124,
+      "meanFrameMs": 708.2373983739838,
+      "frames": 123,
       "stars": 30,
-      "time": 87.99649999999998,
+      "time": 87.11320000000003,
       "queuedWords": 0
     }
   },
   "transparent": {
-    "fraction_alpha_below_255": 0.9383424961419753
+    "fraction_alpha_below_255": 0.9386222029320987
   },
   "quarter": {
     "left_column_contrast_ratio": 4.789214265147968

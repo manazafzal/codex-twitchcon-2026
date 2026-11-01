@@ -3,8 +3,8 @@ import math
 import numpy as np
 import pytest
 
-from thoughtquake.engine.events import Push
-from thoughtquake.engine.mixer import FakeClock, Mixer
+from nous.engine.events import Push
+from nous.engine.mixer import FakeClock, Mixer
 
 
 def push(mixer, clock, user, faction="ocean"):

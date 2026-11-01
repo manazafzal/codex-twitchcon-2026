@@ -5,12 +5,12 @@ import numpy as np
 import pytest
 from aiohttp.test_utils import TestClient, TestServer
 
-from thoughtquake.engine.atlas import AtlasSignals, pca_points
-from thoughtquake.engine.events import Layout, Mode, Tick, Token, event_from_dict
-from thoughtquake.model.backend import State
-from thoughtquake.server.app import APP_KEY, create_app
-from thoughtquake.server.presentation import Presentation
-from thoughtquake.server.session import mock_library
+from nous.engine.atlas import AtlasSignals, pca_points
+from nous.engine.events import Layout, Mode, Tick, Token, event_from_dict
+from nous.model.backend import State
+from nous.server.app import APP_KEY, create_app
+from nous.server.presentation import Presentation
+from nous.server.session import mock_library
 
 
 def test_pca_is_centered_deterministic_and_normalized():
@@ -118,12 +118,12 @@ def test_fixtures_are_opt_in_and_fonts_are_allowlisted(monkeypatch):
             assert library.ids[0] not in data["tick"]["shares"]
             assert json.loads(json.dumps(data)) == data
 
-    monkeypatch.delenv("THOUGHTQUAKE_DEV_FIXTURES", raising=False)
+    monkeypatch.delenv("NOUS_DEV_FIXTURES", raising=False)
     asyncio.run(run())
 
 
 def test_calibration_library_roundtrip_and_hash(tmp_path):
-    from thoughtquake.concepts.library import ConceptLibrary
+    from nous.concepts.library import ConceptLibrary
 
     library = mock_library()
     path = tmp_path / "atlas.npz"

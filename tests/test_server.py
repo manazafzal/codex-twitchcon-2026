@@ -4,13 +4,13 @@ import json
 from aiohttp import WSCloseCode
 from aiohttp.test_utils import TestClient, TestServer
 
-from thoughtquake.engine.events import Badge, Mode, Push, Token
-from thoughtquake.server.app import APP_KEY, create_app
-from thoughtquake.server.state import ViewState
+from nous.engine.events import Badge, Mode, Push, Token
+from nous.server.app import APP_KEY, create_app
+from nous.server.state import ViewState
 
 
 def test_static_api_auth_and_websocket_broadcast(library, monkeypatch):
-    monkeypatch.setenv("THOUGHTQUAKE_DEV_FIXTURES", "1")
+    monkeypatch.setenv("NOUS_DEV_FIXTURES", "1")
     async def run():
         switches = []
         app = create_app(

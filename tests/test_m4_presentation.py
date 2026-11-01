@@ -2,10 +2,10 @@ import asyncio
 
 from aiohttp.test_utils import TestClient, TestServer
 
-from thoughtquake.engine.events import Immune, Mode, Tamper, Token
-from thoughtquake.server.app import APP_KEY, create_app
-from thoughtquake.server.presentation import Presentation
-from thoughtquake.server.state import ViewState
+from nous.engine.events import Immune, Mode, Tamper, Token
+from nous.server.app import APP_KEY, create_app
+from nous.server.presentation import Presentation
+from nous.server.state import ViewState
 
 
 def token():

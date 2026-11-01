@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from thoughtquake.concepts.library import load_concepts
-from thoughtquake.engine.events import Control, Guess, Mode, Round, Tick, Token
-from thoughtquake.server.session import Session
-from thoughtquake.sim.crowd import Crowd
-from thoughtquake.twitch.live import LiveSession
-from thoughtquake.twitch.parse import ChatParser
+from nous.concepts.library import load_concepts
+from nous.engine.events import Control, Guess, Mode, Round, Tick, Token
+from nous.server.session import Session
+from nous.sim.crowd import Crowd
+from nous.twitch.live import LiveSession
+from nous.twitch.parse import ChatParser
 
 
 def message(text, *, user_id="300", badges=()):

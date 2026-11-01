@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "thoughtquake"
+name = "nous"
 version = "0.1.0"
-description = "THOUGHTQUAKE local thought injection engine"
+description = "NOUS local thought injection engine"
 requires-python = ">=3.11"
 dependencies = ["numpy", "aiohttp", "pyyaml"]
 
@@ -14,15 +14,15 @@ dev = ["pytest", "ruff", "mypy", "types-PyYAML"]
 model = ["torch", "transformers>=4.46,<5"]
 
 [project.scripts]
-thoughtquake = "thoughtquake.cli:main"
+nous = "nous.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"thoughtquake.concepts" = ["concepts.yaml"]
-"thoughtquake.overlay" = ["*.html", "*.css", "*.js", "fonts/*.ttf", "fonts/*.txt"]
-"thoughtquake.sim" = ["demo_script.json"]
+"nous.concepts" = ["concepts.yaml"]
+"nous.overlay" = ["*.html", "*.css", "*.js", "fonts/*.ttf", "fonts/*.txt"]
+"nous.sim" = ["demo_script.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

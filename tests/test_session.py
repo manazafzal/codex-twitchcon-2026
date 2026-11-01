@@ -1,13 +1,13 @@
 import asyncio
 
-from thoughtquake.engine.events import Badge, Mode, Push, Token
-from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.mixer import FakeClock, Mixer
-from thoughtquake.model.mock_backend import MockBackend
-from thoughtquake.replay.player import Player
-from thoughtquake.replay.recorder import Recorder
-from thoughtquake.server.session import Session, mock_library
-from thoughtquake.sim.crowd import Crowd
+from nous.engine.events import Badge, Mode, Push, Token
+from nous.engine.generate import Generator
+from nous.engine.mixer import FakeClock, Mixer
+from nous.model.mock_backend import MockBackend
+from nous.replay.player import Player
+from nous.replay.recorder import Recorder
+from nous.server.session import Session, mock_library
+from nous.sim.crowd import Crowd
 
 
 def test_recorded_session_regenerates_tokens_and_comparison(monkeypatch, tmp_path):

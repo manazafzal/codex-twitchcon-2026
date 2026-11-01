@@ -30,7 +30,7 @@ A round distributes a bounded push budget using measured answer concept hits, fa
 
 ## Evaluation evidence
 
-`thoughtquake eval` runs the real backend and Generator with matched prompts/seeds, independent embedding thresholds and saturated forced-target input. It records vector/library/git hashes, hardware, trial text hashes, raw trial measurements and throughput. Every metric includes its valid sample count, concept cluster count, a seeded concept-cluster bootstrap interval, and an additional Wilson interval where appropriate. JSON metric order matches the generated Markdown columns.
+`nous eval` runs the real backend and Generator with matched prompts/seeds, independent embedding thresholds and saturated forced-target input. It records vector/library/git hashes, hardware, trial text hashes, raw trial measurements and throughput. Every metric includes its valid sample count, concept cluster count, a seeded concept-cluster bootstrap interval, and an additional Wilson interval where appropriate. JSON metric order matches the generated Markdown columns.
 
 The held-out comparison evaluates old and v4 labels on the same unseen-template examples. Evaluation rejects fitting-family/seed reuse and overlap with stored text hashes. Missing v4 arrays produce unavailable results. Task retention is a lexical-anchor/repetition proxy, not a human judgement of relevance; embedding hit is a thresholded local-model text projection, not an independent semantic judge. These definitions limit comparison with externally supplied benchmark figures.
 

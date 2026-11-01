@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from thoughtquake.engine.immune import ImmuneMonitor, clamp
-from thoughtquake.model.backend import DefendSpec
+from nous.engine.immune import ImmuneMonitor, clamp
+from nous.model.backend import DefendSpec
 
 
 def test_clamp_reduces_to_threshold_and_preserves_orthogonal_components():

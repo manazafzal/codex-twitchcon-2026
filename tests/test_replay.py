@@ -3,12 +3,12 @@ import json
 
 import pytest
 
-from thoughtquake.engine.events import Badge, Mode, Push, Token
-from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.mixer import FakeClock, Mixer
-from thoughtquake.model.mock_backend import MockBackend
-from thoughtquake.replay.player import Player
-from thoughtquake.replay.recorder import Recorder
+from nous.engine.events import Badge, Mode, Push, Token
+from nous.engine.generate import Generator
+from nous.engine.mixer import FakeClock, Mixer
+from nous.model.mock_backend import MockBackend
+from nous.replay.player import Player
+from nous.replay.recorder import Recorder
 
 
 def metadata(library):

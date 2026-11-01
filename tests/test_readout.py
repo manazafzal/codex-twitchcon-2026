@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from thoughtquake.engine.readout import Readout
+from nous.engine.readout import Readout
 
 
 def test_cosine_margin_is_blind_to_active_candidates(library):
