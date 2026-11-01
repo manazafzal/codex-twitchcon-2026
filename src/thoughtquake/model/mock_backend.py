@@ -15,7 +15,56 @@ class MockBackend:
     readout_layer = 11
     eos_token_id = None
     sample = staticmethod(sample)
-    words = (" A", " calm", " day", " brings", " fresh", " ideas", ".", " ocean", " space", " jazz")
+    words = (
+        " Let",
+        " the",
+        " water",
+        " settle",
+        " like",
+        " a",
+        " quiet",
+        " tide.",
+        " Warm",
+        " cup,",
+        " add",
+        " tea,",
+        " and",
+        " wait",
+        " for",
+        " gentle",
+        " warmth.",
+        " Set",
+        " aside",
+        " moment",
+        " in",
+        " your",
+        " orbit.",
+        " Pour",
+        " slowly",
+        " watch",
+        " steam",
+        " rise",
+        " into",
+        " space.",
+        " Find",
+        " rhythm",
+        " morning.",
+        " Give",
+        " time",
+        " to",
+        " steep",
+        " with",
+        " little",
+        " jazz.",
+        " Enjoy",
+        " simple",
+        " routine.",
+    )
+    scripts = (
+        (0, 1, 2, 3, 4, 5, 6, 7, 8, 1, 9, 10, 11, 12, 13, 14, 15, 16, 39, 1, 40, 41),
+        (17, 18, 5, 19, 20, 21, 22, 23, 24, 12, 25, 1, 26, 27, 28, 8, 1, 9, 12, 13, 14, 15, 16),
+        (29, 1, 30, 20, 21, 31, 32, 1, 11, 33, 34, 35, 36, 5, 37, 38, 39, 1, 40, 41),
+    )
 
     def _hidden(self, text: str, layer: int) -> Vector:
         seed = int.from_bytes(hashlib.sha256(f"{layer}:{text}".encode()).digest()[:8])
@@ -33,7 +82,8 @@ class MockBackend:
             hidden, pre, post = clamp(hidden, defend)
         logits = np.full(len(self.words), -8.0)
         dominant = int(np.argmax(hidden[:3]))
-        token = 7 + dominant if np.linalg.norm(hidden) > 1 else position % 7
+        script = self.scripts[dominant if np.linalg.norm(hidden) > 1 else 0]
+        token = script[position % len(script)]
         logits[token] = 8
         return State(logits, hidden, text, position, before, pre, post)
 

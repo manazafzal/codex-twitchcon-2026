@@ -1,39 +1,78 @@
 # THOUGHTQUAKE
 
-M1 implements the local thought injection engine and offline test fixtures.
-Twitch and the overlay are reserved for later milestones.
+Chat factions contest the Subject's mind territory, watched by a Mind-Reader
+and a Neural Immune System. M1 and M2 provide the local engine, browser overlay,
+labelled offline crowd, recording, and replay. Twitch integration is a later milestone.
 
 ```sh
 python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
 make check
-make demo
+thoughtquake demo --mock
 ```
 
-`make demo` emits JSON events from a deterministic mock, labelled `SIMULATED ×0`.
-No synthetic crowd is implemented in M1. These fixtures are **TINY MODEL / CI**;
-they prove plumbing, and provide no model-quality results.
+Open **http://127.0.0.1:8080/** for the overlay, or
+**http://127.0.0.1:8080/fixture.html** for the screenshot-ready static hero view.
+The fixture uses a canned event list and the same renderer as the live view.
+Append `?bg=transparent` for OBS. The canvas scales from 1920×1080.
 
-Install `.[dev,model]` to run the optional random-init Tiny Qwen2 tests offline.
-Tests never fetch model weights. `thoughtquake build-library` explicitly loads the
-real Qwen2.5 model and generates the contrast sets and neutral calibration data.
-`make eval` is reserved for the later eval milestone and currently exits with an
-explanation. No real-model library or evaluation results are committed.
+Every demo is labelled **SIMULATED ×40** and **TINY MODEL / CI**. Mock text is
+scripted to test presentation; its vectors and scores are test fixtures, not
+model-quality evidence. `thoughtquake demo` uses random-init Tiny Qwen2 when the
+optional model dependencies are installed, otherwise the mock. Neither downloads
+weights. Install `.[dev,model]` for Tiny tests; tests allow only local loopback sockets.
+
+`--users N`, `--script golden/demo_script.json`, `--port 8080`, and `--no-browser`
+customise the demo. The seeded crowd uses `sim_` names and changing faction waves.
+It defaults off when its `twitch_connected` integration flag is set. No Twitch
+connection is implemented in this milestone.
+
+Record and replay:
+
+```sh
+thoughtquake demo --mock --record work/demo.jsonl
+thoughtquake replay work/demo.jsonl --frames
+thoughtquake replay work/demo.jsonl --engine
+```
+
+Frame replay needs no model and renders recorded output, with the source badge
+changed to **REPLAY**. Engine replay re-feeds recorded pushes, seed, logical clock,
+and mode controls through fresh model calls; recorded token text is not copied.
+It checks the library hash and schedule. Tiny recordings reconstruct the same
+random-init backend; real-model engine replay requires `--library PATH` and the
+original model. Reproducibility is limited to the same model, configuration, and
+hardware. No recorded real-chat golden run is included.
+
+Broadcaster controls use a local bearer token. Set `THOUGHTQUAKE_LOCAL_TOKEN`
+before starting the server, or use the generated 0600 temporary token file whose
+path is logged at startup. The file is removed on normal shutdown. Tokens are
+never included in `/api/state`, WebSocket snapshots, or overlay URLs.
+
+```sh
+curl -X POST http://127.0.0.1:8080/api/mode \
+  -H "Authorization: Bearer $THOUGHTQUAKE_LOCAL_TOKEN" \
+  -H 'Content-Type: application/json' -d '{"mode":"attack"}'
+```
+
+Modes are `war`, `attack`, and `telepathy`; changes apply between answers. Attack
+uses the same prompt, injection draw, and random state for the OFF/ON comparison.
+Telepathy currently supplies the masked presentation, countdown, reveal, and
+scoreboard event fields. Chat guess adjudication and scoring (§11) remain for the
+game milestone. Stats and real-model claims await the eval harness.
+
+The server exposes `/ws` and `/api/state`. Reconnecting sockets receive the full
+current snapshot, including answer history. Slow clients are disconnected and
+can reconnect for a fresh snapshot. Server and crowd tasks stop on shutdown.
+
+The mixer reserves quiet-chat Neutral share first, scales capped faction shares
+by activity, and moves cap excess to Neutral. Dose and strength use the top three
+factions. `answer` scheduling freezes faction and strength for each answer;
+`sentence` and `token` are experimental. Colours default to territory. Mind-Reader
+colours require a real-model eval with window agreement ≥ 0.75 for the schedule.
 
 The Neural Immune System clamps projections along known library injection
 directions. It does not defend against arbitrary prompt injection.
-
-The mixer reserves quiet-chat Neutral share first, scales the capped faction
-shares by the remaining activity, and adds cap excess to Neutral. Dose totals
-and strength use only the retained top three factions. Pushes use chronological
-monotonic timestamps; tests inject a fake clock. `answer` scheduling freezes the
-selected faction and strength until the next answer; experimental `sentence`
-and `token` modes redraw at their respective boundaries.
-
-The engine defaults to territory colours. Mind-Reader colours require an eval
-file with `source: "realmodel"` and
-`schedule_modes.<mode>.window_agreement >= 0.75`. Readout scores use a rolling
-12-token mean. The asynchronous stream keeps model calls on one worker and
-holds the previous answer for at least two seconds between answers; its history
-retains the last three answers. The synchronous event iterator has no delays.
+`thoughtquake build-library` explicitly loads the real Qwen2.5 model to generate
+contrast sets and calibration data. `make eval` reports that the eval harness is
+outside M2. No real-model calibration, quality, throughput, or lead-time claim is made.

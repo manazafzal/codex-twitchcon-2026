@@ -109,6 +109,7 @@ class Generator:
         self.monitor = ImmuneMonitor()
         self.history: deque[list[Token]] = deque(maxlen=3)
         self.pending: deque[Push] = deque()
+        self.answer_index = 0
 
     def push(self, event: Push) -> float:
         if event.faction not in self.library.ids:
@@ -127,10 +128,17 @@ class Generator:
     ) -> Iterator[Event]:
         if answers < 1 or max_tokens < 1:
             raise ValueError("Answers and token budget must be positive")
-        yield Badge(self.badge)
+        quality = (
+            "TINY MODEL / CI"
+            if self.library.config.get("model") in {"mock", "TINY MODEL / CI"}
+            else None
+        )
+        yield Badge(self.badge, quality)
         vectors = dict(zip(self.library.ids, self.library.V, strict=True))
         defend = self.library.defender() if self.immune else None
-        for answer in range(answers):
+        for _ in range(answers):
+            answer = self.answer_index
+            self.answer_index += 1
             self.readout.reset()
             self.monitor.reset()
             prompt = PROMPTS[answer % len(PROMPTS)]

@@ -41,6 +41,13 @@ class Mode(Event):
     immune: bool
     prompt: str
     answer: int
+    phase: str = "generating"
+    remaining: float | None = None
+    scoreboard: tuple[tuple[str, int], ...] = ()
+    candidates: tuple[str, ...] = ()
+    reveal: str | None = None
+    panel: str = "main"
+    colour_source: str = "applied"
     kind: Literal["mode"] = field(default="mode", init=False)
 
 
@@ -54,4 +61,46 @@ class Tamper(Event):
 @dataclass(frozen=True)
 class Badge(Event):
     label: str
+    quality: str | None = None
     kind: Literal["badge"] = field(default="badge", init=False)
+
+
+@dataclass(frozen=True)
+class Snapshot(Event):
+    state: dict[str, Any]
+    kind: Literal["snapshot"] = field(default="snapshot", init=False)
+
+
+def event_from_dict(data: dict[str, Any]) -> Event:
+    """Validate the shared wire schema before recording or replaying a frame."""
+    import math
+    from dataclasses import fields
+
+    classes = (Push, Tick, Token, Mode, Tamper, Badge, Snapshot)
+    registry = {cls.__dataclass_fields__["kind"].default: cls for cls in classes}
+    cls = registry.get(data.get("kind"))
+    if cls is None:
+        raise ValueError("Unknown event kind")
+    allowed = {f.name for f in fields(cls) if f.init}
+    if set(data) - allowed - {"kind"}:
+        raise ValueError("Unknown event fields")
+    try:
+        event = cls(**{key: value for key, value in data.items() if key != "kind"})
+    except TypeError as exc:
+        raise ValueError("Incomplete event") from exc
+    if isinstance(event, Token):
+        if not isinstance(event.i, int) or event.i < 0 or not isinstance(event.text, str):
+            raise ValueError("Invalid token")
+        if set(event.readout) != {"scores", "top", "margin"}:
+            raise ValueError("Invalid readout")
+    if isinstance(event, Tick):
+        if any(not math.isfinite(v) or not 0 <= v <= 1 for v in event.shares.values()):
+            raise ValueError("Invalid shares")
+        if abs(sum(event.shares.values()) - 1) > 1e-6:
+            raise ValueError("Shares must sum to one")
+    if isinstance(event, Badge):
+        import re
+
+        if not re.fullmatch(r"LIVE|REPLAY|SIMULATED ×\d+", event.label):
+            raise ValueError("Invalid source badge")
+    return event

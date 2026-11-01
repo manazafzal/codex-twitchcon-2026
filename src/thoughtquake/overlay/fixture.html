@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>THOUGHTQUAKE · static fixture · TINY MODEL / CI</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="fixture.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+<main id="stage" aria-label="THOUGHTQUAKE live mind territory">
+  <header class="topbar">
+    <div class="wordmark"><span class="quake-mark" aria-hidden="true">ϟ</span> THOUGHTQUAKE</div>
+    <div id="round-label">Waiting for the Subject…</div>
+    <div class="chips"><span id="source" class="chip simulated">SIMULATED ×0</span><span id="immune" class="chip">IMMUNE: OFF</span></div>
+  </header>
+  <div class="status-row"><span id="quality" class="chip">TINY MODEL / CI</span><span id="connection" class="chip danger" hidden>RECONNECTING</span><span id="tamper" class="chip danger" hidden></span></div>
+  <section id="hero" aria-label="The Subject's answer">
+    <div class="eyebrow"><span class="live-dot"></span> THE SUBJECT <span id="colour-label">/ TERRITORY</span></div>
+    <div id="answer" class="answer" aria-live="polite"></div>
+    <div id="thinking">thinking…</div>
+    <div id="comparison" hidden>
+      <article><h2>IMMUNE: OFF</h2><div id="attack-off" class="answer"></div></article>
+      <article><h2>IMMUNE: ON</h2><div id="attack-on" class="answer"></div></article>
+    </div>
+    <div id="telepathy" hidden><span>Guess in chat: !guess &lt;word&gt;</span><span id="countdown">30 s</span><span id="reveal"></span><div id="scoreboard">No guesses yet</div></div>
+    <div id="legend" class="legend"></div>
+    <div id="history" aria-label="Last three answers"></div>
+  </section>
+  <section id="territory" aria-label="Mind Share">
+    <div class="section-label">MIND SHARE <span>THOUGHT INJECTION / FACTION CONTEST</span></div>
+    <div id="share-track"><div id="shares"></div><div class="cap"><span>75 % cap</span></div></div>
+  </section>
+  <section id="reader"><div class="section-label">MIND-READER <span>LAST 60 TOKENS</span></div><svg id="chart" preserveAspectRatio="none" viewBox="0 0 960 112" role="img" aria-label="Mind-Reader state over the last 60 tokens"></svg></section>
+  <section id="push-panel"><div class="section-label">LATEST PUSHES <span>CHAT → MIND TERRITORY</span></div><ol id="pushes"></ol></section>
+  <div id="instruction">Type a word to join a team: ocean · space · jazz · horror</div>
+  <div id="mode-caption" hidden>ROUND: WAR</div>
+</main>
+</body>
+</html>

@@ -24,8 +24,11 @@ def library():
 def no_test_network(monkeypatch):
     import socket
 
-    def denied(*args, **kwargs):
-        raise AssertionError("Tests must not open network connections or download weights")
+    connect = socket.socket.connect
+
+    def denied(sock, address):
+        if isinstance(address, tuple) and address[0] in {"127.0.0.1", "::1"}:
+            return connect(sock, address)
+        raise AssertionError("Tests allow only loopback connections; no downloads")
 
     monkeypatch.setattr(socket.socket, "connect", denied)
-    monkeypatch.setattr(socket, "create_connection", denied)

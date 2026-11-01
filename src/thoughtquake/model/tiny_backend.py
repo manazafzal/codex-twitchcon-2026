@@ -20,6 +20,7 @@ class TinyBackend(HFBackend):
             from transformers import Qwen2Config, Qwen2ForCausalLM
         except ImportError as exc:
             raise ImportError("TinyBackend requires thoughtquake[model]") from exc
+        self.seed = seed
         config = Qwen2Config(
             vocab_size=256,
             hidden_size=32,

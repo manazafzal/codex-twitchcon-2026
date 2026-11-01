@@ -21,6 +21,8 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "thoughtquake.concepts" = ["concepts.yaml"]
+"thoughtquake.overlay" = ["*.html", "*.css", "*.js"]
+"thoughtquake.sim" = ["demo_script.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

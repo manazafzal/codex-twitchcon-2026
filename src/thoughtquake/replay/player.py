@@ -1,0 +1,155 @@
+import asyncio
+import copy
+import json
+import math
+from collections.abc import AsyncIterator, Iterator
+from dataclasses import replace
+from pathlib import Path
+from typing import Any
+
+from thoughtquake.engine.events import (
+    Badge,
+    Event,
+    Mode,
+    Push,
+    Snapshot,
+    Tamper,
+    Tick,
+    Token,
+    event_from_dict,
+)
+from thoughtquake.engine.generate import Generator
+from thoughtquake.engine.mixer import FakeClock
+
+
+class Player:
+    def __init__(self, path: Path) -> None:
+        self.rows: list[dict[str, Any]] = []
+        previous = 0.0
+        for line in path.read_text().splitlines():
+            row = json.loads(line)
+            timestamp = row.get("t", -1)
+            if (
+                not isinstance(timestamp, (int, float))
+                or not math.isfinite(timestamp)
+                or timestamp < previous
+            ):
+                raise ValueError("Recording timestamps must be finite and chronological")
+            if row.get("kind") not in {"meta", "frame", "push", "mode"}:
+                raise ValueError("Unknown recording kind")
+            if row["kind"] != "meta":
+                event_from_dict(row["event"])
+            previous = timestamp
+            self.rows.append(row)
+        if not self.rows or self.rows[0]["kind"] != "meta":
+            raise ValueError("Recording must begin with metadata")
+        self.metadata = self.rows[0]
+        if any(row["kind"] == "meta" for row in self.rows[1:]):
+            raise ValueError("Duplicate recording metadata")
+
+    def frame_events(self) -> Iterator[tuple[float, Event]]:
+        quality = None
+        for row in self.rows[1:]:
+            if row.get("event", {}).get("kind") == "badge":
+                quality = row["event"].get("quality")
+                break
+        yield 0, Badge("REPLAY", quality)
+        for row in self.rows[1:]:
+            event = event_from_dict(row["event"])
+            if isinstance(event, Badge):
+                continue
+            if isinstance(event, Snapshot):
+                event.state["badge"]["label"] = "REPLAY"
+            yield row["t"], event
+
+    async def frames(self, *, speed: float = 1) -> AsyncIterator[Event]:
+        if speed <= 0 or not math.isfinite(speed):
+            raise ValueError("Replay speed must be positive")
+        previous = 0.0
+        for timestamp, event in self.frame_events():
+            await asyncio.sleep((timestamp - previous) / speed)
+            previous = timestamp
+            yield event
+
+    def engine_events(self, engine: Generator, clock: FakeClock) -> Iterator[tuple[float, Event]]:
+        """Recorded timing drives fresh model calls; recorded token text is never reused."""
+        if self.metadata["library_hash"] != engine.library.hash:
+            raise ValueError("Replay library hash mismatch")
+        if engine.mixer.schedule_mode != self.metadata["config"]["schedule_mode"]:
+            raise ValueError("Replay schedule mismatch")
+        yield (
+            0,
+            Badge(
+                "REPLAY",
+                "TINY MODEL / CI" if self.metadata["model_slug"] in {"mock", "tiny"} else None,
+            ),
+        )
+        iterator: Iterator[Event] | None = None
+        defence: Tamper | None = None
+        original_mixer = engine.mixer
+        frozen = None
+        attack_rng = None
+        for row in self.rows[1:]:
+            clock.advance(row["t"] - clock())
+            event = event_from_dict(row["event"])
+            if isinstance(event, Push):
+                push = replace(event, t=event.t - self.metadata.get("clock_origin", 0))
+                engine.push(push)
+                yield row["t"], push
+            elif isinstance(event, Mode):
+                if event.phase == "generating":
+                    if event.mode == "attack":
+                        if event.panel == "off":
+                            engine.mixer = original_mixer
+                            frozen = copy.deepcopy(original_mixer)
+                            frozen.clock = FakeClock(frozen._last)
+                            attack_rng = copy.deepcopy(engine.rng.bit_generator.state)
+                        if frozen is None:
+                            raise ValueError("Attack ON must follow OFF")
+                        engine.mixer = copy.deepcopy(frozen)
+                        engine.rng.bit_generator.state = copy.deepcopy(attack_rng)
+                    else:
+                        engine.mixer = original_mixer
+                    engine.answer_index = event.answer
+                    engine.immune = event.immune
+                    iterator = engine.events(
+                        max_tokens=self.metadata["config"].get("max_tokens", 32)
+                    )
+                yield row["t"], event
+            elif isinstance(event, Tick):
+                yield row["t"], engine.mixer.tick()
+            elif isinstance(event, Token):
+                if iterator is None:
+                    raise ValueError("Token precedes answer mode")
+                for generated in iterator:
+                    if isinstance(generated, Token):
+                        yield row["t"], generated
+                        defence = next(iterator)
+                        break
+                else:
+                    raise ValueError("Recorded token count exceeds regenerated answer")
+            elif isinstance(event, Tamper) and defence is not None:
+                yield row["t"], defence
+                defence = None
+
+    async def engine(
+        self, engine: Generator, clock: FakeClock, *, speed: float = 1
+    ) -> AsyncIterator[Event]:
+        if speed <= 0 or not math.isfinite(speed):
+            raise ValueError("Replay speed must be positive")
+        # Advancing this iterator can run torch; keep every call on one worker.
+        from concurrent.futures import ThreadPoolExecutor
+
+        iterator = self.engine_events(engine, clock)
+        sentinel = object()
+        previous = 0.0
+        with ThreadPoolExecutor(max_workers=1) as worker:
+            loop = asyncio.get_running_loop()
+            while True:
+                item = await loop.run_in_executor(worker, next, iterator, sentinel)
+                if item is sentinel:
+                    break
+                timestamp, event = item
+                await asyncio.sleep((timestamp - previous) / speed)
+                previous = timestamp
+                yield event

@@ -1,0 +1,63 @@
+:root { color-scheme: dark; --ink: #F5F7FA; --muted: #ABB5C9; --bg: #0B0F1A; --line: #293246; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--ink); font-family: Inter, "Segoe UI", Arial, sans-serif; }
+body.transparent, body.transparent #stage { background: transparent; }
+[hidden] { display: none !important; }
+#stage { width: 1920px; height: 1080px; position: absolute; transform-origin: top left; background: radial-gradient(ellipse at 50% 22%, #172139 0%, #0B0F1A 65%); overflow: hidden; }
+.topbar { position: absolute; inset: 0 0 auto; height: 96px; display: flex; align-items: center; padding: 0 56px; gap: 28px; border-bottom: 1px solid var(--line); background: #0B0F1AE8; }
+.wordmark { font-size: 34px; font-weight: 850; letter-spacing: -1px; white-space: nowrap; }
+.quake-mark { color: #56B4E9; font-size: 52px; vertical-align: -4px; }
+#round-label { font-size: 28px; color: var(--muted); flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chips { display: flex; align-items: center; gap: 12px; }
+.chip { font-size: 28px; padding: 9px 14px; border: 1px solid #586377; border-radius: 8px; white-space: nowrap; font-weight: 650; background: #141C2C; }
+.chip.live, .danger { color: #FFB5B8; border-color: #C75A63; background: #341B27; }
+.chip.replay { color: #F0C771; border-color: #A08248; }
+.status-row { position: absolute; right: 120px; top: 112px; display: flex; gap: 14px; z-index: 2; }
+.status-row .chip { font-size: 28px; padding: 5px 12px; }
+#hero { position: absolute; left: 120px; top: 164px; width: 1680px; height: 540px; }
+.eyebrow { font-size: 28px; font-weight: 700; letter-spacing: 3px; color: var(--muted); display: flex; align-items: center; gap: 14px; }
+.live-dot { width: 10px; height: 10px; border-radius: 100%; background: #56B4E9; box-shadow: 0 0 20px #56B4E966; }
+#colour-label { font-size: 28px; font-weight: 400; letter-spacing: 1px; margin-left: 8px; }
+.answer { font-size: 56px; font-weight: 550; line-height: 1.35; letter-spacing: -.8px; white-space: pre-wrap; overflow: hidden; max-height: 378px; }
+#answer { margin-top: 24px; max-width: 1440px; }
+.word { animation: word-in 120ms ease-out both; text-decoration-line: underline; text-decoration-thickness: 4px; text-underline-offset: 12px; }
+@keyframes word-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+#thinking { color: var(--muted); font-size: 32px; margin-top: 24px; }
+.legend { display: flex; gap: 30px; font-size: 28px; position: absolute; bottom: 0; }
+.legend span { display: flex; align-items: center; gap: 12px; }
+.legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+#history { position: absolute; right: 0; top: 70px; width: 210px; display: grid; gap: 24px; }
+.history-card { font-size: 28px; line-height: 1.3; border-left: 3px solid var(--line); padding-left: 14px; color: var(--muted); max-height: 100px; overflow: hidden; }
+.history-card b { display: block; color: var(--ink); font-size: 28px; margin-bottom: 6px; }
+#territory { position: absolute; left: 120px; top: 734px; width: 1680px; }
+.section-label { font-size: 28px; font-weight: 750; letter-spacing: 1.5px; display: flex; justify-content: space-between; align-items: center; }
+.section-label span { font-size: 28px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+#share-track { position: relative; margin-top: 18px; height: 80px; }
+#shares { width: 100%; height: 80px; border-radius: 10px; overflow: hidden; display: flex; background: #303A4D; }
+.share { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: width 600ms ease; }
+.share span { font-size: 32px; font-weight: 750; white-space: nowrap; color: #0B0F1A; }
+.share.neutral span { color: #F5F7FA; }
+.cap { position: absolute; left: 75%; top: -13px; bottom: -8px; border-left: 2px solid #F5F7FA; pointer-events: none; }
+.cap span { position: absolute; top: -38px; left: -58px; font-size: 28px; white-space: nowrap; color: var(--muted); background: #0B0F1A; padding: 0 8px; }
+#reader { position: absolute; left: 120px; top: 890px; width: 960px; }
+#chart { width: 960px; height: 112px; margin-top: 14px; border-bottom: 1px solid #586377; }
+#push-panel { position: absolute; left: 1120px; top: 890px; width: 680px; }
+#pushes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; }
+#pushes li { font-size: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.28; }
+#pushes .user { color: var(--muted); }
+#instruction { position: absolute; bottom: 13px; left: 120px; right: 120px; padding-top: 10px; border-top: 1px solid var(--line); text-align: center; font-size: 28px; color: #C9D2E3; }
+#mode-caption { position: absolute; top: 104px; left: 50%; transform: translateX(-50%); font-size: 32px; font-weight: 800; padding: 14px 28px; background: #23324D; border-radius: 8px; z-index: 4; }
+#comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 22px; }
+#comparison article { border: 1px solid var(--line); padding: 20px 26px; border-radius: 10px; height: 345px; }
+#comparison h2 { font-size: 28px; margin: 0 0 18px; color: var(--muted); }
+#comparison .answer { font-size: 42px; max-height: 245px; }
+#telepathy { position: absolute; bottom: 64px; display: flex; align-items: center; gap: 24px; font-size: 28px; }
+#countdown { border: 4px solid #56B4E9; border-radius: 50%; width: 86px; height: 86px; display: flex; align-items: center; justify-content: center; }
+#scoreboard { color: var(--muted); }
+#stage[data-mode="attack"] #history, #stage[data-mode="telepathy"] #history { display: none; }
+#stage[data-mode="attack"] .legend { bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .word { animation: none; } .share { transition: none; } }
+#territory .section-label span { display: none; }
+#reader, #push-panel { top: 880px; }
+#chart { height: 80px; }
+#pushes li { line-height: 1; }

@@ -1,0 +1,10 @@
+{
+  "seed": 2026,
+  "users": 40,
+  "interval": 0.6,
+  "waves": [
+    {"duration": 18, "weights": {"ocean": 0.8, "space": 0.2}},
+    {"duration": 18, "weights": {"ocean": 0.2, "space": 0.8}},
+    {"duration": 18, "weights": {"jazz": 0.65, "ocean": 0.2, "space": 0.15}}
+  ]
+}
