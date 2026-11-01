@@ -382,6 +382,11 @@ def main(argv: list[str] | None = None) -> None:
         )
     else:
         player = Player(args.file)
+        if not args.frames and any(
+            row.get("event", {}).get("kind") == "round" and row["event"].get("phase") == "catalog"
+            for row in player.rows
+        ):
+            parser.error("This recording changes topics. Replay it with --frames.")
         if args.frames:
             source = lambda: player.frames(speed=args.speed)
             concepts = load_concepts()

@@ -65,6 +65,8 @@ class LiveSession:
         async for event in self.session.events():
             await self.emit(event)
             if isinstance(event, Round):
+                if event.phase == "catalog":
+                    continue
                 if event.phase == "mvp":
                     if self.session.now() - self.last_mvp >= 60:
                         import json

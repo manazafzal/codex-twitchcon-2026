@@ -554,3 +554,48 @@ def test_blocked_cli_preserves_pasted_provenance(tmp_path):
     assert report["origin"]["texts"] == texts
     assert report["origin"]["requested_count"] == 4
     assert report["origin"]["texts_hash"]
+
+
+def test_catalog_metadata_is_recordable_but_never_a_chat_announcement(monkeypatch):
+    from nous.engine.events import Round
+    from nous.twitch.live import LiveSession
+
+    session = Session()
+    catalog = Round("war", "catalog", 0, json.dumps({"concepts": [], "library_hash": "test-only"}))
+    notice = Round("war", "notice", 0, "New topic ready! Try !push comet.")
+
+    async def events():
+        yield catalog
+        yield notice
+
+    monkeypatch.setattr(session, "events", events)
+    live = LiveSession(session, "test-client", "test-channel")
+    live.connected = True
+
+    async def run():
+        await live._engine()
+        assert [live.output.get_nowait()[0], live.output.get_nowait()[0]] == [catalog, notice]
+        assert live.announcements.get_nowait() == notice.message
+        assert live.announcements.empty()
+
+    asyncio.run(run())
+
+
+def test_replay_cli_explains_dynamic_catalog_requirement(tmp_path, capsys):
+    from nous.cli import main
+    from nous.engine.events import Round
+
+    path = tmp_path / "catalog.jsonl"
+    rows = [
+        {"kind": "meta", "t": 0},
+        {
+            "kind": "frame",
+            "t": 0,
+            "event": Round("war", "catalog", 0, json.dumps({"concepts": []})).to_dict(),
+        },
+    ]
+    path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+    with pytest.raises(SystemExit) as exc:
+        main(["replay", str(path), "--engine", "--no-browser"])
+    assert exc.value.code == 2
+    assert "--frames" in capsys.readouterr().err
