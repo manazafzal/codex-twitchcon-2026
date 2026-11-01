@@ -9,3 +9,6 @@ __pycache__/
 work/
 build/
 dist/
+venv/
+*.pyc
+results/*.tmp
