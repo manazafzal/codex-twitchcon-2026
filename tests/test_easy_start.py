@@ -83,6 +83,14 @@ def test_welcome_bootstrap_is_private_cookie_is_guarded_and_demo_starts(monkeypa
             state = await (await client.get("/api/state")).json()
             assert "private-run-code" not in json.dumps(state)
             assert state["badge"]["label"] == "SIMULATED ×40"
+            readonly = await client.post(
+                "/api/immune", json={"enabled": True}, headers={"Origin": origin}
+            )
+            assert readonly.status == 409 and "recording" in await readonly.text()
+            readonly = await client.post(
+                "/api/mode", json={"mode": "war"}, headers={"Origin": origin}
+            )
+            assert readonly.status == 409 and "recording" in await readonly.text()
             assert (await client.get("/demo_round.json")).status == 404
             assert (await client.get("/trace_data.js")).status == 404
 

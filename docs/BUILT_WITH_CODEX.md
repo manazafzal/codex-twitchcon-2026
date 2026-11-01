@@ -99,3 +99,6 @@ The overlay now asks what chat is trying to make the AI think about, shows a cou
 - [b884aef — readable rounds, safe Nerd panel and complete first-run flow](https://github.com/manazafzal/codex-twitchcon-2026/commit/b884aef)
 
 Actual browser captures are in [the first-run walkthrough](first-run.md). Inspecting the recording caught two additional reveal defects: the countdown overwrote the reveal caption, and hidden aggregate shares remained visible after reveal. Both are corrected without publishing raw shares before reveal. Source restarts also retain the correct source badge. Final complete-check counts follow after the film run.
+
+
+**Final retry review.** Added explicit feedback when a recording cannot apply a live control, kept failed app codes editable, and allowed a broadcaster to try viewer commands with the same account used by the bot while still ignoring ordinary bot announcements. Standard team emojis cover the concept catalog; keyword precedence and small passive weights remain tested. These final route/parser/welcome checks passed in a focused 48-test regression run. The main overlay, shader, fixture timeline and film inputs were unchanged by this retry review.

@@ -7,6 +7,42 @@ from nous.concepts.library import Concept, match_concept
 from nous.engine.commands import Rank, StartRound
 from nous.engine.events import Control, Guess, Push
 
+TEAM_EMOTES = {
+    "🌊": "ocean",
+    "🚀": "space",
+    "🎷": "jazz",
+    "👻": "horror",
+    "🌱": "gardening",
+    "⚔️": "war",
+    "🏴‍☠️": "pirates",
+    "🦖": "dinosaurs",
+    "🧪": "chemistry",
+    "⚽": "football",
+    "🤖": "robots",
+    "🪄": "wizards",
+    "🔍": "detective",
+    "🐱": "cats",
+    "🐉": "dragons",
+    "🏰": "medieval",
+    "💘": "romance",
+    "🥷": "ninjas",
+    "🌋": "volcano",
+    "🏜️": "desert",
+    "❄️": "winter",
+    "🎪": "circus",
+    "🚜": "farm",
+    "🪩": "disco",
+    "⛈️": "weather",
+    "📚": "library",
+    "🏫": "school",
+    "🍕": "pizza",
+    "⏳": "time-travel",
+    "🍳": "cooking",
+    "oceanwave": "ocean",
+    "spacerocket": "space",
+    "jazzsax": "jazz",
+}
+
 
 class ChatParser:
     def __init__(
@@ -21,6 +57,7 @@ class ChatParser:
     ) -> None:
         self.concepts, self.bot_id, self.broadcaster_id = concepts, bot_id, broadcaster_id
         self.clock, self.dedupe_size = clock, dedupe_size
+        self.known = {c.id for c in concepts}
         self.teams = teams if teams is not None else {}
         self.passive = False
         self.participant: tuple[str, str, str] | None = None
@@ -67,7 +104,9 @@ class ChatParser:
             if user_id == self.broadcaster_id or roles & {"broadcaster", "moderator"}:
                 return StartRound(name, user_id, "LIVE")
             return None
-        if user_id == self.bot_id:
+        if user_id == self.bot_id and (
+            user_id != self.broadcaster_id or command not in {"!join", "!push", "!guess", "!rank"}
+        ):
             return None
         if command == "!rank":
             return Rank(name, user_id)
@@ -85,19 +124,20 @@ class ChatParser:
             return None
         faction = match_concept(argument if command == "!push" else text, self.concepts)
         if faction is None:
-            emotes = {
-                "🌊": "ocean",
-                "🚀": "space",
-                "🎷": "jazz",
-                "oceanwave": "ocean",
-                "spacerocket": "space",
-                "jazzsax": "jazz",
-            }
-            for word in text.split():
-                if word.strip("!?.,;()").casefold() in emotes:
-                    faction = emotes[word.strip("!?.,;()").casefold()]
-                    break
+            faction = next(
+                (
+                    idea
+                    for emote, idea in TEAM_EMOTES.items()
+                    if not emote.isascii() and emote in text
+                ),
+                None,
+            )
         if faction is None:
+            for word in text.split():
+                if word.strip("!?.,;()").casefold() in TEAM_EMOTES:
+                    faction = TEAM_EMOTES[word.strip("!?.,;()").casefold()]
+                    break
+        if faction not in self.known:
             return None
         self.passive = command != "!push"
         self.teams[user_id] = faction

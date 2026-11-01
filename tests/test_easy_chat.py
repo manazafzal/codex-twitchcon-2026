@@ -52,9 +52,15 @@ def test_join_balances_teams_pushes_are_deliberate_and_plain_words_are_light():
     assert p.parse(notification("What a lovely wave!")).faction == "ocean" and p.passive
     assert p.parse(notification("Nice! 🚀!")).faction == "space" and p.passive
     assert p.parse(notification("OceanWave")).faction == "ocean" and p.passive
+    assert p.parse(notification("Love this🦖!")).faction == "romance" and p.passive
+    assert p.parse(notification("Nice🦖!")).faction == "dinosaurs" and p.passive
+    assert p.parse(notification("🍕")).faction == "pizza" and p.passive
     assert isinstance(p.parse(notification("!guess sea")), Guess)
     assert not p.passive
     assert p.parse(notification("!join", user="bot")) is None
+    host = ChatParser(load_concepts(), bot_id="channel", broadcaster_id="channel")
+    assert isinstance(host.parse(notification("!join", user="channel")), Push)
+    assert host.parse(notification("Team Ocean! Try !push ocean.", user="channel")) is None
 
 
 @pytest.mark.parametrize(

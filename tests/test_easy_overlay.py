@@ -5,7 +5,7 @@ import re
 import pytest
 
 from nous.engine.events import Mode, Token
-from nous.server.experience import make_experience_app
+from nous.server.experience import Experience, make_experience_app
 from tools.overlay_browser import CHROME, Browser
 
 pytestmark = pytest.mark.skipif(not CHROME, reason="Local Chrome is not installed")
@@ -92,9 +92,10 @@ def test_welcome_button_opens_an_offline_recording_in_a_real_browser(monkeypatch
     monkeypatch.delenv("NOUS_DEV_FIXTURES", raising=False)
 
     async def run():
+        experience = Experience()
         async with Browser(
             "manual&scale=.5&nogl",
-            app_factory=lambda: make_experience_app(token="test-run"),
+            app_factory=lambda: make_experience_app(token="test-run", experience=experience),
             path="/welcome.html#test-run",
         ) as browser:
             assert await browser.evaluate("location.hash===''")
@@ -102,6 +103,17 @@ def test_welcome_button_opens_an_offline_recording_in_a_real_browser(monkeypatch
                 "document.getElementById('try-demo').textContent==='Try the demo'"
             )
             assert not await browser.evaluate("document.cookie.includes('nous_control')")
+            experience.client_id = "incorrect-code"
+            experience.login = {
+                "status": "error",
+                "stage": "login",
+                "message": "Check the app code and retry.",
+            }
+            await asyncio.sleep(1.3)
+            assert await browser.evaluate("!document.getElementById('app-help').hidden")
+            assert await browser.evaluate(
+                "document.getElementById('login').textContent==='Try login again'"
+            )
             await browser.evaluate("document.getElementById('try-demo').click()")
             for _ in range(200):
                 if await browser.evaluate("!!window.NousOverlay"):

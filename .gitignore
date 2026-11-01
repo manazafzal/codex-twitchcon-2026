@@ -17,3 +17,6 @@ results/*.tmp
 **/readout-training.npz
 
 .nous-setup.log
+
+# Local sign-in stores, including custom data folders.
+token.json

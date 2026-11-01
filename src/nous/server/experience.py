@@ -122,12 +122,18 @@ class Experience:
             self.demo()
 
     def switch_mode(self, mode: str) -> None:
-        if self.session:
-            self.session.switch_mode(mode)
+        if self.session is None:
+            raise web.HTTPConflict(
+                text="This is a recording. Connect your live game first to change it."
+            )
+        self.session.switch_mode(mode)
 
     def set_immune(self, enabled: bool) -> None:
-        if self.session:
-            self.session.set_immune(enabled)
+        if self.session is None:
+            raise web.HTTPConflict(
+                text="This is a recording. Connect your live game first to try the defence."
+            )
+        self.session.set_immune(enabled)
 
     async def events(self) -> AsyncIterator[Event]:
         if self.factory is None:

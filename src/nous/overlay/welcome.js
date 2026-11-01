@@ -7,7 +7,7 @@ async function poll(){try{const s=await call('welcome');ready=true;$('status').t
  if(s.has_app_code){tick('app-tick');$('app-help').hidden=true;}
  if(s.status==='waiting'){const url=new URL(s.url);if(url.protocol!=='https:')throw Error('Please open Twitch directly to finish signing in.');$('device').hidden=false;$('device-code').textContent=s.code;$('device-link').href=url.href;}
  if(['connected','preparing','connecting','live'].includes(s.status)){tick('login-tick');$('device').hidden=true;$('go-live').disabled=['preparing','connecting'].includes(s.status);if(s.name&&!$('channel').value)$('channel').value=s.name;}
- if(s.status==='error'){if(!s.signed_in){$('login-tick').textContent='2.';$('login-tick').classList.remove('done');}$('login').textContent='Try login again';$('go-live').disabled=!s.signed_in;$('go-live').textContent='Retry connection';}
+ if(s.status==='error'){if(!s.signed_in){$('app-help').hidden=false;$('app-tick').textContent='1.';$('app-tick').classList.remove('done');$('login-tick').textContent='2.';$('login-tick').classList.remove('done');}$('login').textContent='Try login again';$('go-live').disabled=!s.signed_in;$('go-live').textContent='Retry connection';}
  if(s.status==='live'){tick('channel-tick');$('open-game').hidden=false;$('go-live').textContent='Connected ✓';$('connect-help').textContent='Your chat is ready. Open the game and try !join.';}
  }catch(error){$('status').textContent='Open NOUS with setup.bat or nous start to unlock this page. '+error.message;}
  timer=setTimeout(poll,1200);}
