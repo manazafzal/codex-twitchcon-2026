@@ -14,6 +14,9 @@
 
 **Scope and limits.** This prompt replaces SPEC §15's earlier geometry, palette and type minimum. Visual evidence here uses CPU SwiftShader and development backends. A real model, hardware-GPU 60 fps, OBS composition and live Twitch viewing still require streamer-machine checks. No accuracy or model-quality result is inferred from visual motion.
 
-**Implementation.** [c61831f — Mind Atlas and browser tooling](https://github.com/manazafzal/codex-twitchcon-2026/commit/c61831f). Measurement and final validation links follow in the milestone audit.
+**Milestone commits.**
+
+- [c61831f — Mind Atlas and browser tooling](https://github.com/manazafzal/codex-twitchcon-2026/commit/c61831f)
+- [9c09b3e — final fixes, five scenes, timing and film evidence](https://github.com/manazafzal/codex-twitchcon-2026/commit/9c09b3e)
 
 **Validation.** `make check`: ruff passed; 114 tests passed in 1231.56 s, including two complete 600-frame films. The final fixture/contract pass also passed 113 non-film tests; the War film input records were checked unchanged when the comparison captures were corrected. Five final scenes report zero console errors; see the measured limits in `perf.md`. The CLI smoke served the overlay with 30 PCA points and 30 token scores while keeping development traces at 404. An MP4 encoder smoke produced three frames at 480×270 and 30 fps. [Full check output](check-output.txt).

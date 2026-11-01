@@ -30,7 +30,7 @@ Browser tests also verify every canvas has an accessible label, computed text si
 
 ## Deterministic film
 
-Two fresh Chrome runs each captured 600 lossless frames over 20 virtual seconds at 30 output fps. Every PNG hash matched: **True**. Sequence SHA-256: `c22b116324bd192081a6e9e0d6a58a565fd315b8c2c7eb25cda991856920b23c`. [Full frame hashes](film-hashes.json).
+Two fresh Chrome runs each captured 600 lossless frames over 20 virtual seconds at 30 output fps. Every PNG hash matched: **True**. Sequence SHA-256: `c22b116324bd192081a6e9e0d6a58a565fd315b8c2c7eb25cda991856920b23c`. [Full frame hashes](film-hashes.json). Hash equality applies within this recorded Chrome/software-renderer environment.
 
 ## Reproduce
 
