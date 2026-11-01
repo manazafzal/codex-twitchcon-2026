@@ -142,21 +142,32 @@ class Generator:
     ) -> Iterator[Event]:
         if not group:
             return
-        if self.colour_source == "readout":
+        reading = None
+        if self.colour_source == "readout" or self.library.readout_v4:
             mean = np.mean([item[2] for item in group], axis=0)
-            colour = self.readout.decide(
+            reading = self.readout.decide(
                 mean,
                 group[-1][3],
                 self.secret,
                 features=self.readout.features([item[4] for item in group]),
-            ).color
+            )
+        if self.colour_source == "readout":
+            assert reading is not None
+            colour = reading.color
         else:
             votes: dict[str | None, int] = {}
             for frame, _, _, _, _ in group:
                 votes[frame.applied] = votes.get(frame.applied, 0) + 1
             colour = min(votes, key=lambda candidate: (-votes[candidate], candidate or ""))
         for frame, tamper, _, _, _ in group:
-            frame = Token(frame.i, frame.text, frame.applied, frame.readout, colour, frame.sky)
+            readout = frame.readout
+            if self.library.readout_v4 and reading is not None:
+                readout = {
+                    "scores": readout["scores"],
+                    "top": reading.top,
+                    "margin": reading.margin,
+                }
+            frame = Token(frame.i, frame.text, frame.applied, readout, colour, frame.sky)
             frames.append(frame)
             yield frame
             if self.immune:
@@ -211,7 +222,11 @@ class Generator:
             frames: list[Token] = []
             answer_hidden = []
             group: list[tuple[Token, Tamper, Vector, list[str], dict[int, Vector]]] = []
-            grouped = self.colour_source == "readout" or self.mixer.schedule_mode == "token"
+            grouped = (
+                self.colour_source == "readout"
+                or self.mixer.schedule_mode == "token"
+                or bool(self.library.readout_v4)
+            )
             width = (
                 max_tokens
                 if self.mixer.schedule_mode == "answer"

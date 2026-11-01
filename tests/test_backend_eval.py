@@ -376,3 +376,70 @@ def test_fit_cli_reuses_local_split_data_without_loading_model(tmp_path, monkeyp
     assert fitted.readout_v4 and fitted.provenance["readout_dataset_hash"]
     report = json.loads(output.with_suffix(".fit.json").read_text())
     assert report["quality"] == "TINY MODEL / CI" and report["n"] == 12
+
+
+@pytest.mark.parametrize("colour_source", ["applied", "readout"])
+def test_fitted_answer_labels_colour_and_reveal_keep_cosine_alarm(tmp_path, colour_source):
+    from nous.engine.events import Token
+
+    library = mock_library()
+    library.config["probe_layers"] = [16, 20, 22]
+    library.readout_mean = np.zeros(30)
+    library.readout_std = np.full(30, 0.2)
+    library.alarm_thresholds = np.full(30, np.inf)
+    weights = np.zeros((30, 96))
+    weights[2, 2], weights[2, 66] = 4, 4
+    weights[0, 32] = 1
+    library.readout_v4 = {
+        "center": np.zeros(96),
+        "scale": np.ones(96),
+        "weights": weights,
+        "intercept": np.zeros(30),
+        "shrinkage": np.array([0.2]),
+    }
+
+    class ProbeBackend(MockBackend):
+        def step(self, *args, **kwargs):
+            logits, _, state = super().step(*args, **kwargs)
+            old_hidden = np.eye(32)[0]
+            # The early prefix favours another label; the whole answer favours Jazz.
+            probe = np.eye(32)[0 if state.position <= 4 else 2]
+            return (
+                logits,
+                old_hidden,
+                replace(
+                    state,
+                    readout_hidden=old_hidden,
+                    layer_hidden={16: probe, 20: old_hidden, 22: probe},
+                ),
+            )
+
+    evidence = tmp_path / "colour.json"
+    evidence.write_text(
+        json.dumps(
+            {
+                "source": "realmodel",
+                "schedule_modes": {"answer": {"window_agreement": 0.9}},
+            }
+        )
+    )
+    clock = FakeClock()
+    engine = Generator(
+        ProbeBackend(),
+        library,
+        ForcedMixer("ocean", alpha=0.45, median_norm=26.78, clock=clock),
+        clock=clock,
+        colour_source=colour_source,
+        eval_path=evidence,
+        immune=True,
+    )
+    for i in range(60):
+        engine.push(Push(str(i), "ocean", 0, "SIMULATED"))
+    output = list(engine.events(max_tokens=24))
+    frames = [e for e in output if isinstance(e, Token)]
+    assert {e.readout["top"] for e in frames} == {"jazz"}
+    assert {e.color for e in frames} == {"jazz" if colour_source == "readout" else "ocean"}
+    assert max(engine.last_scores, key=engine.last_scores.get) == "jazz"
+    assert all(e.readout["scores"]["ocean"] == pytest.approx(5) for e in frames)
+    assert any(isinstance(e, Tamper) and "ocean" in e.concepts for e in output)
+    assert not any(isinstance(e, Tamper) and "jazz" in e.concepts for e in output)
