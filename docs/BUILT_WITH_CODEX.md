@@ -46,3 +46,6 @@ Review caught and fixed double-standardizing SD scores, active-only ranking, a c
 **Milestone commits.**
 
 - [cdd4a58 — offline evaluation, strict secrecy, viewer points and tests](https://github.com/manazafzal/codex-twitchcon-2026/commit/cdd4a58)
+- [4f47c83 — measured CI report, raw trials and uncertainty tables](https://github.com/manazafzal/codex-twitchcon-2026/commit/4f47c83)
+
+The post-report vocabulary and evaluation suite passed with 17 tests; ruff and whitespace checks passed. No runtime code changed after the complete check.
