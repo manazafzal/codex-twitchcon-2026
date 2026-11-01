@@ -88,10 +88,21 @@ We changed the build design from blocking a round boundary to a background task 
 
 We shipped all requested pack entries with quality reports, but we rejected them because trained testing is unavailable here. Their measurements remain null with n=0; we did not weaken the bars or certify a test model's output as real quality. We document commands, thresholds, provenance and limits in the [topic-builder guide](topic-builder.md).
 
-[Concept implementation](https://github.com/manazafzal/codex-twitchcon-2026/commit/dec3fb3).
+[Concept implementation](https://github.com/manazafzal/codex-twitchcon-2026/commit/dec3fb3). We also reset earlier accuracy and colour evidence when a catalog hash changes: [evidence-invalidation fix](https://github.com/manazafzal/codex-twitchcon-2026/commit/4e86dbdbb6ab8f0ba4e92516b4ff8b10f989758b).
+
+We also corrected rejection-report provenance so a blocked pasted-example request is not labelled model-generated: [provenance fix](https://github.com/manazafzal/codex-twitchcon-2026/commit/f7b11972ccb61102b19a986a417b2a4732b819f3).
+
+We caught structural catalog updates reaching the generic chat-announcement path and filtered them while retaining their recorded frames. We also made the replay CLI explain the changing-basis requirement before opening a server: [announcement and replay fix](https://github.com/manazafzal/codex-twitchcon-2026/commit/2f6501f07c3daa4042c8bc3abb3246ce41a74c42).
 
 ## M-story — leave a checkable build record
 
 We asked for this account to be plain, first-person and grounded in the repository. We rewrote it in milestone order, linked the code and saved evidence, retained the dead ends and usage-limit pauses, and added a short link below the README's unchanged quick start. We checked the narrative against git history, existing test files and saved logs instead of inventing missing historical results.
 
 We keep the latest milestone's full check output with the final verification update. We continue to distinguish engineering tests from trained-model evidence, native Windows execution, live Twitch delivery, OBS composition and hardware-GPU performance. None of those absent checks becomes a success just because the Python suite is green.
+
+[Build-story commit](https://github.com/manazafzal/codex-twitchcon-2026/commit/d5799cb559df4ce04bde808ba3621c1a02ceb839).
+
+
+**Final verification.** We ran `make check` on the completed implementation: generated-paper/evidence verification passed; ruff passed; mypy passed on 34 source files; **229 tests passed and five real-model tests were deselected in 1266.83 seconds**. This includes the complete repeated-film comparison and all existing secrecy, fairness, beginner and research checks. We saved the [complete output](concepts-check-output.txt). The focused concept/vocabulary/replay run passed 33 tests; those overlap the full suite and are not additional unique tests.
+
+We verified the three pack manifests and every quality-report hash. Each pack contains eight requested entries, all rejected with unavailable testing, null measurements and n=0. We did not measure trained-model admission quality here. We confirmed that the deterministic good-topic fixture passes all four gates and completes calibration/refitting, random examples fail held-out classification, a failed refit prevents publication, and catalog metadata stays out of bot announcements. We leave native Windows execution, real Twitch delivery, trained-model builds and their runtime cost for a machine with the required local artifacts.
