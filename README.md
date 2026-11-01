@@ -153,3 +153,5 @@ as **territory** or **Mind-Reader colours**. Optional reveal accuracy comes only
 from `telepathy: {"accuracy": ..., "n": ...}` in that real-model evidence file.
 No lead-time claim is made. Real-model quality, coherence, and throughput remain
 unverified; fixture output retains its **TINY MODEL / CI** label.
+
+Research write-up: [plain-English paper and evidence](docs/paper.md), [registered hypotheses](docs/hypotheses.md) and [reproduction commands](.codex/skills/nous-research/SKILL.md). Rows marked unrun are unavailable evidence, not measured effects.

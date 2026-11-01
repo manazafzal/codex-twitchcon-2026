@@ -51,6 +51,7 @@ class HFBackend:
             # Tiny fixtures retain the same hook order with a shorter readout gap.
             self.injection_layer = max(0, self.num_layers - 3)
             self.readout_layer = self.num_layers - 1
+        self.probe_layers = {self.injection_layer, self.readout_layer, min(22, self.num_layers - 1)}
         self.eos_token_id = self.tokenizer.eos_token_id
 
     def _ids(self, text: str) -> list[int]:
@@ -99,11 +100,7 @@ class HFBackend:
                             )
                         h[:, start:] = work
                         captured["post"] = (h[0, -1] @ directions.T).detach().float().cpu().numpy()
-                if layer in {
-                    self.injection_layer,
-                    self.readout_layer,
-                    min(22, self.num_layers - 1),
-                }:
+                if layer in self.probe_layers:
                     layer_states[layer] = h.detach().float().cpu().numpy()[0, -1].copy()
                 if layer == self.readout_layer:
                     captured["readout"] = h.detach().float().cpu().numpy()[0, -1].copy()

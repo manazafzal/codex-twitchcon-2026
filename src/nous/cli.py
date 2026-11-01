@@ -119,8 +119,19 @@ def main(argv: list[str] | None = None) -> None:
     build.add_argument("--neutral-generations", type=int, default=60)
     build.add_argument("--model-path", type=Path)
     build.add_argument("--median-norm", type=float, default=26.78)
+    research = commands.add_parser("research", help="Regenerate registered local research")
+    research_sub = research.add_subparsers(dest="research_command", required=True)
+    study = research_sub.add_parser("run", help="Run offline ablations or record missing artifacts")
+    study.add_argument("--config", type=Path, default=Path("configs/ablations.yaml"))
+    study.add_argument("--seed", type=int, default=0)
+    study.add_argument("--output", type=Path, default=Path("research"))
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    if args.command == "research":
+        from nous.research.runner import run_research
+
+        run_research(args.config, args.seed, args.output)
+        return
     if args.command in {"eval", "fit-readout", "calibrate-alarm", "build-library"}:
         from nous.concepts.builder import calibrate_alarm
         from nous.evaluation import evaluate, fit_readout, generate_training, write_report
