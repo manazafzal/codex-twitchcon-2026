@@ -11,6 +11,7 @@ from typing import Literal
 import numpy as np
 
 from thoughtquake.concepts.library import ConceptLibrary
+from thoughtquake.engine.atlas import AtlasSignals
 from thoughtquake.engine.events import Badge, Event, Mode, Push, Tamper, Token
 from thoughtquake.engine.immune import ImmuneMonitor
 from thoughtquake.engine.mixer import NEUTRAL, Mixer
@@ -109,6 +110,7 @@ class Generator:
         self.monitor = ImmuneMonitor()
         self.history: deque[list[Token]] = deque(maxlen=3)
         self.pending: deque[Push] = deque()
+        self.atlas = AtlasSignals(library)
         self.answer_index = 0
         self.secret: str | None = None
         self.last_scores: dict[str, float] = {}
@@ -134,7 +136,7 @@ class Generator:
                 votes[frame.applied] = votes.get(frame.applied, 0) + 1
             colour = min(votes, key=lambda candidate: (-votes[candidate], candidate or ""))
         for frame, tamper, _, _ in group:
-            frame = Token(frame.i, frame.text, frame.applied, frame.readout, colour)
+            frame = Token(frame.i, frame.text, frame.applied, frame.readout, colour, frame.sky)
             frames.append(frame)
             yield frame
             yield tamper
@@ -173,6 +175,7 @@ class Generator:
             vector = self.mixer.vector(vectors)
             defend = self.library.defender() if self.immune else None
             state = self.backend.prefill(prompt, vector, defend, inject_prefill=self.inject_prefill)
+            self.atlas.begin(state.readout_hidden)
             tokens: list[int] = []
             emitted = ""
             frames: list[Token] = []
@@ -211,6 +214,7 @@ class Generator:
                     applied,
                     {k: v for k, v in asdict(reading).items() if k != "color"},
                     applied,
+                    self.atlas.observe(hidden, state, reading.scores),
                 )
                 pre, post = state.defence_pre, state.defence_post
                 if pre is None:

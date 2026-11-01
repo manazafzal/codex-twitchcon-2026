@@ -40,7 +40,8 @@ def test_pages_share_renderer_and_all_dom_targets_exist():
         for target in re.findall(r'\$\("([\w-]+)"\)', js):
             assert target in page.ids, (filename, target)
         assert "app.js" in page.scripts
-    assert "fixture.js" in page.scripts
+    assert "fixture.js" in js
+    assert overlay.joinpath("index.html").read_text() == overlay.joinpath("fixture.html").read_text()
     assert "THOUGHTQUAKE_FIXTURE" in overlay.joinpath("fixture.js").read_text()
     css = overlay.joinpath("style.css").read_text()
     assert "width: 1920px" in css and "height: 1080px" in css

@@ -51,6 +51,8 @@ class ConceptLibrary:
     HR_neutral: Vector
     thresholds: Vector
     config: dict[str, Any]
+    readout_mean: Vector | None = None
+    readout_std: Vector | None = None
 
     def __post_init__(self) -> None:
         n = len(self.concepts)
@@ -58,6 +60,17 @@ class ConceptLibrary:
             raise ValueError("Invalid library vector shapes")
         if self.HR_neutral.shape != (self.V.shape[1],) or self.thresholds.shape != (n,):
             raise ValueError("Invalid library baseline or thresholds")
+        if (self.readout_mean is None) != (self.readout_std is None):
+            raise ValueError("Incomplete readout calibration")
+        if self.readout_mean is not None:
+            if self.readout_mean.shape != (n,) or self.readout_std.shape != (n,):
+                raise ValueError("Invalid readout calibration shapes")
+            if (
+                not np.isfinite(self.readout_mean).all()
+                or not np.isfinite(self.readout_std).all()
+                or np.any(self.readout_std <= 0)
+            ):
+                raise ValueError("Invalid readout calibration")
         if len(set(self.ids)) != n:
             raise ValueError("Duplicate concept ids")
         if not all(
@@ -75,6 +88,9 @@ class ConceptLibrary:
         digest.update(json.dumps([asdict(c) for c in self.concepts], sort_keys=True).encode())
         for array in (self.V, self.D, self.HR_neutral, self.thresholds):
             digest.update(np.asarray(array, dtype="<f8").tobytes())
+        if self.readout_mean is not None:
+            for array in (self.readout_mean, self.readout_std):
+                digest.update(np.asarray(array, dtype="<f8").tobytes())
         return digest.hexdigest()
 
     def defender(self) -> DefendSpec:
@@ -94,6 +110,8 @@ class ConceptLibrary:
             config_hash=config_hash(self.config),
             concepts=json.dumps([asdict(c) for c in self.concepts]),
             library_hash=self.hash,
+            readout_mean=self.readout_mean if self.readout_mean is not None else np.array([]),
+            readout_std=self.readout_std if self.readout_std is not None else np.array([]),
         )
 
     @classmethod
@@ -111,6 +129,10 @@ class ConceptLibrary:
             library = cls(
                 concepts, data["V"], data["D"], data["HR_neutral"], data["thresholds"], config
             )
+            if "readout_mean" in data and data["readout_mean"].size:
+                library.readout_mean = data["readout_mean"]
+                library.readout_std = data["readout_std"]
+                library.__post_init__()
             if library.hash != str(data["library_hash"]):
                 raise ValueError("Library content hash mismatch")
             return library

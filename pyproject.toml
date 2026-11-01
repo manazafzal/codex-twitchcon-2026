@@ -21,11 +21,12 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "thoughtquake.concepts" = ["concepts.yaml"]
-"thoughtquake.overlay" = ["*.html", "*.css", "*.js"]
+"thoughtquake.overlay" = ["*.html", "*.css", "*.js", "fonts/*.ttf", "fonts/*.txt"]
 "thoughtquake.sim" = ["demo_script.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-m 'not realmodel'"
 markers = ["realmodel: requires explicitly enabled real model weights"]
 

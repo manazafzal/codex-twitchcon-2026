@@ -14,6 +14,7 @@ from thoughtquake.engine.events import (
     Event,
     Guess,
     Immune,
+    Layout,
     Mode,
     Push,
     Round,
@@ -204,7 +205,7 @@ class Player:
                         message=f"Telepathy reveal: {game.secret}. First correct: {game.winner or 'no winner'}.",
                     )
                 yield row["t"], event
-            elif isinstance(event, Connection):
+            elif isinstance(event, (Layout, Connection)):
                 yield row["t"], event
             elif isinstance(event, Tamper) and defence is not None:
                 yield row["t"], defence

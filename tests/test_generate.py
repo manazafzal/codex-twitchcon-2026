@@ -36,7 +36,7 @@ def test_events_and_determinism(library):
         data = json.loads(json.dumps(event.to_dict(), allow_nan=False))
         assert data["kind"] in {"badge", "push", "tick", "mode", "token", "tamper"}
         if isinstance(event, Token):
-            assert set(data) == {"kind", "i", "text", "applied", "readout", "color"}
+            assert set(data) == {"kind", "i", "text", "applied", "readout", "color", "sky"}
             assert set(data["readout"]) == {"scores", "top", "margin"}
             assert data["color"] == data["applied"]
             assert len(data["readout"]["scores"]) == 3

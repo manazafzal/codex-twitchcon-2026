@@ -33,6 +33,7 @@ class Token(Event):
     applied: str | None
     readout: dict[str, Any]
     color: str | None
+    sky: dict[str, Any] | None = None
     kind: Literal["token"] = field(default="token", init=False)
 
 
@@ -97,6 +98,7 @@ def event_from_dict(data: dict[str, Any]) -> Event:
         Control,
         Immune,
         Round,
+        Layout,
     )
     registry = {cls.__dataclass_fields__["kind"].default: cls for cls in classes}
     cls = registry.get(data.get("kind"))
@@ -114,6 +116,31 @@ def event_from_dict(data: dict[str, Any]) -> Event:
             raise ValueError("Invalid token")
         if set(event.readout) != {"scores", "top", "margin"}:
             raise ValueError("Invalid readout")
+    if isinstance(event, Layout) and (
+        len(event.points) > 30
+        or any(
+            not isinstance(key, str)
+            or len(point) != 2
+            or any(not math.isfinite(v) or abs(v) > 1.000001 for v in point)
+            for key, point in event.points.items()
+        )
+        or not set(event.alias).issubset(event.points)
+    ):
+        raise ValueError("Invalid layout")
+    if isinstance(event, Token) and event.sky is not None:
+        sky = event.sky
+        if set(sky) != {"z", "pulse", "residual", "median", "drive", "clamp", "calibrated"}:
+            raise ValueError("Invalid sky fields")
+        values = [
+            *sky["z"].values(),
+            *sky["pulse"].values(),
+            sky["residual"],
+            sky["median"],
+            sky["drive"],
+            sky["clamp"],
+        ]
+        if any(not isinstance(v, (int, float)) or not math.isfinite(v) for v in values):
+            raise ValueError("Invalid sky measurement")
     if isinstance(event, Tick):
         if any(not math.isfinite(v) or not 0 <= v <= 1 for v in event.shares.values()):
             raise ValueError("Invalid shares")
@@ -167,3 +194,10 @@ class Round(Event):
     answer: int
     message: str
     kind: Literal["round"] = field(default="round", init=False)
+
+
+@dataclass(frozen=True)
+class Layout(Event):
+    points: dict[str, list[float]]
+    alias: dict[str, str] = field(default_factory=dict)
+    kind: Literal["layout"] = field(default="layout", init=False)

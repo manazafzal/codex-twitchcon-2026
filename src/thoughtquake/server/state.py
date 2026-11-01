@@ -10,6 +10,7 @@ from thoughtquake.engine.events import (
     Control,
     Event,
     Immune,
+    Layout,
     Mode,
     Push,
     Snapshot,
@@ -37,13 +38,14 @@ class ViewState:
             "connections": {},
             "immune": Immune(False).to_dict(),
             "immune_requested": False,
+            "layout": None,
         }
 
     def apply(self, event: Event) -> None:
         row = event.to_dict()
         if isinstance(event, Snapshot):
             self.data = deepcopy(event.state)
-        elif isinstance(event, (Badge, Tick, Tamper, Immune)):
+        elif isinstance(event, (Badge, Tick, Tamper, Immune, Layout)):
             self.data[event.kind] = row
         elif isinstance(event, Control):
             self.data["immune_requested"] = event.enabled

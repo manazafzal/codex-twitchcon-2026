@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import ipaddress
 import logging
+import os
 import secrets
 from collections.abc import AsyncIterator, Callable
 from importlib.resources import files
@@ -10,7 +11,7 @@ from typing import Any
 from aiohttp import WSMsgType, web
 
 from thoughtquake.concepts.library import Concept
-from thoughtquake.engine.events import Event
+from thoughtquake.engine.events import Event, Mode
 from thoughtquake.server.presentation import Presentation
 from thoughtquake.server.state import ViewState
 
@@ -37,6 +38,11 @@ class Server:
 
     async def publish(self, event: Event) -> None:
         event = self.presentation.event(event)
+        await self.broadcast(event)
+        if isinstance(event, Mode) and self.presentation.points:
+            await self.broadcast(self.presentation.layout())
+
+    async def broadcast(self, event: Event) -> None:
         self.state.apply(event)
         row = event.to_dict()
         slow = []
@@ -143,11 +149,18 @@ def create_app(
             if request.path == "/control"
             else request.match_info.get("name") or "index.html"
         )
+        if (
+            name in {"fixture.html", "fixture.js", "trace_data.js"}
+            and os.getenv("THOUGHTQUAKE_DEV_FIXTURES") != "1"
+        ):
+            raise web.HTTPNotFound()
         if name not in {
             "index.html",
             "fixture.html",
             "style.css",
             "app.js",
+            "atlas.js",
+            "trace_data.js",
             "fixture.js",
             "control.html",
             "control.js",
@@ -155,6 +168,19 @@ def create_app(
             raise web.HTTPNotFound()
         return web.FileResponse(str(overlay.joinpath(name)))
 
+    async def font(request: web.Request) -> web.StreamResponse:
+        name = request.match_info["name"]
+        if name not in {
+            "CormorantGaramond.ttf",
+            "IBMPlexMono.ttf",
+            "OFL-Cormorant.txt",
+            "OFL-IBMPlex.txt",
+        }:
+            raise web.HTTPNotFound()
+        return web.FileResponse(str(overlay.joinpath("fonts", name)))
+
+    app.router.add_get("/fonts/{name}", font)
+    app.router.add_get("/overlay/fonts/{name}", font)
     app.router.add_get("/control", asset)
     app.router.add_get("/", asset)
     app.router.add_get("/overlay/", asset)

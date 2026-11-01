@@ -9,7 +9,8 @@ from thoughtquake.server.app import APP_KEY, create_app
 from thoughtquake.server.state import ViewState
 
 
-def test_static_api_auth_and_websocket_broadcast(library):
+def test_static_api_auth_and_websocket_broadcast(library, monkeypatch):
+    monkeypatch.setenv("THOUGHTQUAKE_DEV_FIXTURES", "1")
     async def run():
         switches = []
         app = create_app(

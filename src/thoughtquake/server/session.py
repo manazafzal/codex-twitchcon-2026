@@ -17,6 +17,7 @@ from thoughtquake.engine.events import (
     Event,
     Guess,
     Immune,
+    Layout,
     Mode,
     Push,
     Round,
@@ -35,6 +36,8 @@ from thoughtquake.sim.crowd import Crowd
 def mock_library(*, all_concepts: bool = True) -> ConceptLibrary:
     concepts = load_concepts() if all_concepts else load_concepts()[:3]
     vectors = np.eye(32)[: len(concepts)]
+    neutral = MockBackend().embed_texts(list(MockBackend.words), MockBackend.readout_layer)
+    neutral /= np.maximum(np.linalg.norm(neutral, axis=1, keepdims=True), 1e-8)
     return ConceptLibrary(
         concepts,
         vectors,
@@ -42,6 +45,8 @@ def mock_library(*, all_concepts: bool = True) -> ConceptLibrary:
         np.zeros(32),
         np.full(len(concepts), 0.1),
         {"model": "mock"},
+        neutral[:, : len(concepts)].mean(axis=0),
+        np.maximum(neutral[:, : len(concepts)].std(axis=0), 1e-6),
     )
 
 
@@ -321,6 +326,7 @@ class Session:
         yield replace(
             badge, quality="TINY MODEL / CI" if self.library.config.get("model") == "mock" else None
         )
+        yield Layout(self.engine.atlas.points)
         crowd_task = asyncio.create_task(self._crowd())
         try:
             while True:

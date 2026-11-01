@@ -1,7 +1,20 @@
+import hashlib
+import hmac
+import math
+import secrets
 from copy import deepcopy
 from dataclasses import replace
 
-from thoughtquake.engine.events import Event, Mode, Snapshot, Tamper, Token, event_from_dict
+from thoughtquake.engine.events import (
+    Event,
+    Layout,
+    Mode,
+    Snapshot,
+    Tamper,
+    Tick,
+    Token,
+    event_from_dict,
+)
 
 
 class Presentation:
@@ -9,12 +22,40 @@ class Presentation:
 
     def __init__(self) -> None:
         self.blind = False
+        self.secret = secrets.token_bytes(32)
+        self.points = {}
+        self.alias = {}
+        self.round_id = None
+
+    def layout(self) -> Layout:
+        if not self.alias:
+            return Layout(self.points)
+        if self.blind:
+            names = sorted(self.alias)
+            return Layout(
+                {
+                    key: [
+                        math.cos(i * 2.39996) * math.sqrt((i + 1) / len(names)),
+                        math.sin(i * 2.39996) * math.sqrt((i + 1) / len(names)),
+                    ]
+                    for i, key in enumerate(names)
+                }
+            )
+        return Layout({key: self.points[value] for key, value in self.alias.items()}, self.alias)
 
     def event(self, event: Event) -> Event:
+        if isinstance(event, Layout):
+            self.points = event.points
+            return self.layout()
         if isinstance(event, Snapshot):
             data = deepcopy(event.state)
+            if data.get("layout"):
+                self.points = data["layout"]["points"]
             data["mode"] = self.event(event_from_dict(data["mode"])).to_dict()
+            if self.points:
+                data["layout"] = self.layout().to_dict()
             if self.blind:
+                data["tick"] = self.event(event_from_dict(data["tick"])).to_dict()
                 data["tokens"] = [
                     self.event(event_from_dict(t)).to_dict() for t in data.get("tokens", [])
                 ]
@@ -26,6 +67,16 @@ class Presentation:
             return Snapshot(data)
         if isinstance(event, Mode):
             self.blind = event.mode == "telepathy" and event.phase != "reveal"
+            if self.blind and (not self.alias or self.round_id != event.round_id):
+                self.round_id = event.round_id
+                self.alias = {
+                    hmac.new(
+                        self.secret, f"{event.round_id}:{key}".encode(), hashlib.sha256
+                    ).hexdigest()[:16]: key
+                    for key in self.points
+                }
+            elif event.mode != "telepathy":
+                self.alias = {}
             if self.blind:
                 return replace(
                     event,
@@ -35,6 +86,13 @@ class Presentation:
                     winner=None,
                     probe_top=None,
                 )
+        if self.blind and isinstance(event, Tick):
+            inverse = {value: key for key, value in self.alias.items()}
+            return replace(
+                event,
+                shares={inverse.get(key, key): value for key, value in event.shares.items()},
+                top_pushers=[],
+            )
         if self.blind and isinstance(event, Token):
             ranked = sorted(
                 event.readout["scores"], key=lambda f: (-event.readout["scores"][f], f)
@@ -46,8 +104,14 @@ class Presentation:
                 (name for name, f in zip("ABC", ranked, strict=False) if f == event.readout["top"]),
                 None,
             )
+            sky = deepcopy(event.sky)
+            if sky:
+                inverse = {value: key for key, value in self.alias.items()}
+                for field in ("z", "pulse"):
+                    sky[field] = {inverse.get(key, key): value for key, value in sky[field].items()}
             return replace(
                 event,
+                sky=sky,
                 applied=None,
                 color=None,
                 readout={"scores": scores, "top": top, "margin": event.readout["margin"]},

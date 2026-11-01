@@ -1,42 +1,10 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>THOUGHTQUAKE · static fixture · TINY MODEL / CI</title>
-  <link rel="stylesheet" href="style.css">
-  <script defer src="fixture.js"></script>
-  <script defer src="app.js"></script>
-</head>
-<body>
-<main id="stage" aria-label="THOUGHTQUAKE live mind territory">
-  <header class="topbar">
-    <div class="wordmark"><span class="quake-mark" aria-hidden="true">ϟ</span> THOUGHTQUAKE</div>
-    <div id="round-label">Waiting for the Subject…</div>
-    <div class="chips"><span id="sim-source" class="chip simulated" hidden></span><span id="source" class="chip simulated">SIMULATED ×0</span><span id="immune" class="chip">IMMUNE: OFF</span></div>
-  </header>
-  <div class="status-row"><span id="quality" class="chip">TINY MODEL / CI</span><span id="connection" class="chip danger" hidden>RECONNECTING</span><span id="neutralised" class="chip" hidden>NEUTRALISED 0 %</span><span id="tamper" class="chip danger" hidden></span></div>
-  <section id="hero" aria-label="The Subject's answer">
-    <div class="eyebrow"><span class="live-dot"></span> THE SUBJECT <span id="colour-label">/ TERRITORY</span></div>
-    <div id="answer" class="answer" aria-live="polite"></div>
-    <div id="thinking">thinking…</div>
-    <div id="comparison" hidden>
-      <article><h2>IMMUNE: OFF</h2><div id="attack-off" class="answer"></div></article>
-      <article><h2>IMMUNE: ON</h2><div id="attack-on" class="answer"></div></article>
-    </div>
-    <section id="blind-readout" aria-label="Mind-Reader hidden candidates" hidden><h2>HIDDEN CANDIDATES</h2><div class="candidate-track"><i id="candidate-1"></i></div><div class="candidate-track"><i id="candidate-2"></i></div><div class="candidate-track"><i id="candidate-3"></i></div></section>
-    <div id="telepathy" hidden><span>Guess in chat: !guess &lt;word&gt;</span><span id="countdown">30 s</span><span id="reveal"></span><div id="scoreboard">No points yet</div></div>
-    <div id="legend" class="legend"></div>
-    <div id="history" aria-label="Last three answers"></div>
-  </section>
-  <section id="territory" aria-label="Mind Share">
-    <div class="section-label">MIND SHARE <span>THOUGHT INJECTION / FACTION CONTEST</span></div>
-    <div id="share-track"><div id="shares"></div><div class="cap"><span>75 % cap</span></div></div>
-  </section>
-  <section id="reader"><div class="section-label">MIND-READER <span>LAST 60 TOKENS</span></div><svg id="chart" preserveAspectRatio="none" viewBox="0 0 960 112" role="img" aria-label="Mind-Reader state over the last 60 tokens"></svg></section>
-  <section id="push-panel"><div class="section-label">LATEST PUSHES <span>CHAT → MIND TERRITORY</span></div><ol id="pushes"></ol></section>
-  <div id="instruction">Type a word to join a team: ocean · space · jazz · horror</div>
-  <div id="mode-caption" hidden>ROUND: WAR</div>
-</main>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><title>THOUGHTQUAKE · Mind Atlas</title><link rel="stylesheet" href="style.css"><script defer src="atlas.js"></script><script defer src="app.js"></script></head>
+<body><main id="stage" aria-label="THOUGHTQUAKE live view">
+<canvas id="atlas-field" aria-label="Measured concept field"></canvas><canvas id="atlas-fx" aria-label="Token currents and concept stars"></canvas><div class="scrim left"></div><div class="scrim top"></div><div class="scrim bottom"></div>
+<header><span class="brand">THOUGHTQUAKE</span><span id="mode">WAR</span><span id="source">SIMULATED ×0</span><span id="quality">TINY MODEL / CI</span><span id="connection" hidden>RECONNECTING</span></header>
+<section id="hero"><div class="eyebrow"><span id="colour-label">territory</span><span id="panel-label"></span><span id="immune-chip" hidden>IMMUNE ON</span><span id="tamper" hidden>NEUTRALISED</span></div><div id="prompt">Waiting for the Subject…</div><div id="answer" aria-live="polite"></div><div id="history" aria-label="Last three answers"></div></section>
+<section id="mind-share"><h2>MIND SHARE</h2><div id="share-bar"><i></i></div><div id="share-legend"></div></section>
+<section id="mind-reader"><h2>MIND-READER - SD ABOVE BASELINE</h2><canvas id="reader" width="780" height="200" aria-label="Last sixty token measurements"></canvas><div id="ridge-labels"></div></section>
+<aside id="sky-caption">THE MIND ATLAS<span>LIGHT FROM THE SUBJECT'S TOKEN STATES</span></aside><div id="reveal" hidden></div><div id="mode-caption" hidden></div><div id="pushes"></div><div id="instruction">Type a concept in chat to push · Every voice has weight</div><div id="scoreboard"></div>
+</main></body></html>

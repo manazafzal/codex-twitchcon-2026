@@ -77,4 +77,20 @@ def build_library(
         "defender_layer": backend.injection_layer + 1,
         "hidden_size": backend.hidden_size,
     }
-    return ConceptLibrary(concepts, V, D, base_r, thresholds, config)
+    token_hidden = getattr(backend, "token_hidden", None)
+    neutral_r = (
+        np.concatenate([token_hidden(text, backend.readout_layer) for text in texts])
+        if token_hidden
+        else backend.embed_texts(texts, backend.readout_layer)
+    )
+    projections = unit(neutral_r - base_r) @ unit(D).T
+    return ConceptLibrary(
+        concepts,
+        V,
+        D,
+        base_r,
+        thresholds,
+        config,
+        projections.mean(axis=0),
+        np.maximum(projections.std(axis=0), 1e-6),
+    )
