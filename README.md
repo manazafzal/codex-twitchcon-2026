@@ -1,7 +1,7 @@
 # THOUGHTQUAKE
 
 Chat factions contest the Subject's mind territory, watched by a Mind-Reader
-and a Neural Immune System. M1–M3 provide the local engine, browser overlay, labelled offline crowd,
+and a Neural Immune System. M1–M4 provide the local engine, browser overlay, labelled offline crowd,
 recording, replay, and Twitch Device Code / EventSub integration.
 
 ```sh
@@ -43,22 +43,38 @@ random-init backend; real-model engine replay requires `--library PATH` and the
 original model. Reproducibility is limited to the same model, configuration, and
 hardware. No recorded real-chat golden run is included.
 
-Broadcaster controls use a local bearer token. Set `THOUGHTQUAKE_LOCAL_TOKEN`
-before starting the server, or use the generated 0600 temporary token file whose
-path is logged at startup. The file is removed on normal shutdown. Tokens are
-never included in `/api/state`, WebSocket snapshots, or overlay URLs.
+Broadcaster controls are at **http://127.0.0.1:8080/control**. Each run prints a
+fresh random control token in the console. Paste it into the control page; it
+stays in page memory and is never included in overlay URLs or `/api/state`.
+Choose War / Attack / Telepathy there. Press **I** on the control page to toggle
+the Neural Immune System, or use its ON/OFF buttons. Protected API calls are:
 
 ```sh
 curl -X POST http://127.0.0.1:8080/api/mode \
-  -H "Authorization: Bearer $THOUGHTQUAKE_LOCAL_TOKEN" \
+  -H 'Authorization: Bearer TOKEN_PRINTED_AT_STARTUP' \
   -H 'Content-Type: application/json' -d '{"mode":"attack"}'
+curl -X POST http://127.0.0.1:8080/api/immune \
+  -H 'Authorization: Bearer TOKEN_PRINTED_AT_STARTUP' \
+  -H 'Content-Type: application/json' -d '{"enabled":true}'
 ```
 
-Modes are `war`, `attack`, and `telepathy`; changes apply between answers. Attack
-uses the same prompt, injection draw, and random state for the OFF/ON comparison.
-Telepathy currently supplies the masked presentation, countdown, reveal, and
-scoreboard event fields. Chat guess adjudication and scoring (§11) remain for the
-game milestone. Stats and real-model claims await the eval harness.
+War produces short answers with the last three retained in the history column.
+Attack runs one fixed injection and prompt twice with identical random state,
+IMMUNE OFF then ON. It temporarily overrides the War immune setting.
+
+Telepathy selects a library concept outside the active war and injects it at
+β=2 for an everyday prompt. After generation, `!guess <word>` opens for 30 seconds.
+The first correct alias wins one point; the in-memory scoreboard retains the top
+five players. The reveal names the secret, winner, and Mind-Reader's actual top
+guess. Names, applied-faction metadata, and readout labels are masked on the
+public WebSocket and API snapshot before reveal. Private recordings retain round
+plans for reproducible engine replay; share recordings after the round ends.
+
+Twitch viewers cannot switch modes. Broadcasters and moderators may send
+`!immune on` or `!immune off`; roles are checked from Twitch user IDs and badges.
+During Attack/Telepathy, changes wait for War so the comparison or challenge
+retains its prescribed settings. Chat announcements occur at round boundaries
+only, subject to the existing five-second limiter.
 
 The server exposes `/ws` and `/api/state`. Reconnecting sockets receive the full
 current snapshot, including answer history. Slow clients are disconnected and
@@ -74,7 +90,7 @@ The Neural Immune System clamps projections along known library injection
 directions. It does not defend against arbitrary prompt injection.
 `thoughtquake build-library` explicitly loads the real Qwen2.5 model to generate
 contrast sets and calibration data. `make eval` reports that the eval harness is
-outside M3. No real-model calibration, quality, throughput, or lead-time claim is made.
+outside M4. No real-model calibration, quality, throughput, or lead-time claim is made.
 
 Live chat setup: register a **Public** Twitch app, set
 `THOUGHTQUAKE_TWITCH_CLIENT_ID`, run `thoughtquake auth`, then
@@ -83,3 +99,16 @@ Live chat setup: register a **Public** Twitch app, set
 own badge. A built library can be supplied with `--library`; otherwise the model
 output remains explicitly labelled **TINY MODEL / CI**. See the streamer guide
 for credential storage, bot announcements, OBS setup, and the required live check.
+
+Colouring defaults to `--schedule-mode answer --colour-source applied`: one faction
+per answer, including prompt prefill. `sentence` and `token` remain experimental.
+Readout colouring aggregates an answer or a window (12 tokens by default), then
+assigns one colour to that group. It buffers those groups instead of assigning
+colours to individual words. Per-token scores still feed the 60-token chart.
+Use `--colour-source readout --eval-file results/eval.json` only with real-model
+evidence: `source: "realmodel"` and
+`schedule_modes.<mode>.window_agreement >= 0.75`. The overlay labels the source
+as **territory** or **Mind-Reader colours**. Optional reveal accuracy comes only
+from `telepathy: {"accuracy": ..., "n": ...}` in that real-model evidence file.
+No lead-time claim is made. Real-model quality, coherence, and throughput remain
+unverified; fixture output retains its **TINY MODEL / CI** label.

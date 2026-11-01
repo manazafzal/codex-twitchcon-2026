@@ -49,6 +49,12 @@ class Mode(Event):
     reveal: str | None = None
     panel: str = "main"
     colour_source: str = "applied"
+    round_id: int | None = None
+    winner: str | None = None
+    probe_top: str | None = None
+    probe_accuracy: float | None = None
+    injection: str | None = None
+    beta: float | None = None
     kind: Literal["mode"] = field(default="mode", init=False)
 
 
@@ -78,7 +84,20 @@ def event_from_dict(data: dict[str, Any]) -> Event:
     import math
     from dataclasses import fields
 
-    classes = (Push, Tick, Token, Mode, Tamper, Badge, Snapshot, Connection)
+    classes = (
+        Push,
+        Tick,
+        Token,
+        Mode,
+        Tamper,
+        Badge,
+        Snapshot,
+        Connection,
+        Guess,
+        Control,
+        Immune,
+        Round,
+    )
     registry = {cls.__dataclass_fields__["kind"].default: cls for cls in classes}
     cls = registry.get(data.get("kind"))
     if cls is None:
@@ -113,3 +132,38 @@ class Connection(Event):
     service: str
     state: str
     kind: Literal["connection"] = field(default="connection", init=False)
+
+
+@dataclass(frozen=True)
+class Guess(Event):
+    user: str
+    word: str
+    t: float
+    source: str
+    user_id: str | None = None
+    kind: Literal["guess"] = field(default="guess", init=False)
+
+
+@dataclass(frozen=True)
+class Control(Event):
+    enabled: bool
+    t: float
+    source: str
+    user: str = "broadcaster"
+    user_id: str | None = None
+    kind: Literal["control"] = field(default="control", init=False)
+
+
+@dataclass(frozen=True)
+class Immune(Event):
+    enabled: bool
+    kind: Literal["immune"] = field(default="immune", init=False)
+
+
+@dataclass(frozen=True)
+class Round(Event):
+    mode: str
+    phase: str
+    answer: int
+    message: str
+    kind: Literal["round"] = field(default="round", init=False)

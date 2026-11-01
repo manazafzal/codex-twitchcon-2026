@@ -11,6 +11,7 @@ from aiohttp import WSMsgType, web
 
 from thoughtquake.concepts.library import Concept
 from thoughtquake.engine.events import Event
+from thoughtquake.server.presentation import Presentation
 from thoughtquake.server.state import ViewState
 
 log = logging.getLogger(__name__)
@@ -24,15 +25,18 @@ class Server:
         concepts: list[Concept] | None = None,
         control_token: str | None = None,
         switch_mode: Callable[[str], None] | None = None,
+        set_immune: Callable[[bool], None] | None = None,
     ) -> None:
         self.state = ViewState(concepts)
         self.control_token = control_token or secrets.token_urlsafe(32)
-        self.switch_mode = switch_mode
+        self.switch_mode, self.set_immune = switch_mode, set_immune
+        self.presentation = Presentation()
         self.clients: dict[web.WebSocketResponse, asyncio.Queue[dict[str, Any]]] = {}
         self.task: asyncio.Task[None] | None = None
         self.closing = False
 
     async def publish(self, event: Event) -> None:
+        event = self.presentation.event(event)
         self.state.apply(event)
         row = event.to_dict()
         slow = []
@@ -72,7 +76,7 @@ class Server:
     async def api_state(self, request: web.Request) -> web.Response:
         return web.json_response(self.state.snapshot().state)
 
-    async def api_mode(self, request: web.Request) -> web.Response:
+    def authorize(self, request: web.Request) -> None:
         try:
             local = ipaddress.ip_address(request.remote or "").is_loopback
         except ValueError:
@@ -81,6 +85,9 @@ class Server:
         supplied = auth[7:] if auth.startswith("Bearer ") else ""
         if not local or not secrets.compare_digest(supplied, self.control_token):
             raise web.HTTPForbidden(text="Local broadcaster token required")
+
+    async def api_mode(self, request: web.Request) -> web.Response:
+        self.authorize(request)
         try:
             body = await request.json()
             mode = body["mode"].lower()
@@ -93,6 +100,20 @@ class Server:
         self.switch_mode(mode)
         return web.json_response({"mode": mode, "status": "queued"}, status=202)
 
+    async def api_immune(self, request: web.Request) -> web.Response:
+        self.authorize(request)
+        try:
+            body = await request.json()
+            enabled = body["enabled"]
+            if not isinstance(enabled, bool):
+                raise TypeError("Expected boolean")
+        except (ValueError, KeyError, TypeError) as exc:
+            raise web.HTTPBadRequest(text="Expected an enabled boolean") from exc
+        if self.set_immune is None:
+            raise web.HTTPConflict(text="Immune controls unavailable during replay")
+        self.set_immune(enabled)
+        return web.json_response({"enabled": enabled, "status": "queued"}, status=202)
+
 
 def create_app(
     *,
@@ -100,21 +121,41 @@ def create_app(
     concepts: list[Concept] | None = None,
     control_token: str | None = None,
     switch_mode: Callable[[str], None] | None = None,
+    set_immune: Callable[[bool], None] | None = None,
 ) -> web.Application:
-    server = Server(concepts=concepts, control_token=control_token, switch_mode=switch_mode)
+    server = Server(
+        concepts=concepts,
+        control_token=control_token,
+        switch_mode=switch_mode,
+        set_immune=set_immune,
+    )
     app = web.Application(client_max_size=4096)
     app[APP_KEY] = server
     app.router.add_get("/ws", server.websocket)
     app.router.add_get("/api/state", server.api_state)
     app.router.add_post("/api/mode", server.api_mode)
+    app.router.add_post("/api/immune", server.api_immune)
     overlay = files("thoughtquake.overlay")
 
     async def asset(request: web.Request) -> web.StreamResponse:
-        name = request.match_info.get("name") or "index.html"
-        if name not in {"index.html", "fixture.html", "style.css", "app.js", "fixture.js"}:
+        name = (
+            "control.html"
+            if request.path == "/control"
+            else request.match_info.get("name") or "index.html"
+        )
+        if name not in {
+            "index.html",
+            "fixture.html",
+            "style.css",
+            "app.js",
+            "fixture.js",
+            "control.html",
+            "control.js",
+        }:
             raise web.HTTPNotFound()
         return web.FileResponse(str(overlay.joinpath(name)))
 
+    app.router.add_get("/control", asset)
     app.router.add_get("/", asset)
     app.router.add_get("/overlay/", asset)
     app.router.add_get("/overlay/{name}", asset)

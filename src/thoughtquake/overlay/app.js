@@ -12,6 +12,7 @@
   ]);
   let currentMode = {mode: "war", panel: "main", answer: -1, phase: "generating"};
   let currentTokens = [], history = [], pushes = [], readouts = [];
+  let activeFactions = ["ocean", "space", "jazz"];
   let wordQueue = [], carry = null, socket = null, captionTimer = null;
   let fixture = Boolean(window.THOUGHTQUAKE_FIXTURE);
   let retry = 500;
@@ -81,7 +82,7 @@
   function mode(event, restoring = false) {
     const changed = event.mode !== currentMode.mode;
     const newAnswer = event.answer !== currentMode.answer || event.panel !== currentMode.panel || changed;
-    if (newAnswer && event.phase === "generating") {
+    if (newAnswer && ["armed", "generating"].includes(event.phase)) {
       flushCarry();
       // Finish buffered words before archiving the previous answer.
       while (wordQueue.length) { const w = wordQueue.shift(); word(w.text, w.faction, w.target); }
@@ -92,9 +93,11 @@
         $("attack-off").replaceChildren(); $("attack-on").replaceChildren();
       }
       $("thinking").hidden = false;
+      if (event.mode === "telepathy") { readouts = []; chart(); }
     }
     currentMode = event;
     $("stage").dataset.mode = event.mode;
+    $("stage").dataset.phase = event.phase;
     $("round-label").textContent = `Answer ${event.answer + 1} · ${event.prompt}`;
     $("immune").textContent = `IMMUNE: ${event.immune ? "ON" : "OFF"}`;
     $("colour-label").textContent = event.colour_source === "readout" ? "/ MIND-READER COLOURS" : "/ TERRITORY";
@@ -102,17 +105,18 @@
     $("comparison").hidden = event.mode !== "attack";
     $("telepathy").hidden = event.mode !== "telepathy";
     $("countdown").textContent = `${Math.ceil(event.remaining ?? 30)} s`;
-    $("reveal").textContent = event.reveal ? `Reveal: ${label(event.reveal)}` : "";
-    $("scoreboard").textContent = event.scoreboard?.length ? event.scoreboard.map(([user, points]) => `${user}: ${points}`).join(" · ") : "No guesses yet";
+    $("reveal").textContent = event.reveal ? `Reveal: ${label(event.reveal)} · Mind-Reader: ${label(event.probe_top) || "unavailable"} · First correct: ${event.winner || "no winner"}${event.probe_accuracy == null ? "" : ` · Real-model round accuracy: ${Math.round(event.probe_accuracy * 100)} %`}` : "";
+    $("scoreboard").textContent = event.scoreboard?.length ? event.scoreboard.map(([user, points]) => `${user}: ${points}`).join(" · ") : "No points yet";
     if (changed && !fixture) {
       clearTimeout(captionTimer); $("mode-caption").hidden = false;
       $("mode-caption").textContent = `ROUND: ${event.mode.toUpperCase()}`;
       captionTimer = setTimeout(() => { $("mode-caption").hidden = true; }, 1500);
     }
-    renderHistory();
+    renderHistory(); chart();
   }
   function tick(event) {
     const active = Object.entries(event.shares);
+    activeFactions = active.filter(([f, share]) => f !== "Neutral" && share > 0).map(([f]) => f);
     const existing = new Map([...$("shares").children].map(node => [node.dataset.faction, node]));
     for (const [f, share] of active) {
       let node = existing.get(f);
@@ -132,8 +136,14 @@
     }
   }
   function chart() {
+    const blind = currentMode.mode === "telepathy" && currentMode.phase !== "reveal";
+    $("blind-readout").hidden = !blind;
+    const latest = readouts.at(-1) || {};
+    ["A", "B", "C"].forEach((name, index) => {
+      $("candidate-" + (index + 1)).style.width = `${Math.max(0, Math.min(1, latest[name] || 0)) * 100}%`;
+    });
     $("chart").replaceChildren();
-    const factions = [...new Set(readouts.flatMap(row => Object.keys(row)))].slice(0, 3);
+    const factions = currentMode.mode === "telepathy" ? ["A", "B", "C"] : activeFactions.slice(0, 3);
     const cumulative = readouts.map(() => 0);
     for (const f of factions) {
       const base = [...cumulative];
@@ -172,6 +182,16 @@
       $("sim-source").textContent = `SIMULATED ×${event.simulated_users || 0}`;
       $("quality").hidden = !event.quality; $("quality").textContent = event.quality || "";
     },
+    guess(event) { /* The director adjudicates guesses; rendering never awards points. */ },
+    control(event) { /* Only the resulting immune event changes the display. */ },
+    immune(event) {
+      currentMode.immune = event.enabled;
+      $("immune").textContent = `IMMUNE: ${event.enabled ? "ON" : "OFF"}`;
+      $("neutralised").hidden = !event.enabled;
+    },
+    round(event) {
+      if (event.phase === "end" || event.phase === "reveal") { flushCarry(); $("thinking").hidden = true; }
+    },
     connection(event) {
       if (event.service !== "twitch") return;
       twitchState = event.state; renderConnection();
@@ -180,14 +200,14 @@
     tick,
     token(event) { currentTokens.push(event); queue(event); readouts.push(event.readout.scores); readouts = readouts.slice(-60); chart(); },
     mode,
-    tamper(event) { $("tamper").hidden = !event.concepts.length; $("tamper").textContent = `TAMPERING DETECTED: ${hiddenNames() ? "?" : event.concepts.join(", ")}`; },
+    tamper(event) { $("neutralised").textContent = `NEUTRALISED ${Math.round(event.neutralised * 100)} %`; $("neutralised").hidden = !currentMode.immune; $("tamper").hidden = !event.concepts.length; $("tamper").textContent = `TAMPERING DETECTED: ${hiddenNames() ? "?" : event.concepts.join(", ")}`; },
     snapshot(event) {
       clearTimeout(carryTimer); carry = null; wordQueue = [];
       const state = event.state;
       concepts = new Map(state.concepts.map(c => [c.id, c]));
       twitchState = state.connections?.twitch || "connected"; renderConnection();
       currentTokens = []; history = state.history; pushes = state.pushes; readouts = state.readouts;
-      mode(state.mode, true); handlers.badge(state.badge); tick(state.tick); handlers.tamper(state.tamper);
+      mode(state.mode, true); if (state.immune) handlers.immune(state.immune); handlers.badge(state.badge); tick(state.tick); handlers.tamper(state.tamper);
       $("answer").replaceChildren(); $("attack-off").replaceChildren(); $("attack-on").replaceChildren();
       if (state.mode.mode === "attack") {
         for (const panel of ["off", "on"]) for (const token of state.panels[panel]) word(token.text, token.color, $(`attack-${panel}`));

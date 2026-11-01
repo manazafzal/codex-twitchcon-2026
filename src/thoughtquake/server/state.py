@@ -7,7 +7,9 @@ from thoughtquake.concepts.library import Concept
 from thoughtquake.engine.events import (
     Badge,
     Connection,
+    Control,
     Event,
+    Immune,
     Mode,
     Push,
     Snapshot,
@@ -33,14 +35,18 @@ class ViewState:
             "pushes": [],
             "readouts": [],
             "connections": {},
+            "immune": Immune(False).to_dict(),
+            "immune_requested": False,
         }
 
     def apply(self, event: Event) -> None:
         row = event.to_dict()
         if isinstance(event, Snapshot):
             self.data = deepcopy(event.state)
-        elif isinstance(event, (Badge, Tick, Tamper)):
+        elif isinstance(event, (Badge, Tick, Tamper, Immune)):
             self.data[event.kind] = row
+        elif isinstance(event, Control):
+            self.data["immune_requested"] = event.enabled
         elif isinstance(event, Connection):
             self.data["connections"][event.service] = event.state
         elif isinstance(event, Push):
@@ -52,7 +58,7 @@ class ViewState:
                 previous["panel"],
                 previous["mode"],
             )
-            if new_answer and event.phase == "generating":
+            if new_answer and event.phase in {"armed", "generating"}:
                 if self.data["tokens"]:
                     self.data["history"] = [
                         *self.data["history"],
@@ -62,6 +68,9 @@ class ViewState:
                 if event.mode != "attack" or event.panel == "off":
                     self.data["panels"] = {"off": [], "on": []}
             self.data["mode"] = row
+            self.data["immune"] = Immune(event.immune).to_dict()
+            if event.mode == "telepathy" and new_answer:
+                self.data["readouts"] = []
         elif isinstance(event, Token):
             self.data["tokens"] = [*self.data["tokens"], row][-256:]
             if self.data["mode"]["mode"] == "attack":

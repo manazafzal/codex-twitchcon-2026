@@ -5,7 +5,7 @@ from pathlib import Path
 
 import aiohttp
 
-from thoughtquake.engine.events import Badge, Connection, Event, Mode, Tick, Token
+from thoughtquake.engine.events import Badge, Connection, Event, Round
 from thoughtquake.replay.recorder import Recorder
 from thoughtquake.server.session import Session
 from thoughtquake.twitch.auth import (
@@ -59,21 +59,8 @@ class LiveSession:
     async def _engine(self) -> None:
         async for event in self.session.events():
             await self.emit(event)
-            if isinstance(event, Mode) and event.phase == "generating":
-                self.announce(
-                    f"THOUGHTQUAKE · Round: {event.mode.title()}. Type a concept word to join a faction."
-                )
-            elif isinstance(event, Mode) and event.phase == "reveal":
-                self.announce(f"Telepathy reveal: {event.reveal}.")
-            elif isinstance(event, Token) and event.i == 31:
-                self.announce(
-                    "The Subject's answer is complete. Mind territory changes between answers."
-                )
-            elif isinstance(event, Tick) and self.session.clock() - self.last_leader >= 60:
-                factions = {f: share for f, share in event.shares.items() if f != "Neutral"}
-                if factions:
-                    self.last_leader = self.session.clock()
-                    self.announce(f"Team {max(factions, key=factions.get)} leads Mind Share.")
+            if isinstance(event, Round):
+                self.announce(event.message)
 
     async def _chat(self) -> None:
         async def status(value: str) -> None:
@@ -102,6 +89,7 @@ class LiveSession:
                         self.session.library.concepts,
                         bot_id=token.user_id,
                         broadcaster_id=broadcaster,
+                        clock=self.session.now,
                     )
                     client = EventSub(
                         auth, broadcaster, token.user_id, url=self.eventsub_url, status=status

@@ -5,6 +5,14 @@ import numpy as np
 from thoughtquake.engine.immune import clamp
 from thoughtquake.model.backend import DefendSpec, State, Vector, sample
 
+_SCRIPT_TEXTS = (
+    "Let the water settle like a quiet tide. Warm your cup, add tea, and wait for gentle warmth. Enjoy a calm pause before you start the next simple task at home.",
+    "Set aside a quiet moment in your orbit. Warm your cup, add tea, and watch the steam rise into space. Enjoy a gentle pause before you start the next simple task.",
+    "Find a gentle rhythm in your morning. Warm the cup, add tea, and give it time to steep with a little jazz. Enjoy a quiet pause before the next simple task.",
+)
+_WORDS = tuple(dict.fromkeys(" " + word for text in _SCRIPT_TEXTS for word in text.split()))
+_SCRIPTS = tuple(tuple(_WORDS.index(" " + word) for word in text.split()) for text in _SCRIPT_TEXTS)
+
 
 class MockBackend:
     """A deterministic plumbing fixture; its output is not evidence of model quality."""
@@ -15,56 +23,8 @@ class MockBackend:
     readout_layer = 11
     eos_token_id = None
     sample = staticmethod(sample)
-    words = (
-        " Let",
-        " the",
-        " water",
-        " settle",
-        " like",
-        " a",
-        " quiet",
-        " tide.",
-        " Warm",
-        " cup,",
-        " add",
-        " tea,",
-        " and",
-        " wait",
-        " for",
-        " gentle",
-        " warmth.",
-        " Set",
-        " aside",
-        " moment",
-        " in",
-        " your",
-        " orbit.",
-        " Pour",
-        " slowly",
-        " watch",
-        " steam",
-        " rise",
-        " into",
-        " space.",
-        " Find",
-        " rhythm",
-        " morning.",
-        " Give",
-        " time",
-        " to",
-        " steep",
-        " with",
-        " little",
-        " jazz.",
-        " Enjoy",
-        " simple",
-        " routine.",
-    )
-    scripts = (
-        (0, 1, 2, 3, 4, 5, 6, 7, 8, 1, 9, 10, 11, 12, 13, 14, 15, 16, 39, 1, 40, 41),
-        (17, 18, 5, 19, 20, 21, 22, 23, 24, 12, 25, 1, 26, 27, 28, 8, 1, 9, 12, 13, 14, 15, 16),
-        (29, 1, 30, 20, 21, 31, 32, 1, 11, 33, 34, 35, 36, 5, 37, 38, 39, 1, 40, 41),
-    )
+    words = _WORDS
+    scripts = _SCRIPTS
 
     def _hidden(self, text: str, layer: int) -> Vector:
         seed = int.from_bytes(hashlib.sha256(f"{layer}:{text}".encode()).digest()[:8])

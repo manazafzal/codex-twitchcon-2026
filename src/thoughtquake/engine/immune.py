@@ -50,10 +50,12 @@ class ImmuneMonitor:
         pushed: set[str] | None = None,
     ) -> ImmuneDecision:
         detected = []
+        token_reductions = []
         for concept, before, after, threshold in zip(concepts, pre, post, thresholds, strict=True):
             fired = before > threshold
             self.consecutive[concept] = self.consecutive.get(concept, 0) + 1 if fired else 0
-            self.reductions.append(float(1 - after / before) if before != 0 else 0.0)
+            if fired and before != 0:
+                token_reductions.append(float(1 - after / before))
             if self.consecutive[concept] >= 3:
                 detected.append(concept)
         if (
@@ -63,5 +65,6 @@ class ImmuneMonitor:
             and readout_top not in detected
         ):
             detected.append(readout_top)
+        self.reductions.append(float(np.mean(token_reductions)) if token_reductions else 0.0)
         mean = float(np.mean(self.reductions)) if self.reductions else 0.0
         return ImmuneDecision(tuple(detected), mean)

@@ -10,9 +10,13 @@ from typing import Any
 from thoughtquake.engine.events import (
     Badge,
     Connection,
+    Control,
     Event,
+    Guess,
+    Immune,
     Mode,
     Push,
+    Round,
     Snapshot,
     Tamper,
     Tick,
@@ -20,7 +24,9 @@ from thoughtquake.engine.events import (
     event_from_dict,
 )
 from thoughtquake.engine.generate import Generator
-from thoughtquake.engine.mixer import FakeClock
+from thoughtquake.engine.mixer import NEUTRAL, FakeClock
+from thoughtquake.engine.rounds import FixedInjection
+from thoughtquake.game.telepathy import Phase, Telepathy
 
 
 class Player:
@@ -91,6 +97,9 @@ class Player:
         original_mixer = engine.mixer
         frozen = None
         attack_rng = None
+        game = Telepathy(engine.library.concepts, clock=clock, seed=self.metadata["seed"])
+        current_mode = "war"
+        modern = self.metadata["config"].get("round_version", 0) >= 4
         for row in self.rows[1:]:
             clock.advance(row["t"] - clock())
             event = event_from_dict(row["event"])
@@ -99,6 +108,41 @@ class Player:
                 engine.push(push)
                 yield row["t"], push
             elif isinstance(event, Mode):
+                if (
+                    modern
+                    and event.phase in {"armed", "guessing", "reveal", "idle"}
+                    and iterator is not None
+                ):
+                    unrecorded = sum(isinstance(pending, Token) for pending in iterator)
+                    if unrecorded:
+                        raise ValueError("Round ended before all regenerated tokens were recorded")
+                    iterator = None
+                current_mode = event.mode
+                if modern and event.mode == "telepathy":
+                    if event.phase == "armed":
+                        active = {
+                            f
+                            for f, share in original_mixer.tick().shares.items()
+                            if f != NEUTRAL and share > 0
+                        }
+                        game.arm(active, secret=event.injection)
+                    elif event.phase == "generating":
+                        game.start()
+                    elif event.phase == "guessing" and game.phase == Phase.GENERATING:
+                        game.finish_generation(engine.last_scores)
+                    elif event.phase == "reveal":
+                        game.tick()
+                    elif event.phase == "idle":
+                        game.cancel()
+                    if game.phase in {Phase.GUESSING, Phase.REVEAL}:
+                        event = replace(
+                            event,
+                            scoreboard=game.scoreboard,
+                            candidates=game.candidates,
+                            probe_top=game.probe_top if game.phase == Phase.REVEAL else None,
+                            winner=game.winner if game.phase == Phase.REVEAL else None,
+                            reveal=game.secret if game.phase == Phase.REVEAL else None,
+                        )
                 if event.phase == "generating":
                     if event.mode == "attack":
                         if event.panel == "off":
@@ -108,10 +152,21 @@ class Player:
                             attack_rng = copy.deepcopy(engine.rng.bit_generator.state)
                         if frozen is None:
                             raise ValueError("Attack ON must follow OFF")
-                        engine.mixer = copy.deepcopy(frozen)
+                        engine.mixer = (
+                            FixedInjection(
+                                copy.deepcopy(frozen), event.injection, beta=event.beta or 2
+                            )
+                            if event.injection
+                            else copy.deepcopy(frozen)
+                        )
                         engine.rng.bit_generator.state = copy.deepcopy(attack_rng)
+                    elif event.mode == "telepathy" and event.injection:
+                        engine.mixer = FixedInjection(
+                            original_mixer, event.injection, beta=event.beta or 2
+                        )
                     else:
                         engine.mixer = original_mixer
+                    engine.secret = event.injection if event.mode == "telepathy" else None
                     engine.answer_index = event.answer
                     engine.immune = event.immune
                     iterator = engine.events(
@@ -130,6 +185,25 @@ class Player:
                         break
                 else:
                     raise ValueError("Recorded token count exceeds regenerated answer")
+            elif isinstance(event, Guess):
+                event = replace(event, t=event.t - self.metadata.get("clock_origin", 0))
+                game.guess(event.user, event.word, user_id=event.user_id, at=event.t)
+                yield row["t"], event
+            elif isinstance(event, Control):
+                if current_mode == "war":
+                    engine.immune = event.enabled
+                    engine.monitor.reset()
+                yield row["t"], event
+            elif isinstance(event, Immune):
+                engine.immune = event.enabled
+                yield row["t"], event
+            elif isinstance(event, Round):
+                if modern and event.mode == "telepathy" and event.phase == "reveal":
+                    event = replace(
+                        event,
+                        message=f"Telepathy reveal: {game.secret}. First correct: {game.winner or 'no winner'}.",
+                    )
+                yield row["t"], event
             elif isinstance(event, Connection):
                 yield row["t"], event
             elif isinstance(event, Tamper) and defence is not None:

@@ -32,6 +32,10 @@ class Readout:
     def observe(self, hidden: Vector, active: list[str], secret: str | None = None) -> Reading:
         self.window.append(np.asarray(hidden).copy())
         mean = np.mean(self.window, axis=0) - self.library.HR_neutral
+        return self.decide(mean + self.library.HR_neutral, active, secret)
+
+    def decide(self, hidden: Vector, active: list[str], secret: str | None = None) -> Reading:
+        mean = np.asarray(hidden) - self.library.HR_neutral
         cosines = unit(self.library.D) @ unit(mean)
         scores = dict(zip(self.library.ids, map(float, cosines), strict=True))
         candidates = set(active) | ({secret} if secret else set())

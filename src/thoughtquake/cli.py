@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import secrets
-import tempfile
 import webbrowser
 from pathlib import Path
 
@@ -55,7 +54,17 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument(
         "--library", type=Path, help="Real-model library; otherwise use TINY MODEL / CI"
     )
+    for configured in (demo, run):
+        configured.add_argument(
+            "--colour-source", choices=("applied", "readout"), default="applied"
+        )
+        configured.add_argument(
+            "--schedule-mode", choices=("answer", "sentence", "token"), default="answer"
+        )
     for serve in (demo, replay, run):
+        serve.add_argument(
+            "--eval-file", type=Path, help="Real-model evidence required for Mind-Reader colours"
+        )
         serve.add_argument("--host", default="127.0.0.1")
         serve.add_argument("--port", type=int, default=8080)
         serve.add_argument("--no-browser", action="store_true")
@@ -68,7 +77,7 @@ def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     if args.command == "eval":
         parser.exit(
-            2, "The evaluation harness is outside M3; no quality results have been produced.\n"
+            2, "The evaluation harness is outside M4; no quality results have been produced.\n"
         )
     if args.command == "build-library":
         from thoughtquake.model.hf_backend import HFBackend
@@ -110,19 +119,8 @@ def main(argv: list[str] | None = None) -> None:
             TokenStore().load()
         except AuthError as exc:
             parser.error(str(exc))
-    token = os.getenv("THOUGHTQUAKE_LOCAL_TOKEN")
-    token_path: Path | None = None
-    if not token:
-        token = secrets.token_urlsafe(32)
-        with tempfile.NamedTemporaryFile(
-            mode="w", prefix="thoughtquake-", suffix=".token.json", delete=False
-        ) as handle:
-            import json
-
-            handle.write(json.dumps({"token": token}))
-            token_path = Path(handle.name)
-        token_path.chmod(0o600)
-        log.info("Local broadcaster token (0600): %s", token_path)
+    token = secrets.token_urlsafe(32)
+    log.info("Local control token for this run: %s", token)
     if args.command == "demo":
         backend = MockBackend()
         if not args.mock:
@@ -133,13 +131,20 @@ def main(argv: list[str] | None = None) -> None:
             except ImportError:
                 log.info("Optional model dependencies absent; using the offline mock")
         crowd = Crowd(load_script(args.script), users=args.users)
-        session = Session(backend=backend, crowd=crowd)
+        session = Session(
+            backend=backend,
+            crowd=crowd,
+            colour_source=args.colour_source,
+            eval_path=args.eval_file,
+            schedule_mode=args.schedule_mode,
+        )
         if args.record:
             session.recorder = Recorder(args.record, session.metadata(), clock=session.clock)
         app = create_app(
             source=session.events,
             concepts=session.library.concepts,
             switch_mode=session.switch_mode,
+            set_immune=session.set_immune,
             control_token=token,
         )
     elif args.command == "run":
@@ -153,13 +158,22 @@ def main(argv: list[str] | None = None) -> None:
             library = ConceptLibrary.load(args.library)
             backend = HFBackend()
         crowd = Crowd(twitch_connected=True, explicit_sim=args.sim)
-        session = Session(backend=backend, library=library, crowd=crowd, source="LIVE")
+        session = Session(
+            backend=backend,
+            library=library,
+            crowd=crowd,
+            source="LIVE",
+            colour_source=args.colour_source,
+            eval_path=args.eval_file,
+            schedule_mode=args.schedule_mode,
+        )
         live = LiveSession(session, client_id, args.channel.lower(), record=args.record)
         app = create_app(
             source=live.events,
             concepts=library.concepts,
             control_token=token,
             switch_mode=session.switch_mode,
+            set_immune=session.set_immune,
         )
     else:
         player = Player(args.file)
@@ -189,10 +203,12 @@ def main(argv: list[str] | None = None) -> None:
             engine = Generator(
                 replay_backend,
                 replay_library,
-                Mixer(clock=clock),
+                Mixer(clock=clock, schedule_mode=player.metadata["config"]["schedule_mode"]),
                 seed=player.metadata["seed"],
                 clock=clock,
                 source="REPLAY",
+                colour_source=player.metadata["config"].get("colour_source", "applied"),
+                eval_path=args.eval_file,
             )
             source = lambda: player.engine(engine, clock, speed=args.speed)
             concepts = engine.library.concepts
@@ -202,15 +218,11 @@ def main(argv: list[str] | None = None) -> None:
     async def startup(application: web.Application) -> None:
         log.info("THOUGHTQUAKE overlay: %s", url)
         log.info("Static screenshot fixture: %sfixture.html", url)
+        log.info("Broadcaster controls: %scontrol", url)
         if not args.no_browser:
             webbrowser.open(url)
 
-    async def cleanup(application: web.Application) -> None:
-        if token_path:
-            token_path.unlink(missing_ok=True)
-
     app.on_startup.append(startup)
-    app.on_cleanup.append(cleanup)
     web.run_app(app, host=args.host, port=args.port, print=None)
 
 

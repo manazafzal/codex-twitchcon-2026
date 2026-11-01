@@ -1,6 +1,6 @@
 # THOUGHTQUAKE streamer guide
 
-M3 connects real Twitch chat to the local thought injection engine. The **LIVE**
+M3–M4 connect real Twitch chat to the local thought injection engine. The **LIVE**
 badge describes chat input. **TINY MODEL / CI** separately identifies fixture model
 output; it is not a claim about real-model quality.
 
@@ -42,7 +42,9 @@ The server binds to `127.0.0.1:8080`. Add an OBS **Browser Source** with URL
 `http://127.0.0.1:8080/`, width **1920**, height **1080**. For a transparent
 background, use `http://127.0.0.1:8080/?bg=transparent`. Keep OBS and THOUGHTQUAKE
 on the same computer. `--port`, `--no-browser`, and local broadcaster mode controls
-work as in demo mode; see the README for the local control token.
+work as in demo mode. Open `/control`, paste the fresh per-run token printed in
+the console, and choose a mode or toggle immune. Press **I** there for the immune
+hotkey; keep the token and control page out of the OBS browser source.
 
 Without a real-model library, live mode uses the mock and displays **TINY MODEL / CI**.
 This is suitable for testing the chat connection and presentation. For a real run,
@@ -82,13 +84,16 @@ and `--engine`. Frame replay needs no model and changes the source badge to
 
 ## What the bot may post
 
-The authenticated account may post round-start and answer-complete notices,
-Telepathy reveals, and a short Team X leads Mind Share announcement at most once
-per minute. All messages are trimmed to **200 characters**, and the sender allows
+The authenticated account may post round-start, round-end, and Telepathy reveal
+notices. It posts at round boundaries only, with no per-token or periodic leader
+announcements. All messages are trimmed to **200 characters**, and the sender allows
 at most **one announcement per five seconds**. Extra announcements are dropped
 rather than queued indefinitely. Send failures are logged and do not stop play.
-There is no command that relays arbitrary viewer text as the bot. Telepathy chat
-scoring remains outside M3.
+Broadcasters or moderators may use `!immune on|off`. Twitch user IDs and
+`badges[].set_id` (broadcaster/moderator) authorize this command; this badge
+interpretation also needs the live check below. There are no chat mode-switching
+commands and no command that relays arbitrary viewer text as the bot. Telepathy guesses use `!guess <word>` during its 30-second guessing window.
+The first correct alias earns a point; the reveal shows the winner and scoreboard.
 
 ## Public-docs contract and required live check
 

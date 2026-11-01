@@ -40,3 +40,37 @@ def test_chip_three_consecutive_and_answer_average():
     )
     assert decision.concepts == ("b",)
     assert decision.neutralised == 0
+
+
+def test_answer_reduction_averages_fired_projections_per_token():
+    monitor = ImmuneMonitor()
+    first = monitor.observe(
+        ("attack", "quiet"), np.array([20.0, 0.01]), np.array([0.1, 0.01]), np.array([0.1, 0.1])
+    )
+    assert first.neutralised == pytest.approx(0.995)
+    second = monitor.observe(
+        ("attack", "quiet"), np.array([0.01, 0.01]), np.array([0.01, 0.01]), np.array([0.1, 0.1])
+    )
+    assert second.neutralised == pytest.approx(0.995 / 2)
+    monitor.reset()
+    assert monitor.reductions == []
+
+
+def test_readout_alarm_requires_margin_and_no_matching_push():
+    monitor = ImmuneMonitor()
+
+    def reading(margin, pushed):
+        return monitor.observe(
+            ("a",),
+            np.zeros(1),
+            np.zeros(1),
+            np.ones(1),
+            readout_top="a",
+            margin=margin,
+            margin_threshold=0.2,
+            pushed=pushed,
+        )
+
+    assert not reading(0.19, set()).concepts
+    assert not reading(0.5, {"a"}).concepts
+    assert reading(0.2, set()).concepts == ("a",)

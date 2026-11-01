@@ -110,6 +110,8 @@ class Generator:
         self.history: deque[list[Token]] = deque(maxlen=3)
         self.pending: deque[Push] = deque()
         self.answer_index = 0
+        self.secret: str | None = None
+        self.last_scores: dict[str, float] = {}
 
     def push(self, event: Push) -> float:
         if event.faction not in self.library.ids:
@@ -117,6 +119,26 @@ class Generator:
         weight = self.mixer.push(event)
         self.pending.append(event)
         return weight
+
+    def _flush(
+        self, group: list[tuple[Token, Tamper, np.ndarray, list[str]]], frames: list[Token]
+    ) -> Iterator[Event]:
+        if not group:
+            return
+        if self.colour_source == "readout":
+            mean = np.mean([item[2] for item in group], axis=0)
+            colour = self.readout.decide(mean, group[-1][3], self.secret).color
+        else:
+            votes: dict[str | None, int] = {}
+            for frame, _, _, _ in group:
+                votes[frame.applied] = votes.get(frame.applied, 0) + 1
+            colour = min(votes, key=lambda candidate: (-votes[candidate], candidate or ""))
+        for frame, tamper, _, _ in group:
+            frame = Token(frame.i, frame.text, frame.applied, frame.readout, colour)
+            frames.append(frame)
+            yield frame
+            yield tamper
+        group.clear()
 
     def events(
         self,
@@ -135,24 +157,32 @@ class Generator:
         )
         yield Badge(self.badge, quality)
         vectors = dict(zip(self.library.ids, self.library.V, strict=True))
-        defend = self.library.defender() if self.immune else None
         for _ in range(answers):
             answer = self.answer_index
             self.answer_index += 1
             self.readout.reset()
             self.monitor.reset()
+            self.last_scores = {}
             prompt = PROMPTS[answer % len(PROMPTS)]
-            yield Mode("war", self.immune, prompt, answer)
+            yield Mode("war", self.immune, prompt, answer, colour_source=self.colour_source)
             while self.pending:
                 yield self.pending.popleft()
             yield self.mixer.tick()
             last_tick = self.clock()
             applied = self.mixer.select(0, self.rng)
             vector = self.mixer.vector(vectors)
+            defend = self.library.defender() if self.immune else None
             state = self.backend.prefill(prompt, vector, defend, inject_prefill=self.inject_prefill)
             tokens: list[int] = []
             emitted = ""
-            frames = []
+            frames: list[Token] = []
+            answer_hidden = []
+            group: list[tuple[Token, Tamper, np.ndarray, list[str]]] = []
+            grouped = self.colour_source == "readout" or self.mixer.schedule_mode == "token"
+            width = (
+                max_tokens if self.mixer.schedule_mode == "answer" else self.readout.window.maxlen
+            )
+
             for i in range(max_tokens):
                 while self.pending:
                     yield self.pending.popleft()
@@ -166,26 +196,23 @@ class Generator:
                 if token == self.backend.eos_token_id:
                     break
                 tokens.append(token)
+                defend = self.library.defender() if self.immune else None
                 _, hidden, state = self.backend.step(state, token, vector, defend)
+                answer_hidden.append(hidden.copy())
                 active = [
                     f for f, share in self.mixer.tick().shares.items() if f != NEUTRAL and share > 0
                 ]
-                reading = self.readout.observe(hidden, active)
+                reading = self.readout.observe(hidden, active, self.secret)
                 decoded = self.backend.decode(tokens).rstrip("\ufffd")
-                text = decoded[len(emitted) :]
-                emitted = decoded
-                color = applied if self.colour_source == "applied" else reading.color
+                text, emitted = decoded[len(emitted) :], decoded
                 frame = Token(
                     i,
                     text,
                     applied,
                     {k: v for k, v in asdict(reading).items() if k != "color"},
-                    color,
+                    applied,
                 )
-                frames.append(frame)
-                yield frame
-                pre = state.defence_pre
-                post = state.defence_post
+                pre, post = state.defence_pre, state.defence_post
                 if pre is None:
                     pre = post = np.zeros(len(self.library.ids))
                 decision = self.monitor.observe(
@@ -198,7 +225,20 @@ class Generator:
                     margin_threshold=self.readout.margin_threshold,
                     pushed=set(active),
                 )
-                yield Tamper(decision.concepts, decision.neutralised)
+                tamper = Tamper(decision.concepts, decision.neutralised)
+                if grouped:
+                    group.append((frame, tamper, hidden, active))
+                    if len(group) >= width:
+                        yield from self._flush(group, frames)
+                else:
+                    frames.append(frame)
+                    yield frame
+                    yield tamper
+            yield from self._flush(group, frames)
+            if answer_hidden:
+                self.last_scores = self.readout.decide(
+                    np.mean(answer_hidden, axis=0), list(self.library.ids)
+                ).scores
             self.history.append(frames)
 
     async def stream(

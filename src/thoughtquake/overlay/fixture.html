@@ -15,7 +15,7 @@
     <div id="round-label">Waiting for the Subject…</div>
     <div class="chips"><span id="sim-source" class="chip simulated" hidden></span><span id="source" class="chip simulated">SIMULATED ×0</span><span id="immune" class="chip">IMMUNE: OFF</span></div>
   </header>
-  <div class="status-row"><span id="quality" class="chip">TINY MODEL / CI</span><span id="connection" class="chip danger" hidden>RECONNECTING</span><span id="tamper" class="chip danger" hidden></span></div>
+  <div class="status-row"><span id="quality" class="chip">TINY MODEL / CI</span><span id="connection" class="chip danger" hidden>RECONNECTING</span><span id="neutralised" class="chip" hidden>NEUTRALISED 0 %</span><span id="tamper" class="chip danger" hidden></span></div>
   <section id="hero" aria-label="The Subject's answer">
     <div class="eyebrow"><span class="live-dot"></span> THE SUBJECT <span id="colour-label">/ TERRITORY</span></div>
     <div id="answer" class="answer" aria-live="polite"></div>
@@ -24,7 +24,8 @@
       <article><h2>IMMUNE: OFF</h2><div id="attack-off" class="answer"></div></article>
       <article><h2>IMMUNE: ON</h2><div id="attack-on" class="answer"></div></article>
     </div>
-    <div id="telepathy" hidden><span>Guess in chat: !guess &lt;word&gt;</span><span id="countdown">30 s</span><span id="reveal"></span><div id="scoreboard">No guesses yet</div></div>
+    <section id="blind-readout" aria-label="Mind-Reader hidden candidates" hidden><h2>HIDDEN CANDIDATES</h2><div class="candidate-track"><i id="candidate-1"></i></div><div class="candidate-track"><i id="candidate-2"></i></div><div class="candidate-track"><i id="candidate-3"></i></div></section>
+    <div id="telepathy" hidden><span>Guess in chat: !guess &lt;word&gt;</span><span id="countdown">30 s</span><span id="reveal"></span><div id="scoreboard">No points yet</div></div>
     <div id="legend" class="legend"></div>
     <div id="history" aria-label="Last three answers"></div>
   </section>
