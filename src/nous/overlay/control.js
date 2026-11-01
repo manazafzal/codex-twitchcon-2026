@@ -15,7 +15,7 @@
   }
   const initial = location.hash.slice(1); history.replaceState(null, '', location.pathname);
   if(initial) document.getElementById("token").value = initial;
-  fetch('/api/welcome').then(r=>{if(r.ok){document.getElementById('token-entry').hidden=true;status.textContent='Your controls are ready.';}}).catch(()=>{});
+  fetch('/api/welcome').then(r=>{if(r.ok){document.getElementById('token-entry').hidden=true;document.getElementById('control-help').textContent='Your controls are ready. Start a round, or turn defence on.';status.textContent='Ready to play.';}}).catch(()=>{});
   document.getElementById('round').onclick=()=>command('round',{});
   document.querySelectorAll("[data-mode]").forEach(button => button.addEventListener("click", () => command("mode", {mode: button.dataset.mode})));
   document.getElementById("immune-on").onclick = () => command("immune", {enabled: true});

@@ -102,3 +102,11 @@ Actual browser captures are in [the first-run walkthrough](first-run.md). Inspec
 
 
 **Final retry review.** Added explicit feedback when a recording cannot apply a live control, kept failed app codes editable, and allowed a broadcaster to try viewer commands with the same account used by the bot while still ignoring ordinary bot announcements. Standard team emojis cover the concept catalog; keyword precedence and small passive weights remain tested. These final route/parser/welcome checks passed in a focused 48-test regression run. The main overlay, shader, fixture timeline and film inputs were unchanged by this retry review.
+
+
+- [f3d4fd7 — measured beginner screens and source-badge checks](https://github.com/manazafzal/codex-twitchcon-2026/commit/f3d4fd7)
+- [ece1b45 — final retry and same-account streamer participation](https://github.com/manazafzal/codex-twitchcon-2026/commit/ece1b45)
+
+**Complete validation.** `make check` passed: ruff; scoped mypy on 19 source files; **171 passed, 4 deselected in 1265.40 s**. The complete 600-frame film matched on both runs. Final focused route/parser/welcome regressions passed 48 tests, and the final plain-control/contract/vocabulary check passed eight. Those focused sets overlap the complete suite and are not additional unique tests. The final retry/copy changes did not change the main overlay film inputs. [Complete output](easy-check-output.txt), [focused output](easy-targeted-check-output.txt), [film summary](easy-film-check.json), [all hashes](film-hashes.json), [measured scenes](perf.md), and [actual first-run screenshots](first-run.md).
+
+Verified locally: offline/token-free demo, browser bootstrap and Try the demo navigation, fake Twitch login and live connection status, plain default text, hidden Nerd panel, round/reveal timing, roles/points/welcomes, source ownership and leak protections. Not executed on this Linux runner: native Windows installation or its real model download, real-model preparation, actual Twitch authorization/subscription/chat delivery, and OBS composition. No live model-quality or hardware-GPU claim is made. The beginner prompt intentionally replaces the earlier technical default screen and default test-model engine path; runtime model downloads remain explicit setup actions.
