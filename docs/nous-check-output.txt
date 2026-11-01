@@ -1,0 +1,9 @@
+ruff check .
+All checks passed!
+mypy src/nous/engine src/nous/model src/nous/concepts src/nous/evaluation.py
+Success: no issues found in 19 source files
+pytest -q
+........................................................................ [ 47%]
+........................................................................ [ 94%]
+........                                                                 [100%]
+152 passed, 4 deselected in 1243.96s (0:20:43)

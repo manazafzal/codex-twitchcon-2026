@@ -1,0 +1,1 @@
+NOUS CLI smoke passed: overlay, local control, WebSocket source badge, leaderboard, fixture gate.

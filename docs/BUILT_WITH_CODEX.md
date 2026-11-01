@@ -72,3 +72,8 @@ Rename validation: ruff and scoped mypy passed; 131 non-browser tests passed. Sc
 
 - [226f7d2 — standalone NOUS rename](https://github.com/manazafzal/codex-twitchcon-2026/commit/226f7d2)
 - [fc8b56b — answer-level v4 labels, colours and independent alarm test](https://github.com/manazafzal/codex-twitchcon-2026/commit/fc8b56b)
+- [ea40889 — fair round scoring, persistent stream boards and regressions](https://github.com/manazafzal/codex-twitchcon-2026/commit/ea40889)
+
+**Final validation.** `make check` passed: ruff; mypy on 19 source files; **152 passed, 4 deselected in 1243.96 s**. This includes two complete 600-frame films with identical frame hashes and the MVP snapshot/blind test. The real-model opt-in suite reported four skips and 152 deselections because local artifacts are absent. CLI smoke served NOUS overlay/control/WebSocket/leaderboard and confirmed fixture gating. Case-insensitive tracked-text and path searches found no previous product name. The scoring rules in this prompt supersede SPEC's older public one-point scheme; existing internal M4 game-state tests remain intact.
+
+[Full check output](nous-check-output.txt), [opt-in model skips](nous-real-check-output.txt), [CLI smoke](nous-cli-smoke.txt), [film summary](nous-film-check.json), and [all frame hashes](film-hashes.json). Refreshed NOUS screenshots remain in [screenshots/](screenshots/). No trained-model benchmark was reproduced; neither the local study file nor the required trained artifacts is available. No live Twitch or OBS check was performed in this milestone.
