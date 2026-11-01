@@ -1,11 +1,14 @@
 import argparse
+import asyncio
 import logging
 import os
+import re
 import secrets
 import tempfile
 import webbrowser
 from pathlib import Path
 
+import aiohttp
 from aiohttp import web
 
 from thoughtquake.concepts.builder import build_library
@@ -43,7 +46,16 @@ def main(argv: list[str] | None = None) -> None:
     )
     replay.add_argument("--speed", type=float, default=1)
     replay.add_argument("--library", type=Path, help="Concept library for real-model engine replay")
-    for serve in (demo, replay):
+    commands.add_parser("auth", help="Sign in to Twitch with a Public app Device Code")
+    run = commands.add_parser("run", help="Serve live Twitch chat with the LIVE source badge")
+    run.add_argument("--channel", required=True)
+    run.add_argument("--sim", action="store_true", help="Explicitly add a labelled simulated crowd")
+    run.add_argument("--record", type=Path)
+    run.add_argument("--mock", action="store_true", help="Use TINY MODEL / CI with real chat input")
+    run.add_argument(
+        "--library", type=Path, help="Real-model library; otherwise use TINY MODEL / CI"
+    )
+    for serve in (demo, replay, run):
         serve.add_argument("--host", default="127.0.0.1")
         serve.add_argument("--port", type=int, default=8080)
         serve.add_argument("--no-browser", action="store_true")
@@ -56,7 +68,7 @@ def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     if args.command == "eval":
         parser.exit(
-            2, "The evaluation harness is outside M2; no quality results have been produced.\n"
+            2, "The evaluation harness is outside M3; no quality results have been produced.\n"
         )
     if args.command == "build-library":
         from thoughtquake.model.hf_backend import HFBackend
@@ -66,6 +78,38 @@ def main(argv: list[str] | None = None) -> None:
             args.output
         )
         return
+    client_id = os.getenv("THOUGHTQUAKE_TWITCH_CLIENT_ID", "")
+    if args.command in {"auth", "run"} and not client_id:
+        parser.error("Set THOUGHTQUAKE_TWITCH_CLIENT_ID to your Public app's client ID")
+    if args.command == "auth":
+        from thoughtquake.twitch.auth import AuthError, OAuth, TokenStore
+
+        async def login() -> None:
+            async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=15), trust_env=True
+            ) as http:
+                auth = OAuth(http, client_id, TokenStore())
+                token = await auth.authorize(
+                    lambda uri, code: log.info("Open %s · Code: %s", uri, code)
+                )
+                log.info("Authenticated Twitch user: %s", token.login)
+
+        try:
+            asyncio.run(login())
+        except (AuthError, aiohttp.ClientError, TimeoutError) as exc:
+            parser.exit(
+                1, (str(exc) if isinstance(exc, AuthError) else "Twitch login unavailable") + "\n"
+            )
+        return
+    if args.command == "run":
+        from thoughtquake.twitch.auth import AuthError, TokenStore
+
+        if not re.fullmatch(r"[a-zA-Z0-9_]{1,25}", args.channel):
+            parser.error("Use the channel login name without a URL or #")
+        try:
+            TokenStore().load()
+        except AuthError as exc:
+            parser.error(str(exc))
     token = os.getenv("THOUGHTQUAKE_LOCAL_TOKEN")
     token_path: Path | None = None
     if not token:
@@ -98,6 +142,25 @@ def main(argv: list[str] | None = None) -> None:
             switch_mode=session.switch_mode,
             control_token=token,
         )
+    elif args.command == "run":
+        from thoughtquake.twitch.live import LiveSession
+
+        backend = MockBackend()
+        library = mock_library(all_concepts=True)
+        if args.library and not args.mock:
+            from thoughtquake.model.hf_backend import HFBackend
+
+            library = ConceptLibrary.load(args.library)
+            backend = HFBackend()
+        crowd = Crowd(twitch_connected=True, explicit_sim=args.sim)
+        session = Session(backend=backend, library=library, crowd=crowd, source="LIVE")
+        live = LiveSession(session, client_id, args.channel.lower(), record=args.record)
+        app = create_app(
+            source=live.events,
+            concepts=library.concepts,
+            control_token=token,
+            switch_mode=session.switch_mode,
+        )
     else:
         player = Player(args.file)
         if args.frames:
@@ -105,7 +168,9 @@ def main(argv: list[str] | None = None) -> None:
             concepts = load_concepts()
         else:
             slug = player.metadata["model_slug"]
-            replay_library = mock_library()
+            replay_library = mock_library(
+                all_concepts=player.metadata["config"].get("all_concepts", False)
+            )
             replay_backend = MockBackend()
             if slug == "tiny":
                 from thoughtquake.model.tiny_backend import TinyBackend

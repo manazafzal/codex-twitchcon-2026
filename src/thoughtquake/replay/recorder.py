@@ -23,10 +23,16 @@ class Recorder:
         self.file.write(json.dumps(row, ensure_ascii=False, allow_nan=False) + "\n")
         self.file.flush()
 
-    def record(self, event: Event) -> None:
+    def record(self, event: Event, *, timestamp: float | None = None) -> None:
         event_from_dict(event.to_dict())
         kind = "push" if isinstance(event, Push) else "mode" if isinstance(event, Mode) else "frame"
-        self._write({"t": self.clock() - self.start, "kind": kind, "event": event.to_dict()})
+        self._write(
+            {
+                "t": (self.clock() if timestamp is None else timestamp) - self.start,
+                "kind": kind,
+                "event": event.to_dict(),
+            }
+        )
 
     def close(self) -> None:
         self.file.close()

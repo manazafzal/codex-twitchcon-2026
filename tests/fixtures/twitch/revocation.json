@@ -1,0 +1,15 @@
+{
+  "metadata": {
+    "message_id": "revocation-envelope",
+    "message_type": "revocation",
+    "message_timestamp": "2026-11-01T00:00:00Z"
+  },
+  "payload": {
+    "subscription": {
+      "id": "sub-1",
+      "type": "channel.chat.message",
+      "version": "1",
+      "status": "authorization_revoked"
+    }
+  }
+}

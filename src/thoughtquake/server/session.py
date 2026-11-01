@@ -17,11 +17,16 @@ from thoughtquake.replay.recorder import Recorder
 from thoughtquake.sim.crowd import Crowd
 
 
-def mock_library() -> ConceptLibrary:
-    concepts = load_concepts()[:3]
-    vectors = np.eye(32)[:3]
+def mock_library(*, all_concepts: bool = False) -> ConceptLibrary:
+    concepts = load_concepts() if all_concepts else load_concepts()[:3]
+    vectors = np.eye(32)[: len(concepts)]
     return ConceptLibrary(
-        concepts, vectors, vectors.copy(), np.zeros(32), np.full(3, 0.1), {"model": "mock"}
+        concepts,
+        vectors,
+        vectors.copy(),
+        np.zeros(32),
+        np.full(len(concepts), 0.1),
+        {"model": "mock"},
     )
 
 
@@ -34,7 +39,9 @@ class Session:
         crowd: Crowd | None = None,
         seed: int = 2026,
         recorder: Recorder | None = None,
+        source: str = "SIMULATED",
     ) -> None:
+        self.source = source
         self.library = library or mock_library()
         self.crowd = crowd or Crowd()
         self.clock = FakeClock()
@@ -45,6 +52,7 @@ class Session:
             Mixer(clock=self.clock),
             seed=seed,
             simulated_users=self.crowd.users,
+            source=source,
             clock=self.clock,
         )
         self.seed, self.recorder = seed, recorder
@@ -60,9 +68,17 @@ class Session:
                 "schedule_mode": self.engine.mixer.schedule_mode,
                 "max_tokens": 32,
                 "sim_script": self.crowd.script,
+                "all_concepts": len(self.library.concepts) > 3,
+                "source": self.source,
             },
             "seed": self.seed,
-            "model_slug": "mock" if isinstance(self.engine.backend, MockBackend) else "tiny",
+            "model_slug": (
+                "mock"
+                if isinstance(self.engine.backend, MockBackend)
+                else "tiny"
+                if type(self.engine.backend).__name__ == "TinyBackend"
+                else self.library.config["model"]
+            ),
             "backend_seed": getattr(self.engine.backend, "seed", 0),
             "library_hash": self.library.hash,
             "app_version": "0.1.0",
@@ -114,7 +130,11 @@ class Session:
 
     async def _events(self) -> AsyncIterator[Event]:
         yield replace(
-            self.crowd.badge,
+            self.crowd.badge
+            if self.source == "SIMULATED"
+            else Badge(
+                self.source, simulated_users=self.crowd.users if self.crowd.enabled else None
+            ),
             quality="TINY MODEL / CI" if self.library.config.get("model") == "mock" else None,
         )
         crowd_task = asyncio.create_task(self._crowd())

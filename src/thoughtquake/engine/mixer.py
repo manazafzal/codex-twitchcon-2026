@@ -71,8 +71,8 @@ class Mixer:
         if event.faction == NEUTRAL:
             raise ValueError("Neutral is reserved")
         self._decay(event.t)
-        recent = [t for t in self._history[event.user] if event.t - t < 20]
-        self._history[event.user] = recent
+        recent = [t for t in self._history[event.user_id or event.user] if event.t - t < 20]
+        self._history[event.user_id or event.user] = recent
         if len(recent) >= 3:
             return 0.0
         weight = 0.25 if any(event.t - t < 8 for t in recent) else 1.0

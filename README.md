@@ -1,8 +1,8 @@
 # THOUGHTQUAKE
 
 Chat factions contest the Subject's mind territory, watched by a Mind-Reader
-and a Neural Immune System. M1 and M2 provide the local engine, browser overlay,
-labelled offline crowd, recording, and replay. Twitch integration is a later milestone.
+and a Neural Immune System. M1–M3 provide the local engine, browser overlay, labelled offline crowd,
+recording, replay, and Twitch Device Code / EventSub integration.
 
 ```sh
 python -m venv .venv
@@ -25,8 +25,7 @@ weights. Install `.[dev,model]` for Tiny tests; tests allow only local loopback 
 
 `--users N`, `--script golden/demo_script.json`, `--port 8080`, and `--no-browser`
 customise the demo. The seeded crowd uses `sim_` names and changing faction waves.
-It defaults off when its `twitch_connected` integration flag is set. No Twitch
-connection is implemented in this milestone.
+It defaults off when its `twitch_connected` integration flag is set. Live Twitch setup is covered in the [streamer guide](docs/streamer-guide.md).
 
 Record and replay:
 
@@ -75,4 +74,12 @@ The Neural Immune System clamps projections along known library injection
 directions. It does not defend against arbitrary prompt injection.
 `thoughtquake build-library` explicitly loads the real Qwen2.5 model to generate
 contrast sets and calibration data. `make eval` reports that the eval harness is
-outside M2. No real-model calibration, quality, throughput, or lead-time claim is made.
+outside M3. No real-model calibration, quality, throughput, or lead-time claim is made.
+
+Live chat setup: register a **Public** Twitch app, set
+`THOUGHTQUAKE_TWITCH_CLIENT_ID`, run `thoughtquake auth`, then
+`thoughtquake run --channel NAME [--sim] [--record FILE]`. The source badge is
+**LIVE**. Simulation is disabled unless explicitly requested and then retains its
+own badge. A built library can be supplied with `--library`; otherwise the model
+output remains explicitly labelled **TINY MODEL / CI**. See the streamer guide
+for credential storage, bot announcements, OBS setup, and the required live check.

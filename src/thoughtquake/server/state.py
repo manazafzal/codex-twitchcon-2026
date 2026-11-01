@@ -4,7 +4,17 @@ from dataclasses import asdict
 from typing import Any
 
 from thoughtquake.concepts.library import Concept
-from thoughtquake.engine.events import Badge, Event, Mode, Push, Snapshot, Tamper, Tick, Token
+from thoughtquake.engine.events import (
+    Badge,
+    Connection,
+    Event,
+    Mode,
+    Push,
+    Snapshot,
+    Tamper,
+    Tick,
+    Token,
+)
 
 
 class ViewState:
@@ -22,6 +32,7 @@ class ViewState:
             "panels": {"off": [], "on": []},
             "pushes": [],
             "readouts": [],
+            "connections": {},
         }
 
     def apply(self, event: Event) -> None:
@@ -30,6 +41,8 @@ class ViewState:
             self.data = deepcopy(event.state)
         elif isinstance(event, (Badge, Tick, Tamper)):
             self.data[event.kind] = row
+        elif isinstance(event, Connection):
+            self.data["connections"][event.service] = event.state
         elif isinstance(event, Push):
             self.data["pushes"] = [*self.data["pushes"], row][-5:]
         elif isinstance(event, Mode):

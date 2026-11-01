@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "message_id": "notification-envelope",
+    "message_type": "notification",
+    "message_timestamp": "2026-11-01T00:00:00Z"
+  },
+  "payload": {
+    "subscription": {
+      "id": "sub-1",
+      "status": "enabled",
+      "type": "channel.chat.message",
+      "version": "1",
+      "condition": {
+        "broadcaster_user_id": "100",
+        "user_id": "200"
+      },
+      "transport": {
+        "method": "websocket",
+        "session_id": "session-1"
+      }
+    },
+    "event": {
+      "broadcaster_user_id": "100",
+      "broadcaster_user_login": "streamer",
+      "broadcaster_user_name": "Streamer",
+      "chatter_user_id": "300",
+      "chatter_user_login": "friend",
+      "chatter_user_name": "Friend",
+      "message_id": "chat-1",
+      "message": {
+        "text": "STAR first, then sea",
+        "fragments": [
+          {
+            "type": "text",
+            "text": "STAR first, then sea"
+          }
+        ]
+      },
+      "badges": [],
+      "message_type": "text"
+    }
+  }
+}

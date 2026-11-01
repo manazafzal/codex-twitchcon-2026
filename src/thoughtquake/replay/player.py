@@ -9,6 +9,7 @@ from typing import Any
 
 from thoughtquake.engine.events import (
     Badge,
+    Connection,
     Event,
     Mode,
     Push,
@@ -47,19 +48,26 @@ class Player:
         if any(row["kind"] == "meta" for row in self.rows[1:]):
             raise ValueError("Duplicate recording metadata")
 
-    def frame_events(self) -> Iterator[tuple[float, Event]]:
-        quality = None
+    def replay_badge(self) -> Badge:
         for row in self.rows[1:]:
-            if row.get("event", {}).get("kind") == "badge":
-                quality = row["event"].get("quality")
-                break
-        yield 0, Badge("REPLAY", quality)
+            original = row.get("event", {})
+            if original.get("kind") == "badge":
+                simulated = original.get("simulated_users")
+                if original["label"].startswith("SIMULATED ×"):
+                    simulated = int(original["label"].split("×")[1])
+                return Badge("REPLAY", original.get("quality"), simulated)
+        return Badge(
+            "REPLAY", "TINY MODEL / CI" if self.metadata["model_slug"] in {"mock", "tiny"} else None
+        )
+
+    def frame_events(self) -> Iterator[tuple[float, Event]]:
+        yield 0, self.replay_badge()
         for row in self.rows[1:]:
             event = event_from_dict(row["event"])
             if isinstance(event, Badge):
                 continue
             if isinstance(event, Snapshot):
-                event.state["badge"]["label"] = "REPLAY"
+                event.state["badge"] = self.replay_badge().to_dict()
             yield row["t"], event
 
     async def frames(self, *, speed: float = 1) -> AsyncIterator[Event]:
@@ -77,13 +85,7 @@ class Player:
             raise ValueError("Replay library hash mismatch")
         if engine.mixer.schedule_mode != self.metadata["config"]["schedule_mode"]:
             raise ValueError("Replay schedule mismatch")
-        yield (
-            0,
-            Badge(
-                "REPLAY",
-                "TINY MODEL / CI" if self.metadata["model_slug"] in {"mock", "tiny"} else None,
-            ),
-        )
+        yield 0, self.replay_badge()
         iterator: Iterator[Event] | None = None
         defence: Tamper | None = None
         original_mixer = engine.mixer
@@ -128,6 +130,8 @@ class Player:
                         break
                 else:
                     raise ValueError("Recorded token count exceeds regenerated answer")
+            elif isinstance(event, Connection):
+                yield row["t"], event
             elif isinstance(event, Tamper) and defence is not None:
                 yield row["t"], defence
                 defence = None

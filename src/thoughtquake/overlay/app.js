@@ -15,6 +15,11 @@
   let wordQueue = [], carry = null, socket = null, captionTimer = null;
   let fixture = Boolean(window.THOUGHTQUAKE_FIXTURE);
   let retry = 500;
+  let overlayConnected = true, twitchState = "connected";
+  function renderConnection() {
+    $("connection").hidden = overlayConnected && twitchState === "connected";
+    $("connection").textContent = ["revoked", "auth_required"].includes(twitchState) ? "AUTH REQUIRED" : "RECONNECTING";
+  }
   const hiddenNames = () => currentMode.mode === "telepathy" && currentMode.phase !== "reveal";
   const color = (f) => f && concepts.has(f) ? palette[concepts.get(f).color_index % palette.length] : "#F5F7FA";
   const label = (f) => f === "Neutral" ? "Neutral" : concepts.get(f)?.label || f;
@@ -163,7 +168,13 @@
       const simulated = /^SIMULATED ×\d+$/.test(event.label);
       $("source").textContent = simulated ? `SIMULATED ×${event.label.split("×")[1]}` : event.label;
       $("source").className = `chip ${simulated ? "simulated" : event.label.toLowerCase()}`;
+      $("sim-source").hidden = !event.simulated_users;
+      $("sim-source").textContent = `SIMULATED ×${event.simulated_users || 0}`;
       $("quality").hidden = !event.quality; $("quality").textContent = event.quality || "";
+    },
+    connection(event) {
+      if (event.service !== "twitch") return;
+      twitchState = event.state; renderConnection();
     },
     push(event) { pushes.push(event); pushes = pushes.slice(-5); renderPushes(); },
     tick,
@@ -174,6 +185,7 @@
       clearTimeout(carryTimer); carry = null; wordQueue = [];
       const state = event.state;
       concepts = new Map(state.concepts.map(c => [c.id, c]));
+      twitchState = state.connections?.twitch || "connected"; renderConnection();
       currentTokens = []; history = state.history; pushes = state.pushes; readouts = state.readouts;
       mode(state.mode, true); handlers.badge(state.badge); tick(state.tick); handlers.tamper(state.tamper);
       $("answer").replaceChildren(); $("attack-off").replaceChildren(); $("attack-on").replaceChildren();
@@ -187,10 +199,10 @@
   window.ThoughtquakeOverlay = {dispatch, handlers};
   function connect() {
     socket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
-    socket.onopen = () => { retry = 500; $("connection").hidden = true; };
+    socket.onopen = () => { retry = 500; overlayConnected = true; renderConnection(); };
     socket.onmessage = message => { try { dispatch(JSON.parse(message.data)); } catch (error) { console.error("Invalid event", error); } };
     socket.onerror = () => socket.close();
-    socket.onclose = () => { $("connection").hidden = false; setTimeout(connect, retry); retry = Math.min(retry * 2, 10000); };
+    socket.onclose = () => { overlayConnected = false; renderConnection(); setTimeout(connect, retry); retry = Math.min(retry * 2, 10000); };
   }
   if (fixture) { for (const event of window.THOUGHTQUAKE_FIXTURE) dispatch(event); flushCarry(); }
   else connect();

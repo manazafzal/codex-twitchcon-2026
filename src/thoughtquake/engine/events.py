@@ -13,6 +13,7 @@ class Push(Event):
     faction: str
     t: float
     source: str
+    user_id: str | None = None
     kind: Literal["push"] = field(default="push", init=False)
 
 
@@ -62,6 +63,7 @@ class Tamper(Event):
 class Badge(Event):
     label: str
     quality: str | None = None
+    simulated_users: int | None = None
     kind: Literal["badge"] = field(default="badge", init=False)
 
 
@@ -76,7 +78,7 @@ def event_from_dict(data: dict[str, Any]) -> Event:
     import math
     from dataclasses import fields
 
-    classes = (Push, Tick, Token, Mode, Tamper, Badge, Snapshot)
+    classes = (Push, Tick, Token, Mode, Tamper, Badge, Snapshot, Connection)
     registry = {cls.__dataclass_fields__["kind"].default: cls for cls in classes}
     cls = registry.get(data.get("kind"))
     if cls is None:
@@ -104,3 +106,10 @@ def event_from_dict(data: dict[str, Any]) -> Event:
         if not re.fullmatch(r"LIVE|REPLAY|SIMULATED ×\d+", event.label):
             raise ValueError("Invalid source badge")
     return event
+
+
+@dataclass(frozen=True)
+class Connection(Event):
+    service: str
+    state: str
+    kind: Literal["connection"] = field(default="connection", init=False)
