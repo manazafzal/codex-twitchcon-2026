@@ -154,16 +154,26 @@ def main(argv: list[str] | None = None) -> None:
             name = validate_name(args.name)
         except ValueError as exc:
             parser.exit(1, str(exc) + "\n")
+        examples = None
         try:
+            examples = load_examples(args.examples) if args.examples else None
             library = ConceptLibrary.load(args.library)
             backend = HFBackend(local_path=str(args.model_path))
-            examples = load_examples(args.examples) if args.examples else None
             result = TopicBuilder(backend, library).build(
                 name, count=args.from_model, examples=examples
             )
         except (OSError, ValueError, ImportError) as exc:
             result = BuildResult(
                 unavailable(name, f"Local build unavailable: {type(exc).__name__}")
+            )
+        if result.report["source"] == "unavailable":
+            from nous.concepts.library import config_hash
+
+            result.report["origin"].update(
+                source="examples" if args.examples else "from-model",
+                texts=examples if examples is not None else [],
+                requested_count=len(examples) if examples is not None else args.from_model,
+                texts_hash=config_hash({"texts": examples}) if examples is not None else None,
             )
         save_result(result, args.output / name)
         if result.library is not None and result.report["status"] == "accepted":

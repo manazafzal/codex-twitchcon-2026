@@ -270,6 +270,14 @@ class TopicBuilder:
         report = unavailable(name, "Build incomplete")
         report["attempts"] = self.attempts
         report.update(source=self.model, base_hash=self.base.hash, seed=self.seed)
+        report["origin"].update(
+            source="examples" if examples is not None else "from-model",
+            texts=examples if examples is not None else [],
+            seed=self.seed,
+            model=self.model,
+            requested_count=len(examples) if examples is not None else count,
+            texts_hash=config_hash({"texts": examples}) if examples is not None else None,
+        )
         if match_concept(name, self.base.concepts) is not None:
             report["reasons"] = ["This topic is already in the library"]
             return BuildResult(report)

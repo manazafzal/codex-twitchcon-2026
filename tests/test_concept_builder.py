@@ -336,7 +336,7 @@ def test_installation_waits_for_completed_secret_round(topic_builder):
     assert session.library.hash == topic_builder.base.hash
     session.telepathy.cancel()
     session.engine.colour_source = "readout"
-    session.probe_accuracy = .9
+    session.probe_accuracy = 0.9
     session.install_library(result.library)
     assert session.engine.colour_source == "applied"
     assert session.probe_accuracy is None
@@ -527,3 +527,30 @@ def test_bonus_command_preserves_existing_command_routes():
     assert any(isinstance(e, Round) and "Testing 'comet'" in e.message for e in events)
     assert any(isinstance(e, Round) and "New round starting" in e.message for e in events)
     assert session.mode == "telepathy"
+
+
+def test_blocked_cli_preserves_pasted_provenance(tmp_path):
+    from nous.cli import main
+
+    texts = [f"  comet input {i} stays unchanged.  " for i in range(4)]
+    path = tmp_path / "examples.json"
+    path.write_text(json.dumps(texts))
+    main(
+        [
+            "concept",
+            "add",
+            "comet",
+            "--examples",
+            str(path),
+            "--library",
+            str(tmp_path / "absent.npz"),
+            "--output",
+            str(tmp_path),
+        ]
+    )
+    report = json.loads((tmp_path / "comet/quality.json").read_text())
+    assert report["status"] == "rejected"
+    assert report["origin"]["source"] == "examples"
+    assert report["origin"]["texts"] == texts
+    assert report["origin"]["requested_count"] == 4
+    assert report["origin"]["texts_hash"]
