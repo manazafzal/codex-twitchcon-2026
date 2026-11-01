@@ -26,7 +26,7 @@ Raw recording rows for a hidden round stay in memory until reveal. Cancelled or 
 
 ## Points and persistence
 
-A round distributes a bounded push budget using measured answer concept hits, faction dose share and each viewer's accepted dose share. Push and guess cooldowns, per-round attempt limits and an individual point cap prevent repetition from outranking a first correct guess. Guess awards decrease with correct-guess order. A successful moderator immune catch requires attribution to the actual target. Stream and all-time viewer/faction totals are written with a temporary file, fsync and atomic replacement. A killed writer leaves the prior valid file. MVP cards and reveal boards use the existing round event schema. Rank replies and MVP announcements use the existing rate-limited chat sender.
+A round distributes a bounded push budget using measured answer concept hits, faction dose share and each viewer's accepted dose share. Push and guess cooldowns, per-round attempt limits and an individual point cap prevent repetition from outranking a first correct guess. Guess awards decrease with correct-guess order. A successful moderator immune catch requires attribution to the actual target. Both current-stream and all-time viewer/faction totals are written with a temporary file, fsync and atomic replacement. A killed writer leaves the prior valid file. MVP cards and reveal boards use the existing round event schema. Rank replies and MVP announcements use the existing rate-limited chat sender.
 
 ## Evaluation evidence
 
@@ -35,3 +35,14 @@ A round distributes a bounded push budget using measured answer concept hits, fa
 The held-out comparison evaluates old and v4 labels on the same unseen-template examples. Evaluation rejects fitting-family/seed reuse and overlap with stored text hashes. Missing v4 arrays produce unavailable results. Task retention is a lexical-anchor/repetition proxy, not a human judgement of relevance; embedding hit is a thresholded local-model text projection, not an independent semantic judge. These definitions limit comparison with externally supplied benchmark figures.
 
 This checkout contains no trained weights, fitted v4 artifact or supplied training corpus. The implementation can be verified with deterministic mock, synthetic vectors and random-init TinyBackend. Those runs are labelled TINY MODEL / CI and do not establish trained-model accuracy, relevance, false-alarm rates or speed. Real acceptance tests require local artifacts and explicit opt-in. The research report is deferred to P_POLISH_v3c.
+
+
+## NOUS fairness completion
+
+Answer scheduling freezes the applied faction for the answer. Pushes still update live doses and the ticker while it runs, but their point credit waits for the next round; original arrival times govern cooldowns. Only a faction actually applied during the answer can receive its measured text-hit award, so an incidental Neutral mention earns no contribution points. Each accepted push is credited once. Experimental schedules continue to credit input in the window it can affect.
+
+An Attack comparison is one scoring round. Measured hits accumulate across OFF/ON panels; the result and MVP are finalized once after ON, allowing the live moderator's attributed catch to earn its award. Local control actions receive no viewer catch award, and attribution expires at the round boundary. Queued guesses are processed before finalization so eligible correct viewers receive decreasing awards; a guess rejected by the cooldown or attempt limit cannot win the round.
+
+Leaderboard schema two persists current-stream totals and the stream id as well as all-time totals, with the same atomic replacement. Reopening resumes the saved stream; an explicit new `NOUS_STREAM_ID` starts fresh stream totals while preserving all-time points. Version-one stores migrate without discarding their all-time data. The public API still exposes only viewer/faction rows with ids, names and points, with faction rows hidden before reveal. Snapshot rendering restores MVP/reveal boards, and blind mode hides them.
+
+Fitted v4 labels now use the same answer/window mean as optional readout colours. Original per-token cosine/z fields remain intact for the detector and chart. An end-to-end synthetic test deliberately makes v4 and cosine disagree and verifies that colour/reveal follow v4 while alarm attribution follows cosine. This verifies separation, not the supplied trained-model accuracy.

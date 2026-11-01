@@ -50,7 +50,8 @@ def test_roundtrip_and_failed_replace_preserve_previous_file(tmp_path, monkeypat
     board.add("1", "Viewer", 7, "ocean")
     board.save()
     loaded = Leaderboard(path)
-    assert loaded.all_time == board.all_time and not loaded.stream
+    assert loaded.all_time == board.all_time and loaded.stream == board.stream
+    assert loaded.stream_factions == board.stream_factions
 
     def fail(source, target):
         raise OSError("Interrupted replacement")
@@ -96,3 +97,59 @@ def test_kill_before_atomic_replace_keeps_valid_target(tmp_path):
             process.join(5)
         parent.close()
         child.close()
+
+
+def test_stream_resume_new_stream_and_version_one_migration(tmp_path):
+    import json
+
+    path = tmp_path / "points.json"
+    first = Leaderboard(path, stream_id="show-a")
+    first.add("1", "Viewer", 8, "ocean")
+    first.save()
+    resumed = Leaderboard(path, stream_id="show-a")
+    assert resumed.stream == first.stream and resumed.stream_factions == first.stream_factions
+    restarted = Leaderboard(path, stream_id="show-b")
+    assert not restarted.stream and not restarted.stream_factions
+    assert restarted.all_time == first.all_time and restarted.factions == first.factions
+    restarted.save()
+    assert Leaderboard(path).stream_id == "show-b"
+    path.write_text(
+        json.dumps({"version": 1, "viewers": first.all_time, "factions": first.factions})
+    )
+    migrated = Leaderboard(path)
+    assert migrated.all_time == first.all_time and not migrated.stream
+    migrated.save()
+    assert json.loads(path.read_text())["version"] == 2
+
+
+def test_guess_cooldown_round_limit_and_exact_point_cap():
+    clock = FakeClock()
+    score = Scoring(clock=clock)
+    assert score.guess("a", "A", correct=False) == 0
+    clock.advance(1.99)
+    assert score.guess("a", "Renamed", correct=True) == 0
+    clock.advance(0.01)
+    assert score.guess("a", "Renamed", correct=True) == 100
+    assert (
+        score.catch("a", "Renamed", true_concept="ocean", attributed=("ocean",), immune=True) == 15
+    )
+    for i in range(3):
+        score.push("a", "Renamed", "ocean", 1)
+        clock.advance(1)
+    score.finish({"ocean": 1})
+    assert score.round_points["a"] == 120
+    score.begin(1)
+    for _ in range(3):
+        assert score.guess("spam", "Spam", correct=False) == 0
+        clock.advance(2)
+    assert score.guess("spam", "Spam", correct=True) == 0
+    assert score.guess("careful", "Careful", correct=True) == 100
+
+
+def test_delayed_push_credit_uses_arrival_time_not_drain_time():
+    score = Scoring(clock=FakeClock(10))
+    for at in (1, 2, 3):
+        assert score.push("a", "A", "ocean", 0.25, at=at)
+    assert not score.push("a", "A", "ocean", 1, at=10)
+    score.finish({"ocean": 0.5})
+    assert score.board.stream["a"]["points"] == 10

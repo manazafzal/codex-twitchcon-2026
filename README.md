@@ -68,7 +68,9 @@ IMMUNE OFF then ON. It temporarily overrides the War immune setting.
 Telepathy selects a library concept outside the active war and injects it at
 β=2 for an everyday prompt. After generation, `!guess <word>` opens for 30 seconds.
 Correct guesses earn decreasing viewer points, with the first correct guess receiving most.
-The top five viewers appear on reveal; stream and all-time totals persist locally. The reveal names the secret, winner, and Mind-Reader's actual top
+The top five viewers appear on reveal; stream and all-time totals persist locally.
+The current stream resumes after a restart. Set `NOUS_STREAM_ID` to a new value
+for a new stream; all-time totals carry forward. The reveal names the secret, winner, and Mind-Reader's actual top
 guess. Names, applied-faction metadata, and readout labels are masked on the
 public WebSocket and API snapshot before reveal. Raw private recording rows are held until reveal and discarded if the round is
 cancelled. Completed rounds retain plans for reproducible engine replay.

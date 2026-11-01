@@ -66,3 +66,11 @@ The P_POLISH_v3a prompt replaces SPEC's older relative hook layers, alarm rule a
 - Engine mutation belongs to one queue consumer. Use typed commands and public mixer methods. Before reveal, every public snapshot/frame passes the strict presentation projection, and raw private recording rows stay buffered until reveal. Semantic payloads and map keys are checked for leaks; fixed event-schema keys remain unchanged.
 - Viewer points persist atomically under `NOUS_DATA_DIR` (default local config directory). APIs expose viewer ids/names/points, hide faction boards before reveal, and never include a hidden target. Keep development fixtures disabled in production.
 - Follow `.codex/skills/nous-eval/SKILL.md` for evidence review and reruns. The research package and paper belong to P_POLISH_v3c.
+
+
+## NOUS completion checks
+- The current product/package/CLI and environment prefix are NOUS/`nous`/`NOUS_`. Preserve this naming in new files and browser globals. The evaluation skill is `.codex/skills/nous-eval/SKILL.md`.
+- Fairness regressions: `pytest -q tests/test_scoring.py tests/test_round_points.py tests/test_telepathy_leak.py`. They cover temporal push credit, decreasing guess awards, guess eligibility, the round cap, one Attack payout, current-round live moderator attribution, stream resume/migration, a killed atomic write and public secrecy.
+- `NOUS_STREAM_ID` selects a stream. Without a new value, the saved current stream resumes on process restart; changing it clears only stream totals. Existing version-one score files migrate to the current schema. `NOUS_DATA_DIR` still controls the local store location.
+- Fitted v4 labels/colours are answer/window decisions. Keep per-token cosine/z untouched for the alarm; never substitute classifier confidence for projection thresholds. Tests must make classifier and detector disagree to catch accidental coupling.
+- `pytest -q tests/test_overlay_visual.py -k mvp` verifies MVP/board restoration and blind hiding. Full `make check` includes all browser and deterministic film tests. Keep fixed schema fields and source badges unchanged.

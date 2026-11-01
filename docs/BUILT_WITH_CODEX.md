@@ -56,3 +56,19 @@ The post-report vocabulary and evaluation suite passed with 17 tests; ruff and w
 The product, package, CLI, environment prefix, browser titles/globals, tests, documentation, Makefile and repository evaluation skill now use NOUS. Nous is Greek for mind: chat reaches into a mind, and the mind defends itself. This is a standalone rename commit before further backend fixes. Source badges and event fields are unchanged. Local config now uses the NOUS directory; existing credentials outside this checkout were not moved.
 
 Rename validation: ruff and scoped mypy passed; 131 non-browser tests passed. Screenshots were refreshed with the NOUS wordmark; browser preflight checks all five scenes, fallback, full labels and transparency. The final milestone check also runs the full deterministic film comparison. A case-insensitive repository search found no earlier product name in tracked text or paths. No trained-model measurement was inferred from the rename.
+
+
+## NOUS backend completion
+
+**Prompt.** Inspect the working tree first, preserve the existing backend work, rename the project in a standalone commit, finish v4 readout separation and fair viewer points, persist stream/all-time leaderboards atomically, retain blind secrecy, and finish with a green complete check and a push to main.
+
+**Starting state.** Both initial status commands were clean. The previous backend job had already been committed, including fitting, scoring, persistence, MVP/rank wiring and 139 passing tests. The local `work/readout_v4.md` and trained artifacts remain unavailable; the user's measurements are not presented as a new reproduction.
+
+**Fixes.** Completed v4 answer/window labels alongside colours while preserving original cosine/z alarm inputs. Fixed Attack scoring that closed after OFF, guess finalization that prevented later queued awards, and round-winning guesses bypassing point eligibility. Late answer pushes receive next-round credit using their arrival timestamps; incidental Neutral words earn no injection contribution points. Moderator catch attribution is limited to the current round and live controls. Stream totals now persist alongside all-time totals, with explicit stream ids and version-one migration. MVP/reveal boards restore from snapshots, hide while blind, and use independent virtual expiry versions.
+
+**Tests.** Added end-to-end v4-versus-alarm disagreement, queued guess prizes, cooldown/attempt-limited wins, exact point-cap and timestamp checks, single Attack payout/catch, delayed push credit, Neutral no-credit, rank and MVP chat limiting, stream resume/reset/migration, and a browser MVP/reconnect/blind check. The killed-writer and complete recording-client Telepathy leak tests remain intact. Fast preflight passed 143 tests; the targeted browser check passed. Final complete validation is recorded after the full run.
+
+**Commits.**
+
+- [226f7d2 — standalone NOUS rename](https://github.com/manazafzal/codex-twitchcon-2026/commit/226f7d2)
+- [fc8b56b — answer-level v4 labels, colours and independent alarm test](https://github.com/manazafzal/codex-twitchcon-2026/commit/fc8b56b)

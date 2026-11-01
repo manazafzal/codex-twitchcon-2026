@@ -238,7 +238,8 @@ def main(argv: list[str] | None = None) -> None:
 
     leaderboard = Leaderboard(
         Path(os.getenv("NOUS_DATA_DIR", str(Path.home() / ".config" / "nous")))
-        / "leaderboard.json"
+        / "leaderboard.json",
+        stream_id=os.getenv("NOUS_STREAM_ID"),
     )
     token = secrets.token_urlsafe(32)
     log.info("Local control token for this run: %s", token)

@@ -153,3 +153,44 @@ def test_virtual_timers_and_full_long_names(monkeypatch):
             assert not browser.errors
 
     asyncio.run(run())
+
+
+def test_mvp_snapshot_restores_top_five_and_blind_round_clears_it(monkeypatch):
+    from nous.engine.events import Mode, Round
+    from nous.server.state import ViewState
+
+    monkeypatch.setenv("NOUS_DEV_FIXTURES", "1")
+    board = [{"id": str(i), "name": f"Viewer {i}", "points": 100 - i} for i in range(6)]
+    card = {"mvp": board[0], "board": {"stream": board}}
+    state = ViewState()
+    state.apply(Mode("telepathy", False, "Make tea.", 1, phase="reveal", reveal="ocean"))
+    state.apply(Round("telepathy", "mvp", 1, json.dumps(card)))
+
+    async def run():
+        async with Browser("manual&scale=.5&nogl") as browser:
+            await browser.evaluate(
+                f"NousOverlay.dispatch({json.dumps(state.snapshot().to_dict())})"
+            )
+            assert await browser.evaluate("!document.getElementById('mvp').hidden")
+            assert await browser.evaluate(
+                "document.getElementById('mvp').textContent.includes('Viewer 0')"
+            )
+            assert await browser.evaluate(
+                "document.getElementById('scoreboard').textContent.includes('Viewer 4')"
+            )
+            assert not await browser.evaluate(
+                "document.getElementById('scoreboard').textContent.includes('Viewer 5')"
+            )
+            await browser.evaluate("NousOverlay.step(4)")
+            await browser.evaluate(
+                f"NousOverlay.dispatch({json.dumps(Round('telepathy', 'mvp', 1, json.dumps(card)).to_dict())})"
+            )
+            await browser.evaluate("NousOverlay.step(2)")
+            assert await browser.evaluate("!document.getElementById('mvp').hidden")
+            blind = Mode("telepathy", False, "Make tea.", 2, phase="armed", round_id=2)
+            await browser.evaluate(f"NousOverlay.dispatch({json.dumps(blind.to_dict())})")
+            assert await browser.evaluate("document.getElementById('mvp').hidden")
+            assert await browser.evaluate("document.getElementById('scoreboard').textContent===''")
+            assert not browser.errors
+
+    asyncio.run(run())

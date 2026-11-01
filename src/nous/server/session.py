@@ -3,6 +3,7 @@ import copy
 import json
 import logging
 import time
+from collections import deque
 from collections.abc import AsyncIterator
 from contextlib import aclosing
 from dataclasses import replace
@@ -93,6 +94,9 @@ class Session:
         self.owner: asyncio.Task | None = None
         self.scoring = Scoring(leaderboard, clock=self.now)
         self.controller: tuple[str, str] | None = None
+        self.answer_running = False
+        self.pending_points: deque[tuple[Push, float]] = deque()
+        self.round_hits: dict[str, float] = {}
         self.telepathy = Telepathy(self.library.concepts, clock=self.clock, seed=seed)
         self.round_answer = 0
         self._revealed = False
@@ -215,7 +219,11 @@ class Session:
             if isinstance(item, Push):
                 event = replace(item, t=self.engine.mixer.clock())
                 weight = self.engine.push(event, emit=False)
-                self.scoring.push(event.user_id or event.user, event.user, event.faction, weight)
+                if self.answer_running and self.engine.mixer.schedule_mode == "answer":
+                    if weight > 0:
+                        self.pending_points.append((event, weight))
+                else:
+                    self.credit_push(event, weight)
                 accepted.append(event)
             elif isinstance(item, Guess):
                 accepted.append(item)
@@ -225,17 +233,22 @@ class Session:
                     and self.telepathy.deadline is not None
                     and self.telepathy.started_at <= item.t < self.telepathy.deadline
                 ):
-                    self.scoring.guess(
+                    points = self.scoring.guess(
                         item.user_id or item.user,
                         item.user,
                         correct=match_concept(item.word, self.library.concepts)
                         == self.telepathy.secret,
+                        at=item.t,
                     )
-                self.telepathy.guess(item.user, item.word, user_id=item.user_id, at=item.t)
-                accepted.extend(self.reveal_events())
+                    if points:
+                        self.telepathy.guess(item.user, item.word, user_id=item.user_id, at=item.t)
+                else:
+                    self.telepathy.tick(item.t)
             else:
-                if item.enabled:
-                    self.controller = (item.user_id or item.user, item.user)
+                if item.enabled and item.source == "LIVE" and item.user_id:
+                    self.controller = (item.user_id, item.user)
+                elif not item.enabled or item.source == "LOCAL":
+                    self.controller = None
                 self.immune_enabled = item.enabled
                 accepted.append(replace(item, t=self.clock()))
                 # A showcase comparison and a secret challenge keep their prescribed defence.
@@ -243,7 +256,26 @@ class Session:
                     self.engine.immune = item.enabled
                     self.engine.monitor.reset()
                 accepted.append(Immune(self.engine.immune))
+        accepted.extend(self.reveal_events())
         return accepted
+
+    def credit_push(self, event: Push, weight: float) -> None:
+        self.scoring.push(
+            event.user_id or event.user,
+            event.user,
+            event.faction,
+            weight,
+            at=event.t,
+        )
+
+    def begin_round(self) -> None:
+        self.answer_running = False
+        self.controller = None
+        self.round_hits = {}
+        self.scoring.begin(self.engine.answer_index)
+        while self.pending_points:
+            event, weight = self.pending_points.popleft()
+            self.credit_push(event, weight)
 
     async def _crowd(self) -> None:
         async for push in self.crowd.stream():
@@ -270,42 +302,52 @@ class Session:
             await stream.aclose()
 
     async def _answer(
-        self, mode: str, panel: str = "main", *, drain: bool = True
+        self,
+        mode: str,
+        panel: str = "main",
+        *,
+        drain: bool = True,
+        finalise: bool = True,
     ) -> AsyncIterator[Event]:
-        async with aclosing(
-            self._advance(self.engine.stream(max_tokens=32), drain=drain)
-        ) as stream:
-            async for event in stream:
-                if isinstance(event, Mode):
-                    if mode == "telepathy":
-                        event = self.telepathy_mode()
-                    else:
-                        plan = (
-                            self.engine.mixer
-                            if isinstance(self.engine.mixer, FixedInjection)
-                            else None
+        applied: set[str] = set()
+        self.answer_running = True
+        try:
+            async with aclosing(
+                self._advance(self.engine.stream(max_tokens=32), drain=drain)
+            ) as stream:
+                async for event in stream:
+                    if isinstance(event, Mode):
+                        if mode == "telepathy":
+                            event = self.telepathy_mode()
+                        else:
+                            plan = (
+                                self.engine.mixer
+                                if isinstance(self.engine.mixer, FixedInjection)
+                                else None
+                            )
+                            event = replace(
+                                event,
+                                mode=mode,
+                                panel=panel,
+                                injection=plan.faction if plan else None,
+                                beta=plan.strength if plan else None,
+                            )
+                    if isinstance(event, Token) and event.applied:
+                        applied.add(event.applied)
+                    if isinstance(event, Tamper) and self.controller:
+                        self.scoring.catch(
+                            *self.controller,
+                            true_concept=self.engine.mixer.selected,
+                            attributed=event.concepts,
+                            immune=self.engine.immune,
                         )
-                        event = replace(
-                            event,
-                            mode=mode,
-                            panel=panel,
-                            injection=plan.faction if plan else None,
-                            beta=plan.strength if plan else None,
-                        )
-                if isinstance(event, Tamper) and self.controller:
-                    self.scoring.catch(
-                        *self.controller,
-                        true_concept=self.engine.mixer.selected,
-                        attributed=event.concepts,
-                        immune=self.engine.immune,
-                    )
-                yield event
-        hits = {
-            key: float(key in self.library.mentioned_in(self.engine.last_text))
-            for key in self.library.ids
-            if key not in self.engine.last_exempt
-        }
-        mvp = self.scoring.finish(hits) if mode != "telepathy" else None
+                    yield event
+        finally:
+            self.answer_running = False
+        mentioned = self.library.mentioned_in(self.engine.last_text) - self.engine.last_exempt
+        for key in applied & mentioned:
+            self.round_hits[key] = 1.0
+        mvp = self.scoring.finish(self.round_hits) if mode != "telepathy" and finalise else None
         if mvp:
             message = json.dumps(
                 {
@@ -338,7 +380,9 @@ class Session:
                 self.engine.rng.bit_generator.state = copy.deepcopy(rng_state)
                 self.engine.answer_index, self.engine.immune = answer, panel == "on"
                 yield Immune(self.engine.immune)
-                async with aclosing(self._answer("attack", panel, drain=False)) as stream:
+                async with aclosing(
+                    self._answer("attack", panel, drain=False, finalise=panel == "on")
+                ) as stream:
                     async for event in stream:
                         yield event
                 await asyncio.sleep(2)
@@ -409,7 +453,7 @@ class Session:
         try:
             while True:
                 self.sync_time()
-                self.scoring.begin(self.engine.answer_index)
+                self.begin_round()
                 for event in self.drain():
                     yield event
                 self.current_mode = self.mode

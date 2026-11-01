@@ -4,23 +4,33 @@ import json
 import math
 import os
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any
 
 
 class Leaderboard:
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(self, path: Path | None = None, *, stream_id: str | None = None) -> None:
         self.path = path
+        self.stream_id = stream_id or uuid.uuid4().hex
         self.all_time: dict[str, dict[str, Any]] = {}
         self.factions: dict[str, dict[str, Any]] = {}
         self.stream: dict[str, dict[str, Any]] = {}
         self.stream_factions: dict[str, dict[str, Any]] = {}
         if path and path.exists():
             data = json.loads(path.read_text())
-            if data.get("version") != 1:
+            if data.get("version") not in {1, 2}:
                 raise ValueError("Unknown leaderboard version")
             self.all_time = self.validate(data["viewers"])
             self.factions = self.validate(data["factions"])
+            if data["version"] == 2:
+                saved_id = data["stream_id"]
+                if not isinstance(saved_id, str) or not saved_id:
+                    raise ValueError("Invalid stream id")
+                if stream_id is None or stream_id == saved_id:
+                    self.stream_id = saved_id
+                    self.stream = self.validate(data["stream"])
+                    self.stream_factions = self.validate(data["stream_factions"])
 
     @staticmethod
     def validate(rows: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -79,7 +89,14 @@ class Leaderboard:
         try:
             with os.fdopen(descriptor, "w") as handle:
                 json.dump(
-                    {"version": 1, "viewers": self.all_time, "factions": self.factions},
+                    {
+                        "version": 2,
+                        "viewers": self.all_time,
+                        "factions": self.factions,
+                        "stream_id": self.stream_id,
+                        "stream": self.stream,
+                        "stream_factions": self.stream_factions,
+                    },
                     handle,
                     allow_nan=False,
                 )

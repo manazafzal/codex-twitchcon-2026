@@ -37,20 +37,37 @@ class Scoring:
         self.awards: list[Award] = []
         self.closed = False
 
-    def allow(self, viewer: str, kind: str, *, cooldown: float, maximum: int) -> bool:
+    def allow(
+        self,
+        viewer: str,
+        kind: str,
+        *,
+        cooldown: float,
+        maximum: int,
+        at: float | None = None,
+    ) -> bool:
         key = (viewer, kind)
+        now = self.clock() if at is None else at
         if (
             self.closed
             or self.attempts[key] >= maximum
-            or self.clock() - self.cooldowns.get(key, float("-inf")) < cooldown
+            or now - self.cooldowns.get(key, float("-inf")) < cooldown
         ):
             return False
         self.attempts[key] += 1
-        self.cooldowns[key] = self.clock()
+        self.cooldowns[key] = now
         return True
 
-    def push(self, viewer: str, name: str, faction: str, weight: float) -> bool:
-        if weight <= 0 or not self.allow(viewer, "push", cooldown=1, maximum=3):
+    def push(
+        self,
+        viewer: str,
+        name: str,
+        faction: str,
+        weight: float,
+        *,
+        at: float | None = None,
+    ) -> bool:
+        if weight <= 0 or not self.allow(viewer, "push", cooldown=1, maximum=3, at=at):
             return False
         self.names[viewer] = name
         group = self.pushes[faction]
@@ -68,10 +85,17 @@ class Scoring:
             self.awards.append(Award(viewer, name, points, reason))
         return points
 
-    def guess(self, viewer: str, name: str, *, correct: bool) -> float:
+    def guess(
+        self,
+        viewer: str,
+        name: str,
+        *,
+        correct: bool,
+        at: float | None = None,
+    ) -> float:
         if (
             viewer in self.correct
-            or not self.allow(viewer, "guess", cooldown=2, maximum=3)
+            or not self.allow(viewer, "guess", cooldown=2, maximum=3, at=at)
             or not correct
         ):
             return 0
