@@ -1,0 +1,8 @@
+ruff check .
+All checks passed!
+mypy src/thoughtquake/engine src/thoughtquake/model src/thoughtquake/concepts src/thoughtquake/evaluation.py
+Success: no issues found in 19 source files
+pytest -q
+........................................................................ [ 51%]
+...................................................................      [100%]
+139 passed, 4 deselected in 1238.09s (0:20:38)

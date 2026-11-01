@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 from thoughtquake.concepts.library import Concept, match_concept
+from thoughtquake.engine.commands import Rank
 from thoughtquake.engine.events import Control, Guess, Push
 
 
@@ -21,7 +22,7 @@ class ChatParser:
         self.clock, self.dedupe_size = clock, dedupe_size
         self.seen: OrderedDict[str, None] = OrderedDict()
 
-    def parse(self, message: dict[str, Any]) -> Push | Guess | Control | None:
+    def parse(self, message: dict[str, Any]) -> Push | Guess | Control | Rank | None:
         if message.get("metadata", {}).get("message_type") != "notification":
             return None
         payload = message.get("payload", {})
@@ -57,6 +58,8 @@ class ChatParser:
             return None
         if user_id == self.bot_id:
             return None
+        if command == "!rank":
+            return Rank(name, user_id)
         if command == "!guess":
             return Guess(name, argument, self.clock(), "LIVE", user_id) if argument else None
         if command.startswith("!") and command != "!push":

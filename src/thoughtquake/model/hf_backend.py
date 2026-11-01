@@ -11,7 +11,13 @@ class HFBackend:
 
     sample = staticmethod(sample)
 
-    def __init__(self, model_name: str | None = None, device: str | None = None) -> None:
+    def __init__(
+        self,
+        model_name: str | None = None,
+        device: str | None = None,
+        *,
+        local_path: str | None = None,
+    ) -> None:
         try:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -24,15 +30,22 @@ class HFBackend:
         target = device or os.getenv("THOUGHTQUAKE_DEVICE", "auto")
         if target == "auto":
             target = "cuda" if torch.cuda.is_available() else "cpu"
-        self.tokenizer = AutoTokenizer.from_pretrained(name)
-        model = AutoModelForCausalLM.from_pretrained(name)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            local_path or os.getenv("THOUGHTQUAKE_MODEL_PATH") or name, local_files_only=True
+        )
+        loader: Any = AutoModelForCausalLM
+        model = loader.from_pretrained(
+            local_path or os.getenv("THOUGHTQUAKE_MODEL_PATH") or name, local_files_only=True
+        )
         self._configure(model.to(target).eval())
 
     def _configure(self, model: Any) -> None:
+        if model.config.model_type != "qwen2":
+            raise ValueError("Local weights must use the supported Qwen2 architecture")
         self.model = model
         self.num_layers = model.config.num_hidden_layers
         self.hidden_size = model.config.hidden_size
-        self.injection_layer = round(0.55 * self.num_layers)
+        self.injection_layer = 16 if self.num_layers > 22 else round(0.55 * self.num_layers)
         self.readout_layer = self.injection_layer + 4
         if self.readout_layer >= self.num_layers:
             # Tiny fixtures retain the same hook order with a shorter readout gap.
@@ -55,13 +68,16 @@ class HFBackend:
         import torch
 
         captured: dict[str, Any] = {}
+        layer_states: dict[int, Vector] = {}
         handles = []
 
         def hook(layer: int) -> Any:
             def apply(module: Any, args: Any, output: Any) -> Any:
                 h = output[0] if isinstance(output, tuple) else output
-                if layer == self.injection_layer and inject is not None:
-                    h = h + torch.as_tensor(inject, device=h.device, dtype=h.dtype)
+                start = 1 if position == 0 else 0
+                if layer == self.injection_layer and inject is not None and bool(np.any(inject)):
+                    h = h.clone()
+                    h[:, start:] += torch.as_tensor(inject, device=h.device, dtype=h.dtype)
                 if layer == self.injection_layer + 1:
                     captured["defender"] = h.detach().float().cpu().numpy()[0, -1].copy()
                     if defend is not None:
@@ -73,16 +89,26 @@ class HFBackend:
                             defend.thresholds, device=h.device, dtype=h.dtype
                         )
                         captured["pre"] = (h[0, -1] @ directions.T).detach().float().cpu().numpy()
+                        h = h.clone()
+                        work = h[:, start:]
                         for direction, threshold in zip(directions, thresholds, strict=True):
-                            h = (
-                                h
-                                - (h @ direction - threshold).clamp(min=0).unsqueeze(-1) * direction
+                            work = (
+                                work
+                                - (work @ direction - threshold).clamp(min=0).unsqueeze(-1)
+                                * direction
                             )
+                        h[:, start:] = work
                         captured["post"] = (h[0, -1] @ directions.T).detach().float().cpu().numpy()
+                if layer in {
+                    self.injection_layer,
+                    self.readout_layer,
+                    min(22, self.num_layers - 1),
+                }:
+                    layer_states[layer] = h.detach().float().cpu().numpy()[0, -1].copy()
                 if layer == self.readout_layer:
                     captured["readout"] = h.detach().float().cpu().numpy()[0, -1].copy()
                 if layer == capture_layer:
-                    captured["embedding"] = h.detach().float().cpu().numpy()[0].copy()
+                    captured["embedding"] = h.detach().float().cpu().numpy()[0, start:].copy()
                 return (h, *output[1:]) if isinstance(output, tuple) else h
 
             return apply
@@ -104,6 +130,7 @@ class HFBackend:
                 captured.get("defender"),
                 captured.get("pre"),
                 captured.get("post"),
+                layer_states,
             )
             return state, captured.get("embedding", np.empty((0, self.hidden_size)))
         finally:
@@ -116,7 +143,7 @@ class HFBackend:
         inject: Vector | None = None,
         defend: DefendSpec | None = None,
         *,
-        inject_prefill: bool = False,
+        inject_prefill: bool = True,
     ) -> State:
         if hasattr(self.tokenizer, "apply_chat_template"):
             prompt = self.tokenizer.apply_chat_template(
@@ -142,9 +169,10 @@ class HFBackend:
     def embed_texts(self, texts: list[str], layer: int) -> Vector:
         if not 0 <= layer < self.num_layers:
             raise ValueError("Invalid layer")
-        return np.stack(
-            [self._forward(self._ids(text), capture_layer=layer)[1].mean(axis=0) for text in texts]
-        )
+        return np.stack([self.token_hidden(text, layer).mean(axis=0) for text in texts])
 
     def token_hidden(self, text: str, layer: int) -> Vector:
-        return self._forward(self._ids(text), capture_layer=layer)[1]
+        result = self._forward(self._ids(text), capture_layer=layer)[1]
+        if not len(result):
+            raise ValueError("Text has no positions after excluding position zero")
+        return result

@@ -40,6 +40,8 @@ class Mixer:
         chunk: int = 16,
         inject_scale: float = 10,
         clock: Callable[[], float] = time.monotonic,
+        alpha: float | None = None,
+        median_norm: float = 26.78,
     ) -> None:
         if half_life <= 0 or kappa <= 0 or not 0 < dominance_cap <= 0.75:
             raise ValueError("Invalid mixer parameters")
@@ -47,6 +49,9 @@ class Mixer:
             raise ValueError("Invalid injection strength or chunk")
         if schedule_mode not in {"answer", "sentence", "token"}:
             raise ValueError("Invalid schedule mode")
+        if alpha is not None and (not 0 <= alpha <= 0.5 or median_norm <= 0):
+            raise ValueError("Invalid alpha or residual norm")
+        self.alpha, self.median_norm = alpha, median_norm
         self.half_life, self.kappa = half_life, kappa
         self.dominance_cap, self.beta_max = dominance_cap, beta_max
         self.schedule_mode, self.chunk = schedule_mode, chunk
@@ -113,4 +118,39 @@ class Mixer:
     def vector(self, vectors: dict[str, Vector]) -> Vector | None:
         if self._selected is None:
             return None
-        return unit(vectors[self._selected]) * self.inject_scale * self._beta
+        strength = (
+            self.alpha * self.median_norm * self._beta / self.beta_max
+            if self.alpha is not None and self.beta_max
+            else self.inject_scale * self._beta
+        )
+        return unit(vectors[self._selected]) * strength
+
+    @property
+    def selected(self) -> str | None:
+        return self._selected
+
+    @property
+    def last_time(self) -> float:
+        return self._last
+
+    def hold(self, faction: str | None, beta: float) -> None:
+        self._selected, self._beta = faction, beta
+
+
+class ForcedMixer(Mixer):
+    """Evaluation holds the target independently of the capped public contest shares."""
+
+    def __init__(
+        self,
+        faction: str,
+        *,
+        alpha: float,
+        median_norm: float,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        super().__init__(alpha=alpha, median_norm=median_norm, beta_max=1, clock=clock)
+        self.faction = faction
+
+    def select(self, index: int, rng: np.random.Generator) -> str:
+        self.hold(self.faction, self.tick().beta)
+        return self.faction

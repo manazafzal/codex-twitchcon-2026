@@ -13,6 +13,7 @@ from thoughtquake.engine.events import (
     Layout,
     Mode,
     Push,
+    Round,
     Snapshot,
     Tamper,
     Tick,
@@ -24,6 +25,7 @@ class ViewState:
     """One reducer supplies WebSocket snapshots and the public state endpoint."""
 
     def __init__(self, concepts: list[Concept] | None = None) -> None:
+        self.catalog = [asdict(c) for c in concepts or []]
         self.data: dict[str, Any] = {
             "concepts": [asdict(c) for c in concepts or []],
             "badge": Badge("SIMULATED ×0", "TINY MODEL / CI").to_dict(),
@@ -39,6 +41,8 @@ class ViewState:
             "immune": Immune(False).to_dict(),
             "immune_requested": False,
             "layout": None,
+            "leaderboard": None,
+            "mvp": None,
         }
 
     def apply(self, event: Event) -> None:
@@ -53,15 +57,31 @@ class ViewState:
             self.data["connections"][event.service] = event.state
         elif isinstance(event, Push):
             self.data["pushes"] = [*self.data["pushes"], row][-5:]
+        elif isinstance(event, Round) and event.phase == "mvp":
+            import json
+
+            card = json.loads(event.message)
+            self.data["leaderboard"], self.data["mvp"] = card["board"], card["mvp"]
         elif isinstance(event, Mode):
             previous = self.data["mode"]
+            if event.mode == "telepathy" and event.phase != "reveal":
+                self.data["concepts"] = []
+                self.data["leaderboard"] = None
+                self.data["mvp"] = None
+                self.data["history"] = []
+                self.data["panels"] = {"off": [], "on": []}
+                self.data["pushes"] = []
+            else:
+                self.data["concepts"] = self.catalog
             new_answer = (event.answer, event.panel, event.mode) != (
                 previous["answer"],
                 previous["panel"],
                 previous["mode"],
             )
             if new_answer and event.phase in {"armed", "generating"}:
-                if self.data["tokens"]:
+                if self.data["tokens"] and not (
+                    event.mode == "telepathy" and event.phase != "reveal"
+                ):
                     self.data["history"] = [
                         *self.data["history"],
                         {"mode": previous, "tokens": self.data["tokens"]},

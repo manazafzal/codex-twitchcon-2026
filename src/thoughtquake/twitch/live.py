@@ -5,7 +5,7 @@ from pathlib import Path
 
 import aiohttp
 
-from thoughtquake.engine.events import Badge, Connection, Event, Round
+from thoughtquake.engine.events import Badge, Connection, Event, Mode, Round
 from thoughtquake.replay.recorder import Recorder
 from thoughtquake.server.session import Session
 from thoughtquake.twitch.auth import (
@@ -44,6 +44,7 @@ class LiveSession:
         self.output: asyncio.Queue[tuple[Event | Exception, float]] = asyncio.Queue(maxsize=256)
         self.announcements: asyncio.Queue[str] = asyncio.Queue(maxsize=8)
         self.last_leader = float("-inf")
+        self.last_mvp = float("-inf")
 
     async def emit(self, event: Event) -> None:
         await self.output.put((event, self.session.clock()))
@@ -60,7 +61,15 @@ class LiveSession:
         async for event in self.session.events():
             await self.emit(event)
             if isinstance(event, Round):
-                self.announce(event.message)
+                if event.phase == "mvp":
+                    if self.session.now() - self.last_mvp >= 60:
+                        import json
+
+                        card = json.loads(event.message)["mvp"]
+                        self.announce(f"Round MVP: {card['name']} · {card['points']:.2f} points.")
+                        self.last_mvp = self.session.now()
+                else:
+                    self.announce(event.message)
 
     async def _chat(self) -> None:
         async def status(value: str) -> None:
@@ -100,7 +109,7 @@ class LiveSession:
                         async for notification in client.notifications():
                             push = parser.parse(notification)
                             if push:
-                                await self.session.pending.put(push)
+                                await self.session.submit(push)
 
                     async def send(sender: ChatSender) -> None:
                         while True:
@@ -174,6 +183,8 @@ class LiveSession:
                 if recorder:
                     recorder.record(event, timestamp=timestamp)
                 yield event
+                if recorder and isinstance(event, Mode) and event.phase == "reveal":
+                    recorder.release()
         finally:
             for task in tasks:
                 task.cancel()

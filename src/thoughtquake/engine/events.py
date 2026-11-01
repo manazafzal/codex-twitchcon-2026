@@ -1,10 +1,10 @@
 from dataclasses import asdict, dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 
 class Event:
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return asdict(cast(Any, self))
 
 
 @dataclass(frozen=True)
@@ -124,7 +124,7 @@ def event_from_dict(data: dict[str, Any]) -> Event:
             or any(not math.isfinite(v) or abs(v) > 1.000001 for v in point)
             for key, point in event.points.items()
         )
-        or not set(event.alias).issubset(event.points)
+        or not set(event.alias or {}).issubset(event.points)
     ):
         raise ValueError("Invalid layout")
     if isinstance(event, Token) and event.sky is not None:
@@ -199,5 +199,5 @@ class Round(Event):
 @dataclass(frozen=True)
 class Layout(Event):
     points: dict[str, list[float]]
-    alias: dict[str, str] = field(default_factory=dict)
+    alias: dict[str, str] | None = field(default_factory=dict)
     kind: Literal["layout"] = field(default="layout", init=False)

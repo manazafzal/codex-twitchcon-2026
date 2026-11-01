@@ -11,12 +11,13 @@ from typing import Literal
 import numpy as np
 
 from thoughtquake.concepts.library import ConceptLibrary
+from thoughtquake.concepts.probe import lda_scores
 from thoughtquake.engine.atlas import AtlasSignals
 from thoughtquake.engine.events import Badge, Event, Mode, Push, Tamper, Token
-from thoughtquake.engine.immune import ImmuneMonitor
+from thoughtquake.engine.immune import AlarmMonitor
 from thoughtquake.engine.mixer import NEUTRAL, Mixer
 from thoughtquake.engine.readout import Readout
-from thoughtquake.model.backend import ModelBackend
+from thoughtquake.model.backend import ModelBackend, Vector
 
 PROMPTS = (
     "Explain how to make tea.",
@@ -101,13 +102,24 @@ class Generator:
             raise ValueError("Invalid source badge")
         if backend.hidden_size != library.V.shape[1]:
             raise ValueError("Backend and library dimensions differ")
+        for name in ("injection_layer", "readout_layer"):
+            if name in library.config and library.config[name] != getattr(backend, name):
+                raise ValueError("Backend layer configuration differs from the library; rebuild it")
         self.backend, self.library, self.mixer = backend, library, mixer
         self.rng = np.random.default_rng(seed)
         self.immune, self.inject_prefill = immune, inject_prefill
         self.readout = Readout(library, window=window, margin_threshold=margin_threshold)
         self.colour_source, self.clock = colour_source, clock
         self.badge = f"SIMULATED ×{simulated_users}" if source == "SIMULATED" else source
-        self.monitor = ImmuneMonitor()
+        self.monitor = AlarmMonitor()
+        if library.variant == "others" and mixer.alpha is None:
+            mixer.alpha, mixer.median_norm = 0.45, library.median_residual_norm
+        self.last_layer_means: dict[int, Vector] = {}
+        self.last_text = ""
+        self.last_prompt = ""
+        self.last_alarm_tokens: list[bool] = []
+        self.last_flagged: set[str] = set()
+        self.last_exempt: set[str] = set()
         self.history: deque[list[Token]] = deque(maxlen=3)
         self.pending: deque[Push] = deque()
         self.atlas = AtlasSignals(library)
@@ -115,31 +127,40 @@ class Generator:
         self.secret: str | None = None
         self.last_scores: dict[str, float] = {}
 
-    def push(self, event: Push) -> float:
+    def push(self, event: Push, *, emit: bool = True) -> float:
         if event.faction not in self.library.ids:
             raise ValueError("Unknown faction")
         weight = self.mixer.push(event)
-        self.pending.append(event)
+        if emit:
+            self.pending.append(event)
         return weight
 
     def _flush(
-        self, group: list[tuple[Token, Tamper, np.ndarray, list[str]]], frames: list[Token]
+        self,
+        group: list[tuple[Token, Tamper, Vector, list[str], dict[int, Vector]]],
+        frames: list[Token],
     ) -> Iterator[Event]:
         if not group:
             return
         if self.colour_source == "readout":
             mean = np.mean([item[2] for item in group], axis=0)
-            colour = self.readout.decide(mean, group[-1][3], self.secret).color
+            colour = self.readout.decide(
+                mean,
+                group[-1][3],
+                self.secret,
+                features=self.readout.features([item[4] for item in group]),
+            ).color
         else:
             votes: dict[str | None, int] = {}
-            for frame, _, _, _ in group:
+            for frame, _, _, _, _ in group:
                 votes[frame.applied] = votes.get(frame.applied, 0) + 1
             colour = min(votes, key=lambda candidate: (-votes[candidate], candidate or ""))
-        for frame, tamper, _, _ in group:
+        for frame, tamper, _, _, _ in group:
             frame = Token(frame.i, frame.text, frame.applied, frame.readout, colour, frame.sky)
             frames.append(frame)
             yield frame
-            yield tamper
+            if self.immune:
+                yield tamper
         group.clear()
 
     def events(
@@ -149,6 +170,7 @@ class Generator:
         max_tokens: int = 32,
         temperature: float = 0.8,
         top_p: float = 0.95,
+        prompt: str | None = None,
     ) -> Iterator[Event]:
         if answers < 1 or max_tokens < 1:
             raise ValueError("Answers and token budget must be positive")
@@ -165,8 +187,14 @@ class Generator:
             self.readout.reset()
             self.monitor.reset()
             self.last_scores = {}
-            prompt = PROMPTS[answer % len(PROMPTS)]
-            yield Mode("war", self.immune, prompt, answer, colour_source=self.colour_source)
+            chosen_prompt = prompt or PROMPTS[answer % len(PROMPTS)]
+            self.last_prompt = chosen_prompt
+            self.last_text = ""
+            self.last_alarm_tokens = []
+            self.last_flagged = set()
+            self.last_exempt = self.library.mentioned_in(chosen_prompt)
+            layer_positions: list[dict[int, Vector]] = []
+            yield Mode("war", self.immune, chosen_prompt, answer, colour_source=self.colour_source)
             while self.pending:
                 yield self.pending.popleft()
             yield self.mixer.tick()
@@ -174,16 +202,20 @@ class Generator:
             applied = self.mixer.select(0, self.rng)
             vector = self.mixer.vector(vectors)
             defend = self.library.defender() if self.immune else None
-            state = self.backend.prefill(prompt, vector, defend, inject_prefill=self.inject_prefill)
+            state = self.backend.prefill(
+                chosen_prompt, vector, defend, inject_prefill=self.inject_prefill
+            )
             self.atlas.begin(state.readout_hidden)
             tokens: list[int] = []
             emitted = ""
             frames: list[Token] = []
             answer_hidden = []
-            group: list[tuple[Token, Tamper, np.ndarray, list[str]]] = []
+            group: list[tuple[Token, Tamper, Vector, list[str], dict[int, Vector]]] = []
             grouped = self.colour_source == "readout" or self.mixer.schedule_mode == "token"
             width = (
-                max_tokens if self.mixer.schedule_mode == "answer" else self.readout.window.maxlen
+                max_tokens
+                if self.mixer.schedule_mode == "answer"
+                else int(self.readout.window.maxlen or 12)
             )
 
             for i in range(max_tokens):
@@ -205,7 +237,9 @@ class Generator:
                 active = [
                     f for f, share in self.mixer.tick().shares.items() if f != NEUTRAL and share > 0
                 ]
-                reading = self.readout.observe(hidden, active, self.secret)
+                layers = state.layer_hidden or {self.backend.readout_layer: hidden}
+                layer_positions.append(layers)
+                reading = self.readout.observe(hidden, active, self.secret, layers)
                 decoded = self.backend.decode(tokens).rstrip("\ufffd")
                 text, emitted = decoded[len(emitted) :], decoded
                 frame = Token(
@@ -217,32 +251,57 @@ class Generator:
                     self.atlas.observe(hidden, state, reading.scores),
                 )
                 pre, post = state.defence_pre, state.defence_post
-                if pre is None:
-                    pre = post = np.zeros(len(self.library.ids))
+                if pre is None or post is None:
+                    from thoughtquake.engine.immune import unit
+
+                    pre = (
+                        state.defender_hidden @ unit(self.library.V).T
+                        if state.defender_hidden is not None
+                        else np.zeros(len(self.library.ids))
+                    )
+                    post = pre.copy()
+                thresholds = self.library.alarm_thresholds
+                if thresholds is None:
+                    thresholds = np.full(len(self.library.ids), np.inf)
                 decision = self.monitor.observe(
-                    self.library.ids,
-                    pre,
-                    post,
-                    self.library.thresholds if defend else np.full(len(self.library.ids), np.inf),
-                    readout_top=reading.top,
-                    margin=reading.margin,
-                    margin_threshold=self.readout.margin_threshold,
-                    pushed=set(active),
+                    self.library.ids, pre, post, thresholds, reading.scores, exempt=self.last_exempt
                 )
-                tamper = Tamper(decision.concepts, decision.neutralised)
+                self.last_alarm_tokens.append(decision.token_alarm)
+                named = (decision.concept,) if decision.fired and decision.concept else ()
+                self.last_flagged.update(named)
+                tamper = Tamper(named, decision.neutralised)
                 if grouped:
-                    group.append((frame, tamper, hidden, active))
+                    group.append((frame, tamper, hidden, active, layers))
                     if len(group) >= width:
                         yield from self._flush(group, frames)
                 else:
                     frames.append(frame)
                     yield frame
-                    yield tamper
+                    if self.immune:
+                        yield tamper
             yield from self._flush(group, frames)
+            self.last_text = emitted
+            self.last_layer_means = (
+                {
+                    layer: np.mean([item[layer] for item in layer_positions], axis=0)
+                    for layer in layer_positions[0]
+                }
+                if layer_positions
+                else {}
+            )
             if answer_hidden:
                 self.last_scores = self.readout.decide(
                     np.mean(answer_hidden, axis=0), list(self.library.ids)
                 ).scores
+                features = self.readout.features(layer_positions)
+                if features is not None and self.library.readout_v4:
+                    self.last_scores = dict(
+                        zip(
+                            self.library.ids,
+                            map(float, lda_scores(self.library.readout_v4, features)),
+                            strict=True,
+                        )
+                    )
             self.history.append(frames)
 
     async def stream(
@@ -262,4 +321,5 @@ class Generator:
                     if seen_answer:
                         await asyncio.sleep(max(2.0, pause))
                     seen_answer = True
-                yield event
+                if isinstance(event, Event):
+                    yield event

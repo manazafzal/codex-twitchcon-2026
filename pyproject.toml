@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = ["numpy", "aiohttp", "pyyaml"]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff"]
+dev = ["pytest", "ruff", "mypy", "types-PyYAML"]
 model = ["torch", "transformers>=4.46,<5"]
 
 [project.scripts]
@@ -33,3 +33,10 @@ markers = ["realmodel: requires explicitly enabled real model weights"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+follow_imports = "silent"
+check_untyped_defs = true
+disallow_untyped_defs = true

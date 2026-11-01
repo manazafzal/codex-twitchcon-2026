@@ -12,3 +12,6 @@ dist/
 venv/
 *.pyc
 results/*.tmp
+
+.mypy_cache/
+**/readout-training.npz

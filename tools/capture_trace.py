@@ -72,7 +72,7 @@ def capture(backend, library):
                     round_id=1,
                 )
             )
-        public = Presentation()
+        public = Presentation(library.concepts)
         result = []
         for event in frames:
             result.append(public.event(event).to_dict())
@@ -88,7 +88,7 @@ def main():
 
     torch.set_num_threads(1)
     tiny = TinyBackend(seed=42)
-    library = build_library(tiny, load_concepts(), samples=2, neutral_samples=12, seed=42)
+    library = build_library(tiny, load_concepts(), samples=2, neutral_samples=60, seed=42)
     data = {
         "provenance": {
             "tiny": "Recorded random-init TinyBackend, seed 42; not trained-model evidence.",

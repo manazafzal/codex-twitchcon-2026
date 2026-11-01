@@ -22,7 +22,7 @@ def clamp(hidden: Vector, spec: DefendSpec) -> tuple[Vector, Vector, Vector]:
     return result, pre, result @ directions.T
 
 
-@dataclass
+@dataclass(frozen=True)
 class ImmuneDecision:
     concepts: tuple[str, ...]
     neutralised: float
@@ -68,3 +68,57 @@ class ImmuneMonitor:
         self.reductions.append(float(np.mean(token_reductions)) if token_reductions else 0.0)
         mean = float(np.mean(self.reductions)) if self.reductions else 0.0
         return ImmuneDecision(tuple(detected), mean)
+
+
+ALARM_RUN = 8
+
+
+@dataclass(frozen=True)
+class Alarm:
+    concept: str | None
+    token_alarm: bool
+    fired: bool
+    neutralised: float
+
+
+class AlarmMonitor:
+    """Detection uses independent thresholds; a successful clamp alone is not an alarm."""
+
+    def __init__(self) -> None:
+        self.reset()
+
+    def reset(self) -> None:
+        self.last: str | None = None
+        self.run = 0
+        self.max_run = 0
+        self.reductions: list[float] = []
+
+    def observe(
+        self,
+        concepts: tuple[str, ...],
+        pre: Vector,
+        post: Vector,
+        thresholds: Vector,
+        z: dict[str, float],
+        *,
+        exempt: set[str],
+    ) -> Alarm:
+        candidates = [
+            (max(float(projection - threshold), z.get(concept, 0) - 4), concept)
+            for concept, projection, threshold in zip(concepts, pre, thresholds, strict=True)
+            if concept not in exempt and (projection > threshold or z.get(concept, 0) >= 4)
+        ]
+        concept = max(candidates)[1] if candidates else None
+        self.run = (
+            self.run + 1
+            if concept is not None and concept == self.last
+            else int(concept is not None)
+        )
+        self.last = concept
+        self.max_run = max(self.max_run, self.run)
+        changed = pre > post
+        reductions = 1 - post[changed] / np.maximum(np.abs(pre[changed]), 1e-8)
+        self.reductions.append(float(np.mean(np.clip(reductions, 0, 1))) if len(reductions) else 0)
+        return Alarm(
+            concept, bool(candidates), self.run >= ALARM_RUN, float(np.mean(self.reductions))
+        )

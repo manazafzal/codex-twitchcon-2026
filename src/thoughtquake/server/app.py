@@ -10,8 +10,9 @@ from typing import Any
 
 from aiohttp import WSMsgType, web
 
-from thoughtquake.concepts.library import Concept
+from thoughtquake.concepts.library import Concept, load_concepts
 from thoughtquake.engine.events import Event, Mode
+from thoughtquake.server.leaderboard import Leaderboard
 from thoughtquake.server.presentation import Presentation
 from thoughtquake.server.state import ViewState
 
@@ -27,20 +28,38 @@ class Server:
         control_token: str | None = None,
         switch_mode: Callable[[str], None] | None = None,
         set_immune: Callable[[bool], None] | None = None,
+        leaderboard: Leaderboard | None = None,
     ) -> None:
         self.state = ViewState(concepts)
+        self.leaderboard = leaderboard
         self.control_token = control_token or secrets.token_urlsafe(32)
         self.switch_mode, self.set_immune = switch_mode, set_immune
-        self.presentation = Presentation()
+        self.presentation = Presentation(concepts or load_concepts())
         self.clients: dict[web.WebSocketResponse, asyncio.Queue[dict[str, Any]]] = {}
         self.task: asyncio.Task[None] | None = None
         self.closing = False
 
     async def publish(self, event: Event) -> None:
+        if isinstance(event, Mode) and event.phase in {"guessing", "reveal", "idle"}:
+            tail = self.presentation.finish_token()
+            if tail:
+                await self.broadcast(tail)
         event = self.presentation.event(event)
+        if isinstance(event, Mode) and event.phase == "reveal" and self.leaderboard:
+            from dataclasses import replace
+
+            event = replace(
+                event,
+                scoreboard=tuple(
+                    (row["name"], int(row["points"]))
+                    for row in self.leaderboard.top(self.leaderboard.stream)
+                ),
+            )
         await self.broadcast(event)
         if isinstance(event, Mode) and self.presentation.points:
             await self.broadcast(self.presentation.layout())
+            if event.phase == "reveal":
+                await self.broadcast(self.state.snapshot())
 
     async def broadcast(self, event: Event) -> None:
         self.state.apply(event)
@@ -60,7 +79,10 @@ class Server:
         await ws.prepare(request)
         queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=256)
         # No await between capturing the snapshot and subscribing to subsequent frames.
-        queue.put_nowait(self.state.snapshot().to_dict())
+        snapshot = self.state.snapshot()
+        if self.presentation.strict:
+            snapshot = self.presentation.strict.event(snapshot)
+        queue.put_nowait(snapshot.to_dict())
         self.clients[ws] = queue
 
         async def writer() -> None:
@@ -80,7 +102,21 @@ class Server:
         return ws
 
     async def api_state(self, request: web.Request) -> web.Response:
-        return web.json_response(self.state.snapshot().state)
+        snapshot = self.state.snapshot()
+        if self.presentation.strict:
+            snapshot = self.presentation.strict.event(snapshot)
+        return web.json_response(snapshot.state)
+
+    async def api_leaderboard(self, request: web.Request) -> web.Response:
+        import hashlib
+
+        data = (self.leaderboard or Leaderboard()).snapshot(blind=self.presentation.blind)
+        if self.presentation.blind and self.presentation.strict:
+            for key in ("stream", "all_time"):
+                for row in data[key]:
+                    row["name"] = self.presentation.strict.clean(row["name"])
+                    row["id"] = hashlib.sha256(row["id"].encode()).hexdigest()[:16]
+        return web.json_response(data)
 
     def authorize(self, request: web.Request) -> None:
         try:
@@ -128,17 +164,20 @@ def create_app(
     control_token: str | None = None,
     switch_mode: Callable[[str], None] | None = None,
     set_immune: Callable[[bool], None] | None = None,
+    leaderboard: Leaderboard | None = None,
 ) -> web.Application:
     server = Server(
         concepts=concepts,
         control_token=control_token,
         switch_mode=switch_mode,
         set_immune=set_immune,
+        leaderboard=leaderboard,
     )
     app = web.Application(client_max_size=4096)
     app[APP_KEY] = server
     app.router.add_get("/ws", server.websocket)
     app.router.add_get("/api/state", server.api_state)
+    app.router.add_get("/api/leaderboard", server.api_leaderboard)
     app.router.add_post("/api/mode", server.api_mode)
     app.router.add_post("/api/immune", server.api_immune)
     overlay = files("thoughtquake.overlay")
@@ -189,9 +228,23 @@ def create_app(
 
     async def lifecycle(application: web.Application) -> AsyncIterator[None]:
         async def produce() -> None:
-            if source:
-                async for event in source():
-                    await server.publish(event)
+            delay = 0.5
+            while source:
+                try:
+                    async for event in source():
+                        await server.publish(event)
+                        if event.kind == "token":
+                            delay = 0.5
+                    return
+                except asyncio.CancelledError:
+                    raise
+                except Exception:  # noqa: BLE001 - supervise arbitrary backend failures without private text
+                    from thoughtquake.engine.events import Connection
+
+                    log.error("Producer failed; restarting the Subject")
+                    await server.publish(Connection("engine", "error"))
+                    await asyncio.sleep(delay)
+                    delay = min(10, delay * 2)
 
         server.task = asyncio.create_task(produce())
         yield

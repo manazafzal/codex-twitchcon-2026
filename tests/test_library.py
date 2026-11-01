@@ -39,16 +39,21 @@ def test_builder_is_deterministic_and_uses_97th_percentile():
     class FixtureBackend(MockBackend):
         def step(self, *args, **kwargs):
             logits, hidden, state = super().step(*args, **kwargs)
-            state.defender_hidden = np.full(32, state.position)
-            return logits, hidden, state
+            from dataclasses import replace
+
+            return logits, hidden, replace(state, defender_hidden=np.full(32, state.position))
 
         def embed_texts(self, texts, layer):
             # Every generated contrast text is the same in this fixture.
             return np.ones((len(texts), 32)) * layer
 
     backend = FixtureBackend()
-    first = build_library(backend, load_concepts()[:2], samples=1, neutral_samples=2)
-    again = build_library(backend, load_concepts()[:2], samples=1, neutral_samples=2)
+    first = build_library(
+        backend, load_concepts()[:2], samples=1, neutral_samples=2, variant="neutral"
+    )
+    again = build_library(
+        backend, load_concepts()[:2], samples=1, neutral_samples=2, variant="neutral"
+    )
     assert first.hash == again.hash
     np.testing.assert_allclose(first.V, 0)
     np.testing.assert_allclose(first.thresholds, 0)
@@ -80,7 +85,9 @@ def test_builder_difference_of_means_and_neutral_calibration(monkeypatch):
             return np.array([table[t] for t in texts]) * (2 if layer == 6 else 1)
 
     monkeypatch.setattr(builder, "generate_text", generated)
-    library = builder.build_library(Embeddings(), load_concepts()[:2])
+    library = builder.build_library(
+        Embeddings(), load_concepts()[:2], variant="neutral", neutral_samples=12
+    )
     assert len(prompts) == 12 + 2 * 8
     np.testing.assert_allclose(library.V, [[3, 0], [0, 4]])
     np.testing.assert_allclose(library.D, [[6, 0], [0, 8]])

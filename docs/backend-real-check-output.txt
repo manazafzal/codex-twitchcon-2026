@@ -1,0 +1,6 @@
+Real evaluation attempt
+Offline evaluation unavailable: [Errno 2] No such file or directory: 'library/qwen2.5-0.5b-instruct.npz'
+
+Opt-in acceptance suite
+ssss                                                                     [100%]
+4 skipped, 139 deselected in 2.15s

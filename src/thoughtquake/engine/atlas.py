@@ -27,13 +27,13 @@ class AtlasSignals:
 
     def __init__(self, library: ConceptLibrary) -> None:
         self.library = library
-        self.points = pca_points(library.D, library.ids)
+        self.points = library.layout()
         self.previous: Vector | None = None
         self.previous_z: Vector | None = None
         self.residuals: deque[float] = deque(maxlen=60)
 
     def z(self, hidden: Vector) -> Vector:
-        if self.library.readout_mean is None:
+        if self.library.readout_mean is None or self.library.readout_std is None:
             return np.zeros(len(self.library.ids))
         cosine = unit(self.library.D) @ unit(hidden - self.library.HR_neutral)
         return (cosine - self.library.readout_mean) / self.library.readout_std
@@ -46,9 +46,12 @@ class AtlasSignals:
         self, hidden: Vector, state: State, scores: dict[str, float] | None = None
     ) -> dict[str, Any]:
         z = self.z(hidden)
-        if scores is not None and self.library.readout_mean is not None:
-            cosine = np.array([scores[key] for key in self.library.ids])
-            z = (cosine - self.library.readout_mean) / self.library.readout_std
+        if (
+            scores is not None
+            and self.library.readout_mean is not None
+            and self.library.readout_std is not None
+        ):
+            z = np.array([scores[key] for key in self.library.ids])
         residual = (
             float(np.linalg.norm(hidden - self.previous)) if self.previous is not None else 0.0
         )
@@ -61,7 +64,7 @@ class AtlasSignals:
             else np.zeros_like(z)
         )
         clamp = 0.0
-        if state.defence_pre is not None:
+        if state.defence_pre is not None and state.defence_post is not None:
             clamp = min(
                 1.0,
                 float(np.linalg.norm(state.defence_pre - state.defence_post))

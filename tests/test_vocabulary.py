@@ -10,38 +10,40 @@ ROOT = Path(__file__).resolve().parents[1]
 def forbidden_patterns():
     rules = (ROOT / "AGENTS.md").read_text().split("1. **Vocabulary.**", 1)[1].split("\n2.", 1)[0]
     prohibited = rules.split("Do NOT use:", 1)[1]
-    return [
-        re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE)
-        for term in re.findall(r'"([^"]+)"', prohibited)
-    ]
+    patterns = []
+    for term in re.findall(r'"([^"]+)"', prohibited):
+        words = []
+        for word in term.casefold().split():
+            for suffix in ("ing", "ion", "ed"):
+                if word.endswith(suffix) and len(word) - len(suffix) >= 4:
+                    word = word[: -len(suffix)]
+                    break
+            if len(word) > 4 and word.endswith("e"):
+                word = word[:-1]
+            words.append(re.escape(word) + r"\w*")
+        patterns.append(re.compile(r"(?<!\w)" + r"\s+".join(words), re.IGNORECASE))
+    return patterns
 
 
 def python_strings(path):
     tree = ast.parse(path.read_text())
-    docstrings = set()
-    for node in ast.walk(tree):
-        body = getattr(node, "body", None)
-        if isinstance(body, list) and body and isinstance(body[0], ast.Expr):
-            value = body[0].value
-            if isinstance(value, ast.Constant) and isinstance(value.value, str):
-                docstrings.add(id(value))
     return "\n".join(
         node.value
         for node in ast.walk(tree)
-        if isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and id(node) not in docstrings
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
     )
 
 
 def violations(text):
-    return [p.pattern for p in forbidden_patterns() if p.search(text)]
+    return [p.pattern for p in forbidden_patterns() if p.search(text.replace("\u2019", "'"))]
 
 
 def test_user_facing_files():
     paths = [ROOT / "README.md"]
     paths += list((ROOT / "docs").rglob("*"))
     paths += list((ROOT / "src").rglob("*"))
+    paths += list((ROOT / "tests").rglob("*"))
+    paths += list((ROOT / ".codex/skills").rglob("*"))
     for path in paths:
         if not path.is_file() or path == ROOT / "docs/related-work.md":
             continue
@@ -62,8 +64,10 @@ def test_cli_help(capsys):
 
 
 def test_detector_catches_case_and_word_boundaries():
-    assert violations("STEERING")
-    assert violations("activation steering")
+    rules = (ROOT / "AGENTS.md").read_text().split("Do NOT use:", 1)[1]
+    term = re.findall(r'"([^"]+)"', rules)[0]
+    assert violations(term.upper())
+    assert violations(term + "ed")
     assert not violations("a cheerful daily task")
 
 

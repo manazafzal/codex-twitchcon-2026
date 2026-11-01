@@ -68,25 +68,140 @@ def main(argv: list[str] | None = None) -> None:
         serve.add_argument("--host", default="127.0.0.1")
         serve.add_argument("--port", type=int, default=8080)
         serve.add_argument("--no-browser", action="store_true")
-    commands.add_parser("eval", help="Reserved for the evaluation milestone")
+    evaluation = commands.add_parser(
+        "eval", help="Run matched local evaluation with concept-cluster intervals"
+    )
+    evaluation.add_argument(
+        "--library", type=Path, default=Path("library/qwen2.5-0.5b-instruct.npz")
+    )
+    evaluation.add_argument("--output", type=Path, default=Path("results"))
+    evaluation.add_argument("--alphas", type=float, nargs="+", default=[0.3, 0.45])
+    evaluation.add_argument("--seeds", type=int, default=1)
+    evaluation.add_argument("--prompts", type=int, default=6)
+    evaluation.add_argument("--concepts", type=int, default=30)
+    evaluation.add_argument("--held-out", type=int, default=3)
+    evaluation.add_argument("--seed", type=int, default=0)
+    evaluation.add_argument(
+        "--mock", action="store_true", help="Run explicitly labelled TINY MODEL / CI evidence"
+    )
+    evaluation.add_argument(
+        "--tiny", action="store_true", help="Use the random-init local test model"
+    )
+    evaluation.add_argument(
+        "--model-path", type=Path, help="Local trained weights; no download is attempted"
+    )
+    fit = commands.add_parser(
+        "fit-readout", help="Fit a v4 readout with disjoint families and seeds"
+    )
+    fit.add_argument("--library", type=Path, required=True)
+    fit.add_argument("--output", type=Path)
+    fit.add_argument(
+        "--data", type=Path, help="Local NPZ split data; otherwise generate the training corpus"
+    )
+    fit.add_argument("--model-path", type=Path)
+    fit.add_argument("--seed", type=int, default=0)
+    alarm = commands.add_parser(
+        "calibrate-alarm", help="Fit alarm thresholds from fresh uninjected generations"
+    )
+    alarm.add_argument("--library", type=Path, required=True)
+    alarm.add_argument("--output", type=Path)
+    alarm.add_argument("--seed", type=int, default=1)
+    alarm.add_argument("--generations", type=int, default=60)
+    alarm.add_argument("--model-path", type=Path)
     build = commands.add_parser(
         "build-library", help="Generate a library with the local real model"
     )
     build.add_argument("--output", type=Path, default=Path("library/qwen2.5-0.5b-instruct.npz"))
+    build.add_argument("--variant", choices=("others", "neutral"), default="others")
+    build.add_argument("--seed", type=int, default=0)
+    build.add_argument("--samples", type=int, default=8)
+    build.add_argument("--neutral-generations", type=int, default=60)
+    build.add_argument("--model-path", type=Path)
+    build.add_argument("--median-norm", type=float, default=26.78)
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    if args.command == "eval":
-        parser.exit(
-            2, "The evaluation harness is outside M4; no quality results have been produced.\n"
-        )
-    if args.command == "build-library":
+    if args.command in {"eval", "fit-readout", "calibrate-alarm", "build-library"}:
+        from thoughtquake.concepts.builder import calibrate_alarm
+        from thoughtquake.evaluation import evaluate, fit_readout, generate_training, write_report
         from thoughtquake.model.hf_backend import HFBackend
 
-        backend = HFBackend()
-        build_library(backend, load_concepts(), model_id=backend.model.config._name_or_path).save(
-            args.output
-        )
-        return
+        try:
+            if args.command == "fit-readout" and args.data:
+                library = ConceptLibrary.load(args.library)
+                backend = None
+                source = "realmodel"
+            elif args.command == "eval" and args.mock:
+                backend = MockBackend()
+                library = mock_library()
+                library.config.update(
+                    probe_layers=[backend.readout_layer], median_residual_norm=26.78
+                )
+                source = "mock"
+            elif args.command == "eval" and args.tiny:
+                from thoughtquake.model.tiny_backend import TinyBackend
+
+                backend = TinyBackend(seed=args.seed)
+                library = ConceptLibrary.load(args.library)
+                source = "tiny"
+            else:
+                library = (
+                    ConceptLibrary.load(args.library) if args.command != "build-library" else None
+                )
+                backend = HFBackend(local_path=str(args.model_path) if args.model_path else None)
+                source = "realmodel"
+            if args.command == "build-library":
+                build_library(
+                    backend,
+                    load_concepts(),
+                    seed=args.seed,
+                    samples=args.samples,
+                    neutral_samples=args.neutral_generations,
+                    variant=args.variant,
+                    median_norm=args.median_norm,
+                    model_id=os.getenv("THOUGHTQUAKE_MODEL", "Qwen/Qwen2.5-0.5B-Instruct"),
+                ).save(args.output)
+            elif args.command == "eval":
+                report = evaluate(
+                    backend,
+                    library,
+                    alphas=args.alphas,
+                    seeds=args.seeds,
+                    prompts=args.prompts,
+                    concepts=args.concepts,
+                    held_out=args.held_out,
+                    seed=args.seed,
+                    source=source,
+                )
+                write_report(report, args.output)
+                log.info("Evaluation saved to %s", args.output)
+            elif args.command == "calibrate-alarm":
+                calibrate_alarm(backend, library, count=args.generations, seed=args.seed)
+                library.save(args.output or args.library)
+            else:
+                from thoughtquake.evaluation_data import load_examples, save_examples
+
+                if args.data:
+                    partitions = load_examples(args.data, library)
+                else:
+                    partitions = generate_training(backend, library)
+                    destination = (args.output or args.library).parent / "readout-training.npz"
+                    save_examples(destination, partitions, library)
+                import hashlib
+
+                dataset_path = args.data or destination
+                library.provenance["readout_dataset_hash"] = hashlib.sha256(
+                    dataset_path.read_bytes()
+                ).hexdigest()
+                report = fit_readout(library, *partitions, seed=args.seed)
+                library.save(args.output or args.library)
+                import json
+
+                (args.output or args.library).with_suffix(".fit.json").write_text(
+                    json.dumps(report, indent=2) + "\n"
+                )
+            return
+        except (OSError, ValueError, ImportError) as exc:
+            parser.exit(1, f"Offline evaluation unavailable: {exc}\n")
     client_id = os.getenv("THOUGHTQUAKE_TWITCH_CLIENT_ID", "")
     if args.command in {"auth", "run"} and not client_id:
         parser.error("Set THOUGHTQUAKE_TWITCH_CLIENT_ID to your Public app's client ID")
@@ -119,6 +234,12 @@ def main(argv: list[str] | None = None) -> None:
             TokenStore().load()
         except AuthError as exc:
             parser.error(str(exc))
+    from thoughtquake.server.leaderboard import Leaderboard
+
+    leaderboard = Leaderboard(
+        Path(os.getenv("THOUGHTQUAKE_DATA_DIR", str(Path.home() / ".config" / "thoughtquake")))
+        / "leaderboard.json"
+    )
     token = secrets.token_urlsafe(32)
     log.info("Local control token for this run: %s", token)
     if args.command == "demo":
@@ -134,6 +255,7 @@ def main(argv: list[str] | None = None) -> None:
         session = Session(
             backend=backend,
             crowd=crowd,
+            leaderboard=leaderboard,
             colour_source=args.colour_source,
             eval_path=args.eval_file,
             schedule_mode=args.schedule_mode,
@@ -145,6 +267,7 @@ def main(argv: list[str] | None = None) -> None:
             concepts=session.library.concepts,
             switch_mode=session.switch_mode,
             set_immune=session.set_immune,
+            leaderboard=session.scoring.board,
             control_token=token,
         )
     elif args.command == "run":
@@ -163,6 +286,7 @@ def main(argv: list[str] | None = None) -> None:
             library=library,
             crowd=crowd,
             source="LIVE",
+            leaderboard=leaderboard,
             colour_source=args.colour_source,
             eval_path=args.eval_file,
             schedule_mode=args.schedule_mode,
@@ -174,6 +298,7 @@ def main(argv: list[str] | None = None) -> None:
             control_token=token,
             switch_mode=session.switch_mode,
             set_immune=session.set_immune,
+            leaderboard=session.scoring.board,
         )
     else:
         player = Player(args.file)

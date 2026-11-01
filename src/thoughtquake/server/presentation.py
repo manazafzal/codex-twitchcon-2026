@@ -20,7 +20,10 @@ from thoughtquake.engine.events import (
 class Presentation:
     """Remove secret identifiers before either WebSocket broadcast or snapshot reduction."""
 
-    def __init__(self) -> None:
+    def __init__(self, concepts: list | None = None) -> None:
+        from thoughtquake.server.secrecy import BlindProjection
+
+        self.strict = BlindProjection(concepts) if concepts is not None else None
         self.blind = False
         self.secret = secrets.token_bytes(32)
         self.points = {}
@@ -38,6 +41,8 @@ class Presentation:
         self.alias = {self.opaque(key): key for key in self.points}
 
     def layout(self) -> Layout:
+        if self.strict is not None:
+            return self.strict.layout()
         if not self.alias:
             return Layout(self.points)
         if self.blind:
@@ -53,7 +58,14 @@ class Presentation:
             )
         return Layout({key: self.points[value] for key, value in self.alias.items()}, self.alias)
 
+    def finish_token(self) -> Token | None:
+        return self.strict.finish_token() if self.strict else None
+
     def event(self, event: Event) -> Event:
+        if self.strict is not None:
+            result = self.strict.event(event)
+            self.blind, self.points = self.strict.blind, self.strict.points
+            return result
         if isinstance(event, Layout):
             self.points = event.points
             if self.blind and not self.alias:

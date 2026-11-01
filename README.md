@@ -13,7 +13,8 @@ thoughtquake demo --mock
 ```
 
 Open **http://127.0.0.1:8080/** for the overlay, or
-**http://127.0.0.1:8080/fixture.html** for the screenshot-ready static hero view.
+**http://127.0.0.1:8080/fixture.html** for the development hero view when
+`THOUGHTQUAKE_DEV_FIXTURES=1` is set.
 The fixture uses a canned event list and the same renderer as the live view.
 Append `?bg=transparent` for OBS. The canvas scales from 1920×1080.
 
@@ -64,19 +65,20 @@ IMMUNE OFF then ON. It temporarily overrides the War immune setting.
 
 Telepathy selects a library concept outside the active war and injects it at
 β=2 for an everyday prompt. After generation, `!guess <word>` opens for 30 seconds.
-The first correct alias wins one point; the in-memory scoreboard retains the top
-five players. The reveal names the secret, winner, and Mind-Reader's actual top
+Correct guesses earn decreasing viewer points, with the first correct guess receiving most.
+The top five viewers appear on reveal; stream and all-time totals persist locally. The reveal names the secret, winner, and Mind-Reader's actual top
 guess. Names, applied-faction metadata, and readout labels are masked on the
-public WebSocket and API snapshot before reveal. Private recordings retain round
-plans for reproducible engine replay; share recordings after the round ends.
+public WebSocket and API snapshot before reveal. Raw private recording rows are held until reveal and discarded if the round is
+cancelled. Completed rounds retain plans for reproducible engine replay.
 
 Twitch viewers cannot switch modes. Broadcasters and moderators may send
 `!immune on` or `!immune off`; roles are checked from Twitch user IDs and badges.
 During Attack/Telepathy, changes wait for War so the comparison or challenge
 retains its prescribed settings. Chat announcements occur at round boundaries
-only, subject to the existing five-second limiter.
+and in response to `!rank`, subject to the existing five-second limiter.
+Round MVP announcements have an additional cooldown.
 
-The server exposes `/ws` and `/api/state`. Reconnecting sockets receive the full
+The server exposes `/ws`, `/api/state`, and `/api/leaderboard`. Reconnecting sockets receive the full
 current snapshot, including answer history. Slow clients are disconnected and
 can reconnect for a fresh snapshot. Server and crowd tasks stop on shutdown.
 
@@ -88,9 +90,25 @@ colours require a real-model eval with window agreement ≥ 0.75 for the schedul
 
 The Neural Immune System clamps projections along known library injection
 directions. It does not defend against arbitrary prompt injection.
-`thoughtquake build-library` explicitly loads the real Qwen2.5 model to generate
-contrast sets and calibration data. `make eval` reports that the eval harness is
-outside M4. No real-model calibration, quality, throughput, or lead-time claim is made.
+`thoughtquake build-library --model-path /local/qwen` uses local Qwen2.5 weights
+to generate contrast sets and neutral calibration. Runtime never downloads weights.
+
+Offline evaluation and readout fitting:
+
+```sh
+thoughtquake calibrate-alarm --library library/qwen2.5-0.5b-instruct.npz --seed 1
+thoughtquake fit-readout --library library/qwen2.5-0.5b-instruct.npz
+thoughtquake eval --library library/qwen2.5-0.5b-instruct.npz --output results
+thoughtquake eval --mock --output work/eval-ci
+```
+
+Set `THOUGHTQUAKE_MODEL_PATH` to locally provisioned weights. Evaluation writes
+ordered JSON/Markdown tables with sample counts, concept-cluster uncertainty,
+matched controls and provenance. Missing trained artifacts stop a real run; they
+never trigger a mock substitute. CI output is explicitly **TINY MODEL / CI**.
+Task retention uses a documented lexical/repetition proxy and needs human review.
+See [architecture and evidence limits](docs/architecture.md). No trained-model
+quality, throughput or false-alarm result has been verified in this checkout.
 
 Live chat setup: register a **Public** Twitch app, set
 `THOUGHTQUAKE_TWITCH_CLIENT_ID`, run `thoughtquake auth`, then

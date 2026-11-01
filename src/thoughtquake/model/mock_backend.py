@@ -53,7 +53,7 @@ class MockBackend:
         inject: Vector | None = None,
         defend: DefendSpec | None = None,
         *,
-        inject_prefill: bool = False,
+        inject_prefill: bool = True,
     ) -> State:
         return self._run(prompt, 0, inject if inject_prefill else None, defend)
 

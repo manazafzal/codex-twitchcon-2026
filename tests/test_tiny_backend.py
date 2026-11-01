@@ -58,7 +58,7 @@ def test_defender_reduces_projection_and_hooks_are_removed(backend):
     assert defended.defence_pre[0] > 0.1
     assert defended.defence_post[0] <= 0.10001
     assert all(not block._forward_hooks for block in backend.model.model.layers)
-    assert backend.embed_texts(["tea", "a"], backend.readout_layer).shape == (2, 32)
+    assert backend.embed_texts(["tea", "ab"], backend.readout_layer).shape == (2, 32)
 
 
 def test_prefill_clamp_and_no_injection_leak(backend):
@@ -71,3 +71,40 @@ def test_prefill_clamp_and_no_injection_leak(backend):
     clean_again = backend.prefill("tea")
     np.testing.assert_array_equal(reference.logits, clean_again.logits)
     assert backend.tokenizer.encode("hello") == list(b"hello")
+
+
+def test_position_zero_is_excluded_and_zero_vector_is_exact(backend):
+    zero = np.zeros(backend.hidden_size)
+    plain = backend.prefill("hello")
+    injected = backend.prefill("hello", zero, inject_prefill=True)
+    np.testing.assert_array_equal(plain.logits, injected.logits)
+    vector = np.arange(backend.hidden_size, dtype=float) / 32
+    changed = backend.prefill("hello", vector, inject_prefill=True)
+
+    def keys(cache):
+        return (
+            cache.layers[-1].keys.detach().numpy()
+            if hasattr(cache, "layers")
+            else cache[-1][0].detach().numpy()
+        )
+
+    np.testing.assert_array_equal(keys(plain.cache)[:, :, 0], keys(changed.cache)[:, :, 0])
+    assert not np.allclose(keys(plain.cache)[:, :, 1:], keys(changed.cache)[:, :, 1:])
+    assert backend.token_hidden("abc", backend.injection_layer).shape == (2, 32)
+    with pytest.raises(ValueError, match="position zero"):
+        backend.token_hidden("a", backend.injection_layer)
+
+
+def test_large_first_position_cannot_enter_embeddings(backend):
+    def sink(module, args, output):
+        h = output[0] if isinstance(output, tuple) else output
+        h = h.clone()
+        h[:, 0] = 1e6
+        return (h, *output[1:]) if isinstance(output, tuple) else h
+
+    handle = backend.model.model.layers[backend.injection_layer].register_forward_hook(sink)
+    try:
+        rows = backend.token_hidden("abc", backend.injection_layer)
+        assert rows.shape == (2, 32) and np.max(np.abs(rows)) < 100
+    finally:
+        handle.remove()

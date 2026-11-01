@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import json
+import logging
 import time
 from collections.abc import AsyncIterator
 from contextlib import aclosing
@@ -10,9 +11,11 @@ from typing import Any, Literal
 
 import numpy as np
 
-from thoughtquake.concepts.library import ConceptLibrary, load_concepts
+from thoughtquake.concepts.library import ConceptLibrary, load_concepts, match_concept
+from thoughtquake.engine.commands import Command, Rank, SetMode
 from thoughtquake.engine.events import (
     Badge,
+    Connection,
     Control,
     Event,
     Guess,
@@ -21,6 +24,7 @@ from thoughtquake.engine.events import (
     Mode,
     Push,
     Round,
+    Tamper,
     Token,
 )
 from thoughtquake.engine.generate import PROMPTS, Generator
@@ -30,6 +34,8 @@ from thoughtquake.game.telepathy import Phase, Telepathy
 from thoughtquake.model.backend import ModelBackend
 from thoughtquake.model.mock_backend import MockBackend
 from thoughtquake.replay.recorder import Recorder
+from thoughtquake.server.leaderboard import Leaderboard
+from thoughtquake.server.scoring import Scoring
 from thoughtquake.sim.crowd import Crowd
 
 
@@ -64,6 +70,7 @@ class Session:
         colour_source: Literal["applied", "readout"] = "applied",
         eval_path: Path | None = None,
         schedule_mode: str = "answer",
+        leaderboard: Leaderboard | None = None,
     ) -> None:
         self.source, self.library, self.crowd = source, library or mock_library(), crowd or Crowd()
         self.clock, self.realtime = clock or FakeClock(), clock is None
@@ -82,7 +89,10 @@ class Session:
         self.seed, self.recorder, self.mode = seed, recorder, "war"
         self.immune_enabled = False
         self.current_mode = "war"
-        self.pending: asyncio.Queue[Push | Guess | Control] = asyncio.Queue(maxsize=1024)
+        self.pending: asyncio.Queue[Command] = asyncio.Queue(maxsize=1024)
+        self.owner: asyncio.Task | None = None
+        self.scoring = Scoring(leaderboard, clock=self.now)
+        self.controller: tuple[str, str] | None = None
         self.telepathy = Telepathy(self.library.concepts, clock=self.clock, seed=seed)
         self.round_answer = 0
         self._revealed = False
@@ -106,10 +116,13 @@ class Session:
     def switch_mode(self, mode: str) -> None:
         if mode not in {"war", "attack", "telepathy"}:
             raise ValueError("Unknown mode")
-        self.mode = mode
+        self.pending.put_nowait(SetMode(mode))
 
     def set_immune(self, enabled: bool) -> None:
         self.pending.put_nowait(Control(enabled, self.now(), "LOCAL"))
+
+    async def submit(self, command: Command) -> None:
+        await self.pending.put(command)
 
     def metadata(self) -> dict[str, Any]:
         return {
@@ -163,23 +176,66 @@ class Session:
             return []
         self._revealed = True
         game = self.telepathy
+        mvp = self.scoring.finish({})
         message = f"Telepathy reveal: {game.secret}. First correct: {game.winner or 'no winner'}."
-        return [self.telepathy_mode(), Round("telepathy", "reveal", self.round_answer, message)]
+        events: list[Event] = [
+            self.telepathy_mode(),
+            Round("telepathy", "reveal", self.round_answer, message),
+        ]
+        if mvp:
+            events.append(
+                Round(
+                    "telepathy",
+                    "mvp",
+                    self.round_answer,
+                    json.dumps(
+                        {
+                            "mvp": {"id": mvp.viewer, "name": mvp.name, "points": mvp.points},
+                            "board": self.scoring.board.snapshot(),
+                        },
+                        separators=(",", ":"),
+                    ),
+                )
+            )
+        return events
 
     def drain(self) -> list[Event]:
         accepted: list[Event] = []
+        guessing_batch = self.telepathy.phase == Phase.GUESSING and not self._revealed
         while not self.pending.empty():
             item = self.pending.get_nowait()
+            if isinstance(item, SetMode):
+                self.mode = item.mode
+                continue
+            if isinstance(item, Rank):
+                rank, points = self.scoring.board.rank(item.user_id)
+                message = f"Viewer rank: {rank or 'unranked'}; {points:.2f} points."
+                accepted.append(Round(self.current_mode, "rank", self.engine.answer_index, message))
+                continue
             if isinstance(item, Push):
                 event = replace(item, t=self.engine.mixer.clock())
-                self.engine.push(event)
-                self.engine.pending.pop()
+                weight = self.engine.push(event, emit=False)
+                self.scoring.push(event.user_id or event.user, event.user, event.faction, weight)
                 accepted.append(event)
             elif isinstance(item, Guess):
                 accepted.append(item)
+                if (
+                    guessing_batch
+                    and self.telepathy.started_at is not None
+                    and self.telepathy.deadline is not None
+                    and self.telepathy.started_at <= item.t < self.telepathy.deadline
+                ):
+                    self.scoring.guess(
+                        item.user_id or item.user,
+                        item.user,
+                        correct=match_concept(item.word, self.library.concepts)
+                        == self.telepathy.secret,
+                    )
                 self.telepathy.guess(item.user, item.word, user_id=item.user_id, at=item.t)
                 accepted.extend(self.reveal_events())
             else:
+                if item.enabled:
+                    self.controller = (item.user_id or item.user, item.user)
                 self.immune_enabled = item.enabled
                 accepted.append(replace(item, t=self.clock()))
                 # A showcase comparison and a secret challenge keep their prescribed defence.
@@ -236,12 +292,34 @@ class Session:
                             injection=plan.faction if plan else None,
                             beta=plan.strength if plan else None,
                         )
+                if isinstance(event, Tamper) and self.controller:
+                    self.scoring.catch(
+                        *self.controller,
+                        true_concept=self.engine.mixer.selected,
+                        attributed=event.concepts,
+                        immune=self.engine.immune,
+                    )
                 yield event
+        hits = {
+            key: float(key in self.library.mentioned_in(self.engine.last_text))
+            for key in self.library.ids
+            if key not in self.engine.last_exempt
+        }
+        mvp = self.scoring.finish(hits) if mode != "telepathy" else None
+        if mvp:
+            message = json.dumps(
+                {
+                    "mvp": {"id": mvp.viewer, "name": mvp.name, "points": mvp.points},
+                    "board": self.scoring.board.snapshot(),
+                },
+                separators=(",", ":"),
+            )
+            yield Round(mode, "mvp", self.engine.answer_index - 1, message)
 
     async def _attack(self) -> AsyncIterator[Event]:
         original = self.engine.mixer
         frozen = copy.deepcopy(original)
-        frozen.clock = FakeClock(frozen._last)
+        frozen.clock = FakeClock(frozen.last_time)
         active = {
             f: share for f, share in frozen.tick().shares.items() if f != NEUTRAL and share > 0
         }
@@ -331,6 +409,7 @@ class Session:
         try:
             while True:
                 self.sync_time()
+                self.scoring.begin(self.engine.answer_index)
                 for event in self.drain():
                     yield event
                 self.current_mode = self.mode
@@ -361,13 +440,40 @@ class Session:
                 pass
 
     async def events(self) -> AsyncIterator[Event]:
-        stream = self._events()
+        if self.owner is not None:
+            raise RuntimeError("The engine already has an owner")
+        self.owner = asyncio.current_task()
+        delay = 0.5
+        recovering = False
         try:
-            async for event in stream:
-                if self.recorder:
-                    self.recorder.record(event)
-                yield event
+            while True:
+                stream = self._events()
+                try:
+                    async for event in stream:
+                        if self.recorder:
+                            self.recorder.record(event)
+                        if isinstance(event, Token):
+                            delay = 0.5
+                            if recovering:
+                                yield Connection("engine", "connected")
+                                recovering = False
+                        yield event
+                        if self.recorder and isinstance(event, Mode) and event.phase == "reveal":
+                            self.recorder.release()
+                    return
+                except asyncio.CancelledError:
+                    raise
+                except Exception:  # noqa: BLE001 - supervise arbitrary backend failures without private text
+                    recovering = True
+                    self.telepathy.cancel()
+                    self._revealed = False
+                    logging.getLogger(__name__).error("Producer failed; restarting the Subject")
+                    yield Connection("engine", "error")
+                    await asyncio.sleep(delay)
+                    delay = min(10, delay * 2)
+                finally:
+                    await stream.aclose()
         finally:
-            await stream.aclose()
+            self.owner = None
             if self.recorder:
                 self.recorder.close()

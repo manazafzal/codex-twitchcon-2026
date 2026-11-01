@@ -1,10 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 import numpy as np
 import numpy.typing as npt
 
-Vector = npt.NDArray[np.floating]
+Vector = npt.NDArray[np.floating[Any]]
 
 
 @dataclass(frozen=True)
@@ -14,7 +14,7 @@ class DefendSpec:
     concepts: tuple[str, ...] = ()
 
 
-@dataclass
+@dataclass(frozen=True)
 class State:
     logits: Vector
     readout_hidden: Vector
@@ -23,6 +23,7 @@ class State:
     defender_hidden: Vector | None = None
     defence_pre: Vector | None = None
     defence_post: Vector | None = None
+    layer_hidden: dict[int, Vector] = field(default_factory=dict)
 
 
 class ModelBackend(Protocol):
@@ -38,7 +39,7 @@ class ModelBackend(Protocol):
         inject: Vector | None = None,
         defend: DefendSpec | None = None,
         *,
-        inject_prefill: bool = False,
+        inject_prefill: bool = True,
     ) -> State: ...
 
     def step(
@@ -64,10 +65,14 @@ def sample(logits: Vector, temperature: float, top_p: float, rng: np.random.Gene
     if temperature == 0:
         return int(np.argmax(logits))
     values = np.asarray(logits, dtype=np.float64) / temperature
-    probs = np.exp(values - values.max())
+    probs = np.exp(values - values[int(np.argmax(values))])
     probs /= probs.sum()
     order = np.argsort(-probs, kind="stable")
     keep = np.cumsum(probs[order]) - probs[order] < top_p
     chosen = order[keep]
     p = probs[chosen]
     return int(rng.choice(chosen, p=p / p.sum()))
+
+
+class TokenProbe(Protocol):
+    def token_hidden(self, text: str, layer: int) -> Vector: ...

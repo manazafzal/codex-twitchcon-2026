@@ -94,7 +94,6 @@ class Player:
             raise ValueError("Replay schedule mismatch")
         yield 0, self.replay_badge()
         iterator: Iterator[Event] | None = None
-        defence: Tamper | None = None
         original_mixer = engine.mixer
         frozen = None
         attack_rng = None
@@ -149,7 +148,7 @@ class Player:
                         if event.panel == "off":
                             engine.mixer = original_mixer
                             frozen = copy.deepcopy(original_mixer)
-                            frozen.clock = FakeClock(frozen._last)
+                            frozen.clock = FakeClock(frozen.last_time)
                             attack_rng = copy.deepcopy(engine.rng.bit_generator.state)
                         if frozen is None:
                             raise ValueError("Attack ON must follow OFF")
@@ -182,7 +181,6 @@ class Player:
                 for generated in iterator:
                     if isinstance(generated, Token):
                         yield row["t"], generated
-                        defence = next(iterator)
                         break
                 else:
                     raise ValueError("Recorded token count exceeds regenerated answer")
@@ -207,9 +205,17 @@ class Player:
                 yield row["t"], event
             elif isinstance(event, (Layout, Connection)):
                 yield row["t"], event
-            elif isinstance(event, Tamper) and defence is not None:
-                yield row["t"], defence
-                defence = None
+            elif isinstance(event, Tamper):
+                if not engine.immune:
+                    continue
+                if iterator is None:
+                    raise ValueError("Alarm precedes answer")
+                for regenerated in iterator:
+                    if isinstance(regenerated, Tamper):
+                        yield row["t"], regenerated
+                        break
+                    if isinstance(regenerated, Token):
+                        raise TypeError("Alarm is missing from regenerated answer")
 
     async def engine(
         self, engine: Generator, clock: FakeClock, *, speed: float = 1

@@ -143,6 +143,4 @@ def test_glow_z_uses_the_windowed_readout_scores():
     state = State(np.zeros(2), hidden, None, 0)
     scores = dict.fromkeys(library.ids, 0.25)
     signal = atlas.observe(hidden, state, scores)
-    np.testing.assert_allclose(
-        list(signal["z"].values()), (0.25 - library.readout_mean) / library.readout_std
-    )
+    np.testing.assert_allclose(list(signal["z"].values()), 0.25)

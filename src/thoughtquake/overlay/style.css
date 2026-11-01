@@ -5,3 +5,5 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
 #answer.thinking:empty::before{content:'thinking…';font:20px Plex;opacity:.75}
+
+#mvp{position:absolute;left:1120px;top:275px;max-width:680px;padding:18px 24px;background:#02061Dee;border:1px solid #E1C679;color:#F1E9D6;font:24px/1.4 Plex}
