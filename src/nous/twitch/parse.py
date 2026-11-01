@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 from nous.concepts.library import Concept, match_concept
-from nous.engine.commands import Rank
+from nous.engine.commands import Rank, StartRound
 from nous.engine.events import Control, Guess, Push
 
 
@@ -17,12 +17,18 @@ class ChatParser:
         broadcaster_id: str,
         clock: Callable[[], float] = time.monotonic,
         dedupe_size: int = 4096,
+        teams: dict[str, str] | None = None,
     ) -> None:
         self.concepts, self.bot_id, self.broadcaster_id = concepts, bot_id, broadcaster_id
         self.clock, self.dedupe_size = clock, dedupe_size
+        self.teams = teams if teams is not None else {}
+        self.passive = False
+        self.participant: tuple[str, str, str] | None = None
         self.seen: OrderedDict[str, None] = OrderedDict()
 
-    def parse(self, message: dict[str, Any]) -> Push | Guess | Control | Rank | None:
+    def parse(self, message: dict[str, Any]) -> Push | Guess | Control | Rank | StartRound | None:
+        self.passive = False
+        self.participant = None
         if message.get("metadata", {}).get("message_type") != "notification":
             return None
         payload = message.get("payload", {})
@@ -53,18 +59,47 @@ class ChatParser:
             authorized = user_id == self.broadcaster_id or bool(
                 roles & {"broadcaster", "moderator"}
             )
-            if authorized and argument.casefold() in {"on", "off"}:
-                return Control(argument.casefold() == "on", self.clock(), "LIVE", name, user_id)
+            if authorized and argument.casefold() in {"", "on", "off"}:
+                return Control(argument.casefold() != "off", self.clock(), "LIVE", name, user_id)
+            return None
+        if command == "!round":
+            roles = {badge.get("set_id") for badge in (event.get("badges") or [])}
+            if user_id == self.broadcaster_id or roles & {"broadcaster", "moderator"}:
+                return StartRound(name, user_id, "LIVE")
             return None
         if user_id == self.bot_id:
             return None
         if command == "!rank":
             return Rank(name, user_id)
         if command == "!guess":
+            if argument:
+                self.participant = (user_id, name, self.teams.get(user_id, ""))
             return Guess(name, argument, self.clock(), "LIVE", user_id) if argument else None
+        if command == "!join":
+            choices = [c.id for c in self.concepts[:3]]
+            faction = self.teams.setdefault(user_id, choices[len(self.teams) % len(choices)])
+            self.passive = True
+            self.participant = (user_id, name, faction)
+            return Push(name, faction, self.clock(), "LIVE", user_id=user_id)
         if command.startswith("!") and command != "!push":
             return None
-        faction = match_concept(text, self.concepts)
+        faction = match_concept(argument if command == "!push" else text, self.concepts)
+        if faction is None:
+            emotes = {
+                "🌊": "ocean",
+                "🚀": "space",
+                "🎷": "jazz",
+                "oceanwave": "ocean",
+                "spacerocket": "space",
+                "jazzsax": "jazz",
+            }
+            for word in text.split():
+                if word.strip("!?.,;()").casefold() in emotes:
+                    faction = emotes[word.strip("!?.,;()").casefold()]
+                    break
         if faction is None:
             return None
+        self.passive = command != "!push"
+        self.teams[user_id] = faction
+        self.participant = (user_id, name, faction)
         return Push(name, faction, self.clock(), "LIVE", user_id=user_id)

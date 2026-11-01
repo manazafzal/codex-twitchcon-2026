@@ -13,7 +13,7 @@ from typing import Any, Literal
 import numpy as np
 
 from nous.concepts.library import ConceptLibrary, load_concepts, match_concept
-from nous.engine.commands import Command, Rank, SetMode, StartRound
+from nous.engine.commands import Command, Participation, Rank, SetMode, StartRound
 from nous.engine.events import (
     Badge,
     Connection,
@@ -95,7 +95,8 @@ class Session:
         self.scoring = Scoring(leaderboard, clock=self.now)
         self.controller: tuple[str, str] | None = None
         self.answer_running = False
-        self.pending_points: deque[tuple[Push, float]] = deque()
+        self.round_deadline: float | None = None
+        self.pending_points: deque[tuple[Push, float, bool]] = deque()
         self.round_hits: dict[str, float] = {}
         self.telepathy = Telepathy(self.library.concepts, clock=self.clock, seed=seed)
         self.round_answer = 0
@@ -240,14 +241,16 @@ class Session:
                 message = f"Viewer rank: {rank or 'unranked'}; {points:.2f} points."
                 accepted.append(Round(self.current_mode, "rank", self.engine.answer_index, message))
                 continue
-            if isinstance(item, Push):
-                event = replace(item, t=self.engine.mixer.clock())
-                weight = self.engine.push(event, emit=False)
+            if isinstance(item, (Push, Participation)):
+                passive = isinstance(item, Participation) and item.passive
+                push = item.push if isinstance(item, Participation) else item
+                event = replace(push, t=self.engine.mixer.clock())
+                weight = self.engine.push(event, emit=False, passive=passive)
                 if self.answer_running and self.engine.mixer.schedule_mode == "answer":
                     if weight > 0:
-                        self.pending_points.append((event, weight))
+                        self.pending_points.append((event, weight, passive))
                 else:
-                    self.credit_push(event, weight)
+                    self.credit_push(event, weight, passive=passive)
                 accepted.append(event)
             elif isinstance(item, Guess):
                 accepted.append(item)
@@ -283,13 +286,14 @@ class Session:
         accepted.extend(self.reveal_events())
         return accepted
 
-    def credit_push(self, event: Push, weight: float) -> None:
+    def credit_push(self, event: Push, weight: float, *, passive: bool = False) -> None:
         self.scoring.push(
             event.user_id or event.user,
             event.user,
             event.faction,
             weight,
             at=event.t,
+            passive=passive,
         )
 
     def begin_round(self) -> None:
@@ -298,8 +302,8 @@ class Session:
         self.round_hits = {}
         self.scoring.begin(self.engine.answer_index)
         while self.pending_points:
-            event, weight = self.pending_points.popleft()
-            self.credit_push(event, weight)
+            event, weight, passive = self.pending_points.popleft()
+            self.credit_push(event, weight, passive=passive)
 
     async def _crowd(self) -> None:
         async for push in self.crowd.stream():
@@ -355,6 +359,9 @@ class Session:
                                 panel=panel,
                                 injection=plan.faction if plan else None,
                                 beta=plan.strength if plan else None,
+                                remaining=max(0, self.round_deadline - self.clock())
+                                if mode == "war" and self.round_deadline is not None
+                                else event.remaining,
                             )
                     if isinstance(event, Token) and event.applied:
                         applied.add(event.applied)
@@ -491,6 +498,7 @@ class Session:
                             yield event
                 else:
                     self.engine.immune = self.immune_enabled
+                    self.round_deadline = self.clock() + 12
                     answer = self.engine.answer_index
                     yield Immune(self.engine.immune)
                     yield Round(
@@ -498,7 +506,8 @@ class Session:
                     )
                     async for event in self._answer("war"):
                         yield event
-                    yield Round("war", "end", answer, "The Subject's answer is complete.")
+                    await asyncio.sleep(max(0, self.round_deadline - self.clock()))
+                    yield Round("war", "end", answer, "The AI's answer is complete.")
                 await asyncio.sleep(2)
         finally:
             crowd_task.cancel()

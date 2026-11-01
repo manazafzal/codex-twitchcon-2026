@@ -22,4 +22,10 @@ class StartRound:
     source: str = "LOCAL"
 
 
-Command: TypeAlias = Push | SetMode | Control | Guess | Rank | StartRound
+@dataclass(frozen=True)
+class Participation:
+    push: Push
+    passive: bool = True
+
+
+Command: TypeAlias = Push | SetMode | Control | Guess | Rank | StartRound | Participation

@@ -66,8 +66,15 @@ class Scoring:
         weight: float,
         *,
         at: float | None = None,
+        passive: bool = False,
     ) -> bool:
-        if weight <= 0 or not self.allow(viewer, "push", cooldown=1, maximum=3, at=at):
+        if weight <= 0 or not self.allow(
+            viewer,
+            "chat" if passive else "push",
+            cooldown=20 if passive else 1,
+            maximum=1 if passive else 3,
+            at=at,
+        ):
             return False
         self.names[viewer] = name
         group = self.pushes[faction]

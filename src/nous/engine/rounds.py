@@ -38,5 +38,5 @@ class FixedInjection(Mixer):
     def tick(self) -> Tick:
         return replace(self.war.tick(), beta=self.strength)
 
-    def push(self, event: Push) -> float:
-        return self.war.push(event)
+    def push(self, event: Push, *, passive: bool = False) -> float:
+        return self.war.push(event, passive=passive)

@@ -56,6 +56,7 @@ class Mixer:
         self.dominance_cap, self.beta_max = dominance_cap, beta_max
         self.schedule_mode, self.chunk = schedule_mode, chunk
         self.inject_scale, self.clock = inject_scale, clock
+        self._passive_last: dict[str, float] = {}
         self._history: dict[str, list[float]] = defaultdict(list)
         self._doses: dict[str, float] = defaultdict(float)
         self._users: dict[str, float] = defaultdict(float)
@@ -72,16 +73,23 @@ class Mixer:
                 values[key] *= decay
         self._last = now
 
-    def push(self, event: Push) -> float:
+    def push(self, event: Push, *, passive: bool = False) -> float:
         if event.faction == NEUTRAL:
             raise ValueError("Neutral is reserved")
         self._decay(event.t)
-        recent = [t for t in self._history[event.user_id or event.user] if event.t - t < 20]
-        self._history[event.user_id or event.user] = recent
-        if len(recent) >= 3:
-            return 0.0
-        weight = 0.25 if any(event.t - t < 8 for t in recent) else 1.0
-        recent.append(event.t)
+        key = event.user_id or event.user
+        if passive:
+            if event.t - self._passive_last.get(key, float("-inf")) < 20:
+                return 0.0
+            self._passive_last[key] = event.t
+            weight = 0.1
+        else:
+            recent = [t for t in self._history[key] if event.t - t < 20]
+            self._history[key] = recent
+            if len(recent) >= 3:
+                return 0.0
+            weight = 0.25 if any(event.t - t < 8 for t in recent) else 1.0
+            recent.append(event.t)
         self._doses[event.faction] += weight
         self._users[event.user] += weight
         return weight

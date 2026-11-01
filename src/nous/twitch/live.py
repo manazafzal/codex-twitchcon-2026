@@ -5,6 +5,7 @@ from pathlib import Path
 
 import aiohttp
 
+from nous.engine.commands import Participation
 from nous.engine.events import Badge, Connection, Event, Mode, Round
 from nous.replay.recorder import Recorder
 from nous.server.session import Session
@@ -19,6 +20,7 @@ from nous.twitch.auth import (
 from nous.twitch.chat_send import ChatSender
 from nous.twitch.eventsub import EVENTSUB_URL, EventSub
 from nous.twitch.parse import ChatParser
+from nous.twitch.welcome import Welcomes
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +47,8 @@ class LiveSession:
         self.announcements: asyncio.Queue[str] = asyncio.Queue(maxsize=8)
         self.last_leader = float("-inf")
         self.last_mvp = float("-inf")
+        self.teams: dict[str, str] = {}
+        self.welcomes = Welcomes(session.library.concepts, clock=session.now)
 
     async def emit(self, event: Event) -> None:
         await self.output.put((event, self.session.clock()))
@@ -70,6 +74,23 @@ class LiveSession:
                         self.last_mvp = self.session.now()
                 else:
                     self.announce(event.message)
+
+    async def receive_chat(self, parser: ChatParser, notification: dict) -> None:
+        command = parser.parse(notification)
+        if command:
+            await self.session.submit(Participation(command) if parser.passive else command)
+            if parser.participant:
+                self.welcomes.offer(*parser.participant)
+
+    async def send_welcome(self, sender: ChatSender) -> bool:
+        if sender.clock() - sender.last_sent < 5:
+            return False
+        blind = (
+            self.session.current_mode == "telepathy"
+            and self.session.telepathy.phase.value != "reveal"
+        )
+        message = self.welcomes.take(blind=blind)
+        return await sender.send(message) if message else False
 
     async def _chat(self) -> None:
         async def status(value: str) -> None:
@@ -99,6 +120,7 @@ class LiveSession:
                         bot_id=token.user_id,
                         broadcaster_id=broadcaster,
                         clock=self.session.now,
+                        teams=self.teams,
                     )
                     client = EventSub(
                         auth, broadcaster, token.user_id, url=self.eventsub_url, status=status
@@ -107,13 +129,19 @@ class LiveSession:
 
                     async def receive(client: EventSub, parser: ChatParser) -> None:
                         async for notification in client.notifications():
-                            push = parser.parse(notification)
-                            if push:
-                                await self.session.submit(push)
+                            await self.receive_chat(parser, notification)
 
                     async def send(sender: ChatSender) -> None:
                         while True:
-                            await sender.send(await self.announcements.get())
+                            try:
+                                message = await asyncio.wait_for(
+                                    self.announcements.get(), timeout=1
+                                )
+                            except TimeoutError:
+                                await self.send_welcome(sender)
+                                continue
+                            if message:
+                                await sender.send(message)
 
                     tasks = [
                         asyncio.create_task(receive(client, parser)),

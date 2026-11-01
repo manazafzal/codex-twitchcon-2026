@@ -127,10 +127,10 @@ class Generator:
         self.secret: str | None = None
         self.last_scores: dict[str, float] = {}
 
-    def push(self, event: Push, *, emit: bool = True) -> float:
+    def push(self, event: Push, *, emit: bool = True, passive: bool = False) -> float:
         if event.faction not in self.library.ids:
             raise ValueError("Unknown faction")
-        weight = self.mixer.push(event)
+        weight = self.mixer.push(event, passive=True) if passive else self.mixer.push(event)
         if emit:
             self.pending.append(event)
         return weight
