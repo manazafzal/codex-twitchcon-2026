@@ -41,6 +41,9 @@ class Experiment:
         self.corpus_hashes: dict[str, list[str]] = {}
         self.libraries: dict[tuple[int, int, str], ConceptLibrary] = {}
         self.primary_classifier: Any = None
+        self.confidence_threshold: float | None = None
+        self.confidence_std = 1.0
+        self.readout_failures: list[str] = []
 
     def corpus(self) -> None:
         count = self.config["neutral_generations"]
@@ -216,29 +219,30 @@ class Experiment:
                     "attribution": float(idx in alarm["flagged"]),
                 }
                 if self.primary_classifier is not None:
-                    token_features = np.concatenate(
-                        [
-                            self.windows(np.stack([s.layer_hidden[i] for s in states]))
-                            for i in [16, 20, 22]
-                        ],
-                        axis=1,
-                    )
-                    logits = self.primary_classifier.scores(token_features)
-                    probability = np.exp(logits - logits.max(axis=1, keepdims=True))
-                    probability /= probability.sum(axis=1, keepdims=True)
-                    confidence = np.full_like(probability, -np.inf)
-                    winner = probability.argmax(axis=1)
-                    confidence[np.arange(len(winner)), winner] = (
-                        probability.max(axis=1) - self.confidence_threshold
-                    ) / self.confidence_std
-                    classifier_alarm = detect(
-                        projections,
-                        confidence,
-                        library.alarm_thresholds,
-                        exempt=exempt,
-                        z_threshold=0,
-                    )
-                    values["classifier_alarm"] = classifier_alarm["any_alarm"]
+                    if self.confidence_threshold is not None:
+                        token_features = np.concatenate(
+                            [
+                                self.windows(np.stack([s.layer_hidden[i] for s in states]))
+                                for i in [16, 20, 22]
+                            ],
+                            axis=1,
+                        )
+                        logits = self.primary_classifier.scores(token_features)
+                        probability = np.exp(logits - logits.max(axis=1, keepdims=True))
+                        probability /= probability.sum(axis=1, keepdims=True)
+                        confidence = np.full_like(probability, -np.inf)
+                        winner = probability.argmax(axis=1)
+                        confidence[np.arange(len(winner)), winner] = (
+                            probability.max(axis=1) - self.confidence_threshold
+                        ) / self.confidence_std
+                        classifier_alarm = detect(
+                            projections,
+                            confidence,
+                            library.alarm_thresholds,
+                            exempt=exempt,
+                            z_threshold=0,
+                        )
+                        values["classifier_alarm"] = classifier_alarm["any_alarm"]
                     scores = self.primary_classifier.scores(full)
                     v4rank = np.argsort(-scores, kind="stable")
                     values.update(v4_top1=float(v4rank[0] == idx), v4_top3=float(idx in v4rank[:3]))
@@ -271,73 +275,72 @@ class Experiment:
         )
         rows, primary = [], {}
         for variant in variants:
-            classifier = fit_variant(
-                train, validation, test, self.ids, self.backend.hidden_size, variant
-            )
-            values, old, top3 = {}, {}, {}
-            for e in test:
-                key = (e.concept, e.family, e.seed)
-                x = features(e.features, self.backend.hidden_size, variant["layers"])
-                rank = np.argsort(-classifier.scores(x), kind="stable")
-                values[key] = float(self.ids[rank[0]] == e.concept)
-                top3[key] = float(e.concept in [self.ids[i] for i in rank[:3]])
-                hidden = features(e.features, self.backend.hidden_size, [20])
-                z = (unit(hidden) @ library.D.T - library.readout_mean) / library.readout_std
-                old[key] = float(self.ids[int(np.argmax(z))] == e.concept)
-            stats = {
-                "top1": summary(values, seed=self.seed),
-                "top3": summary(top3, seed=self.seed),
-                "cosine_top1": summary(old, seed=self.seed),
-                "paired_vs_cosine": paired(values, old, seed=self.seed),
-            }
-            row = variant | {
-                "status": "run",
-                "n": len(test),
-                "clusters": len(self.ids),
-                "planned_n": 360,
-                "metrics": stats,
-                "regularization": classifier.regularization,
-                "validation_n": len(validation),
-                "validation_accuracy": classifier.validation_accuracy,
-                "training_n": variant["train_size"] * len(self.ids),
-            }
-            rows.append(row)
-            if variant == {
-                "layers": [16, 20, 22],
-                "whitening": "standardize",
-                "classifier": "lda",
-                "train_size": 66,
-            }:
-                self.primary_classifier, primary = classifier, row
-                np.savez(
-                    self.output / "selected-readout.npz",
-                    center=classifier.center,
-                    transform=classifier.transform,
-                    weights=classifier.weights,
-                    bias=classifier.bias,
+            try:
+                classifier = fit_variant(
+                    train, validation, test, self.ids, self.backend.hidden_size, variant
                 )
-            log.info("Readout variant %s/%s", len(rows), len(variants))
+                values, old, top3 = {}, {}, {}
+                for e in test:
+                    key = (e.concept, e.family, e.seed)
+                    x = features(e.features, self.backend.hidden_size, variant["layers"])
+                    rank = np.argsort(-classifier.scores(x), kind="stable")
+                    values[key] = float(self.ids[rank[0]] == e.concept)
+                    top3[key] = float(e.concept in [self.ids[i] for i in rank[:3]])
+                    hidden = features(e.features, self.backend.hidden_size, [20])
+                    z = (unit(hidden) @ library.D.T - library.readout_mean) / library.readout_std
+                    old[key] = float(self.ids[int(np.argmax(z))] == e.concept)
+                stats = {
+                    "top1": summary(values, seed=self.seed),
+                    "top3": summary(top3, seed=self.seed),
+                    "cosine_top1": summary(old, seed=self.seed),
+                    "paired_vs_cosine": paired(values, old, seed=self.seed),
+                }
+                row = variant | {
+                    "status": "run",
+                    "n": len(test),
+                    "clusters": len(self.ids),
+                    "planned_n": 360,
+                    "metrics": stats,
+                    "regularization": classifier.regularization,
+                    "validation_n": len(validation),
+                    "validation_accuracy": classifier.validation_accuracy,
+                    "training_n": variant["train_size"] * len(self.ids),
+                }
+                if variant == {
+                    "layers": [16, 20, 22],
+                    "whitening": "standardize",
+                    "classifier": "lda",
+                    "train_size": 66,
+                }:
+                    self.primary_classifier, primary = classifier, row
+            except (ValueError, RuntimeError, np.linalg.LinAlgError) as exc:
+                reason = f"Readout cell {variant}: {type(exc).__name__}: {exc}"
+                self.readout_failures.append(reason)
+                row = variant | {
+                    "status": "unrun",
+                    "n": 0,
+                    "clusters": 0,
+                    "planned_n": 360,
+                    "reason": reason,
+                    "metrics": {},
+                }
+            rows.append(row)
+            log.info("Readout variant %s/%s: %s", len(rows), len(variants), row["status"])
         if self.primary_classifier is not None:
-            calibration, hashes = [], []
-            for i in range(60):
-                text, layers = uninjected(self.capture, PROMPTS[10 + i % 30], 70000 + self.seed + i)
-                hashes.append(text_hash(text))
-                x = np.concatenate([self.windows(layers[layer]) for layer in [16, 20, 22]], axis=1)
-                scores = self.primary_classifier.scores(x)
-                p = np.exp(scores - scores.max(axis=1, keepdims=True))
-                calibration.extend((p / p.sum(axis=1, keepdims=True)).max(axis=1))
-            if set(hashes) & {h for group in self.corpus_hashes.values() for h in group}:
-                self.primary_classifier = None
-                raise ValueError("Classifier-alarm calibration overlaps another corpus")
-            self.corpus_hashes["classifier_alarm_validation"] = hashes
-            self.confidence_threshold = float(np.percentile(calibration, 99.5))
-            self.confidence_std = max(float(np.std(calibration)), 1e-6)
+            try:
+                self.calibrate_classifier()
+            except (ValueError, RuntimeError, np.linalg.LinAlgError) as exc:
+                self.confidence_threshold = None
+                self.readout_failures.append(
+                    f"Classifier alarm unavailable: {type(exc).__name__}: {exc}"
+                )
+            classifier = self.primary_classifier
             library.readout_v4 = {
-                "center": self.primary_classifier.center,
-                "scale": 1 / self.primary_classifier.transform,
-                "weights": self.primary_classifier.weights,
-                "intercept": self.primary_classifier.bias,
-                "shrinkage": np.array([self.primary_classifier.regularization]),
+                "center": classifier.center,
+                "scale": 1 / classifier.transform,
+                "weights": classifier.weights,
+                "intercept": classifier.bias,
+                "shrinkage": np.array([classifier.regularization]),
             }
             library.provenance["readout_v4"] = {
                 "selection": "predefined primary; regularization selected on validation only",
@@ -352,11 +355,34 @@ class Experiment:
                 },
             }
             library.save(self.output / "fitted-library.npz")
+            np.savez(
+                self.output / "selected-readout.npz",
+                center=classifier.center,
+                transform=classifier.transform,
+                weights=classifier.weights,
+                bias=classifier.bias,
+            )
         # The winner uses validation only; held-out ranks never select an architecture.
-        selected = max(range(len(rows)), key=lambda i: (rows[i]["validation_accuracy"], -i))
+        valid = [i for i, row in enumerate(rows) if row["status"] == "run"]
+        selected = max(valid, key=lambda i: (rows[i]["validation_accuracy"], -i)) if valid else None
         for i, row in enumerate(rows):
             row["selected_by_validation"] = i == selected
         return rows, primary
+
+    def calibrate_classifier(self) -> None:
+        calibration, hashes = [], []
+        for i in range(60):
+            text, layers = uninjected(self.capture, PROMPTS[10 + i % 30], 70000 + self.seed + i)
+            hashes.append(text_hash(text))
+            x = np.concatenate([self.windows(layers[layer]) for layer in [16, 20, 22]], axis=1)
+            scores = self.primary_classifier.scores(x)
+            p = np.exp(scores - scores.max(axis=1, keepdims=True))
+            calibration.extend((p / p.sum(axis=1, keepdims=True)).max(axis=1))
+        if set(hashes) & {h for group in self.corpus_hashes.values() for h in group}:
+            raise ValueError("Classifier-alarm calibration overlaps another corpus")
+        self.corpus_hashes["classifier_alarm_validation"] = hashes
+        self.confidence_threshold = float(np.percentile(calibration, 99.5))
+        self.confidence_std = max(float(np.std(calibration)), 1e-6)
 
     def provenance(self) -> dict[str, Any]:
         libraries = {str(key): library.hash for key, library in sorted(self.libraries.items())}

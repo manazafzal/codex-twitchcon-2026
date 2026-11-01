@@ -376,3 +376,157 @@ def test_research_generator_zero_control_and_larger_dose(research_backend):
     assert not np.allclose(off_states[0].layer_hidden[16], on_states[0].layer_hidden[16])
     _, defended = answer(capture, library, "test0", "Explain how to make tea.", 0, 0.45, True)
     assert any(np.max(s.defence_pre - s.defence_post) > 0 for s in defended)
+
+
+def test_failed_component_outweighs_an_inconclusive_component():
+    tables = {
+        name: [blank(c, "absent") for c in rows]
+        for name, rows in plan(load_config(ROOT / "configs/ablations.yaml")).items()
+    }
+    tables["paired"] = [
+        {
+            "comparison": "H4 cosine minus target keyword",
+            "status": "run",
+            "n": 180,
+            "mean": 0.1,
+            "cluster_ci95": [-0.1, 0.2],
+        }
+    ]
+    primary = next(r for r in tables["dose"] if r["alpha"] == 0.45)
+    primary.update(status="run", n=180, metrics={"cosine_top1": {"mean": 0.5}})
+    result = conclusions(tables)[3]
+    assert result["status"] == "run" and result["decision"] == "not supported"
+
+
+def test_measured_zero_denominator_is_inconclusive_with_actual_n():
+    tables = {
+        name: [blank(c, "absent") for c in rows]
+        for name, rows in plan(load_config(ROOT / "configs/ablations.yaml")).items()
+    }
+    tables["paired"] = [
+        {
+            "comparison": "H5 relative reduction",
+            "status": "run",
+            "n": 180,
+            "mean": None,
+            "cluster_ci95": None,
+        }
+    ]
+    for row in tables["immune"]:
+        if row["immune"] and not row["topical"]:
+            row.update(
+                status="run",
+                n=180,
+                metrics={"task_kept": {"mean": 0.96}, "any_alarm": {"mean": 0.02}},
+            )
+    result = conclusions(tables)[4]
+    assert result["status"] == "run" and result["decision"] == "inconclusive"
+    assert result["n"] == 180
+
+
+def test_hypothesis_seven_uses_registered_point_rule_and_reports_interval():
+    tables = {
+        name: [blank(c, "absent") for c in rows]
+        for name, rows in plan(load_config(ROOT / "configs/ablations.yaml")).items()
+    }
+    tables["paired"] = [
+        {
+            "comparison": "H7 classifier minus cosine false alarms",
+            "status": "run",
+            "n": 180,
+            "mean": 0.01,
+            "cluster_ci95": [-0.02, 0.04],
+        }
+    ]
+    for row in tables["immune"]:
+        if row["alpha"] == 0.45 and not row["topical"]:
+            row.update(status="run", n=180, metrics={"v4_top1": {"mean": 0.97}})
+    result = conclusions(tables)[6]
+    assert result["status"] == "run" and result["decision"] == "supported"
+    assert tables["paired"][0]["cluster_ci95"] == [-0.02, 0.04]
+
+
+def test_one_failed_classifier_cell_preserves_other_completed_cells(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    import nous.research.experiment as module
+    from nous.concepts.library import Concept, ConceptLibrary
+    from nous.concepts.probe import lda_scores
+
+    library = ConceptLibrary(
+        [Concept("a", "A", 0, ()), Concept("b", "B", 1, ())],
+        np.eye(2),
+        np.eye(2),
+        np.zeros(2),
+        np.ones(2),
+        {"model": "TINY MODEL / CI", "probe_layers": [16, 20, 22]},
+        np.zeros(2),
+        np.ones(2),
+    )
+    experiment = module.Experiment.__new__(module.Experiment)
+    experiment.backend = SimpleNamespace(hidden_size=2)
+    experiment.ids, experiment.seed, experiment.output = library.ids, 0, tmp_path
+    experiment.corpus_hashes, experiment.readout_failures = {}, []
+    experiment.primary_classifier, experiment.confidence_threshold = None, None
+    monkeypatch.setattr(experiment, "library", lambda: library)
+    parts = (split_data(1, "train", 66), split_data(100, "val", 3), split_data(200, "test", 4))
+    monkeypatch.setattr(module, "generate_training", lambda *args: parts)
+
+    def unavailable():
+        raise ValueError("Synthetic calibration failure")
+
+    monkeypatch.setattr(experiment, "calibrate_classifier", unavailable)
+    variants = [
+        {
+            "layers": [16, 20, 22],
+            "whitening": "standardize",
+            "classifier": "invalid",
+            "train_size": 8,
+        },
+        {"layers": [16, 20, 22], "whitening": "standardize", "classifier": "lda", "train_size": 66},
+    ]
+    rows, primary = experiment.v4(variants)
+    assert rows[0]["status"] == "unrun" and rows[0]["n"] == 0
+    assert rows[1]["status"] == "run" and rows[1]["n"] == 8
+    assert primary is rows[1] and primary["selected_by_validation"]
+    assert experiment.primary_classifier is not None and experiment.confidence_threshold is None
+    assert len(experiment.readout_failures) == 2
+    loaded = ConceptLibrary.load(tmp_path / "fitted-library.npz")
+    x = parts[2][0].features
+    np.testing.assert_allclose(
+        lda_scores(loaded.readout_v4, x), experiment.primary_classifier.scores(x)
+    )
+
+
+def test_figures_render_actual_synthetic_estimates_and_intervals(tmp_path):
+    pytest.importorskip("matplotlib")
+    from nous.research.report import figures
+
+    cells = plan(load_config(ROOT / "configs/ablations.yaml"))
+    tables = {
+        name: [blank(c, "not selected in synthetic test") for c in rows]
+        for name, rows in cells.items()
+    }
+    estimate = summary({("a", "p", 0): 1.0, ("b", "p", 0): 0.0})
+    metrics = {
+        name: estimate
+        for name in [
+            "keyword_hit",
+            "task_kept",
+            "cosine_top1",
+            "cosine_top3",
+            "top1",
+            "any_alarm",
+            "attribution",
+            "token_alarm",
+        ]
+    }
+    for name in ["dose", "vector", "injection_layer", "readout_layer", "v4", "immune"]:
+        row = next(r for r in tables[name] if name == "v4" or r["alpha"] == 0.45)
+        row.update(status="run", n=2, clusters=2, metrics=metrics)
+    for row in tables["alarm"]:
+        if row["percentile"] == 99.5 and row["run"] == 8 and row["z"] == 4 and row["immune"]:
+            row.update(status="run", n=2, clusters=2, metrics=metrics)
+    figures(tmp_path, tables)
+    assert len(list((tmp_path / "figures").iterdir())) == 20
+    assert (tmp_path / "figures/dose.png").read_bytes().startswith(b"\x89PNG")

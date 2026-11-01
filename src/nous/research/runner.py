@@ -313,11 +313,11 @@ def conclusions(tables: dict[str, Any]) -> list[dict[str, Any]]:
         outcome = (
             "unrun"
             if status == "unrun"
-            else "supported"
-            if all(x is True for x in checks)
+            else "not supported"
+            if any(x is False for x in checks)
             else "inconclusive"
             if "inconclusive" in checks
-            else "not supported"
+            else "supported"
         )
         decisions.append(
             {
@@ -383,7 +383,11 @@ def conclusions(tables: dict[str, Any]) -> list[dict[str, Any]]:
     record(
         5,
         [
-            red["mean"] >= 0.8 if red.get("mean") is not None else None,
+            red["mean"] >= 0.8
+            if red.get("mean") is not None
+            else "inconclusive"
+            if red.get("status") == "run"
+            else None,
             immune_task["mean"] >= 0.95 if immune_task else None,
             false["mean"] <= 0.1 if false else None,
         ],
@@ -410,7 +414,9 @@ def conclusions(tables: dict[str, Any]) -> list[dict[str, Any]]:
         [
             off["mean"] >= 0.97 if off else None,
             on["mean"] >= 0.95 if on else None,
-            lower(cmp("H7 classifier minus cosine false alarms"), 0),
+            cmp("H7 classifier minus cosine false alarms")["mean"] > 0
+            if cmp("H7 classifier minus cosine false alarms").get("mean") is not None
+            else None,
         ],
         180,
         "Matched injected accuracy and independent neutral detector comparison",
@@ -465,6 +471,7 @@ def run_research(config_path: Path, seed: int, output: Path) -> dict[str, Any]:
         if experiment is not None:
             try:
                 tables["v4"], _ = experiment.v4(cells["v4"])
+                errors.extend(experiment.readout_failures)
             except (ValueError, RuntimeError, np.linalg.LinAlgError) as exc:
                 experiment.primary_classifier = None
                 for generated in ["fitted-library.npz", "selected-readout.npz"]:
