@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mindwars"
+version = "0.1.0"
+description = "MIND WARS local thought injection engine"
+requires-python = ">=3.11"
+dependencies = ["numpy", "aiohttp", "pyyaml"]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+model = ["torch", "transformers>=4.46,<5"]
+
+[project.scripts]
+mindwars = "mindwars.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"mindwars.concepts" = ["concepts.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not realmodel'"
+markers = ["realmodel: requires explicitly enabled real model weights"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

@@ -1,0 +1,120 @@
+- id: ocean
+  label: Ocean
+  color_index: 0
+  aliases: [sea, wave, tide, whale, coral, reef, dolphin, current]
+- id: space
+  label: Space
+  color_index: 1
+  aliases: [star, planet, galaxy, comet, orbit, rocket, nebula, asteroid]
+- id: jazz
+  label: Jazz
+  color_index: 2
+  aliases: [saxophone, trumpet, swing, improvisation, bass, syncopation, sax, quartet]
+- id: horror
+  label: Horror
+  color_index: 3
+  aliases: [ghost, nightmare, haunted, spooky, terror, scream, creepy, monster]
+- id: gardening
+  label: Gardening
+  color_index: 4
+  aliases: [garden, seed, soil, flower, compost, shovel, sprout, watering]
+- id: war
+  label: War
+  color_index: 5
+  aliases: [battle, soldier, army, combat, troops, siege, conflict, battlefield]
+- id: pirates
+  label: Pirates
+  color_index: 6
+  aliases: [pirate, treasure, buccaneer, cutlass, parrot, plunder, captain, mutiny]
+- id: dinosaurs
+  label: Dinosaurs
+  color_index: 0
+  aliases: [dinosaur, fossil, prehistoric, raptor, reptile, triceratops, sauropod, tyrannosaur]
+- id: chemistry
+  label: Chemistry
+  color_index: 1
+  aliases: [molecule, atom, reaction, element, beaker, compound, acid, catalyst]
+- id: football
+  label: Football
+  color_index: 2
+  aliases: [goal, goalkeeper, striker, penalty, referee, kickoff, tackle, pitch]
+- id: robots
+  label: Robots
+  color_index: 3
+  aliases: [robot, android, circuit, servo, automation, sensor, mechanical, machine]
+- id: wizards
+  label: Wizards
+  color_index: 4
+  aliases: [wizard, magic, spell, wand, sorcerer, enchantment, potion, rune]
+- id: detective
+  label: Detective
+  color_index: 5
+  aliases: [clue, mystery, suspect, investigation, alibi, evidence, sleuth, deduction]
+- id: cats
+  label: Cats
+  color_index: 6
+  aliases: [cat, kitten, feline, whisker, purr, meow, tabby, paw]
+- id: dragons
+  label: Dragons
+  color_index: 0
+  aliases: [dragon, scales, firebreath, hatchling, wyvern, hoard, wings, drake]
+- id: medieval
+  label: Medieval
+  color_index: 1
+  aliases: [knight, castle, armour, joust, feudal, squire, moat, tapestry]
+- id: romance
+  label: Romance
+  color_index: 2
+  aliases: [love, kiss, date, affection, sweetheart, courtship, beloved, tenderness]
+- id: ninjas
+  label: Ninjas
+  color_index: 3
+  aliases: [ninja, stealth, shuriken, shinobi, shadow, silent, ambush, disguise]
+- id: volcano
+  label: Volcano
+  color_index: 4
+  aliases: [lava, magma, eruption, crater, ash, molten, volcanic, caldera]
+- id: desert
+  label: Desert
+  color_index: 5
+  aliases: [sand, dune, cactus, arid, oasis, dry, scorpion, mirage]
+- id: winter
+  label: Winter
+  color_index: 6
+  aliases: [snow, ice, frost, blizzard, cold, mitten, icicle, snowflake]
+- id: circus
+  label: Circus
+  color_index: 0
+  aliases: [clown, acrobat, trapeze, juggler, ringmaster, tightrope, bigtop, juggling]
+- id: farm
+  label: Farm
+  color_index: 1
+  aliases: [barn, tractor, harvest, crop, livestock, pasture, hay, farmer]
+- id: disco
+  label: Disco
+  color_index: 2
+  aliases: [dance, glitter, groove, dancefloor, boogie, nightlife, sequins, dancing]
+- id: weather
+  label: Weather
+  color_index: 3
+  aliases: [rain, cloud, storm, wind, sunshine, thunder, forecast, drizzle]
+- id: library
+  label: Library
+  color_index: 4
+  aliases: [book, shelf, reading, librarian, catalogue, bookmark, paperback, manuscript]
+- id: school
+  label: School
+  color_index: 5
+  aliases: [classroom, teacher, homework, lesson, pupil, chalkboard, recess, exam]
+- id: pizza
+  label: Pizza
+  color_index: 6
+  aliases: [crust, mozzarella, pepperoni, slice, topping, dough, pizzeria, marinara]
+- id: time-travel
+  label: Time Travel
+  color_index: 0
+  aliases: [temporal, timeline, paradox, future, past, chronology, timeloop, timejump]
+- id: cooking
+  label: Cooking
+  color_index: 1
+  aliases: [cook, recipe, kitchen, simmer, bake, saute, pan, seasoning]
