@@ -1,4 +1,4 @@
-from mindwars.model.hf_backend import HFBackend
+from thoughtquake.model.hf_backend import HFBackend
 
 
 class ByteTokenizer:
@@ -19,7 +19,7 @@ class TinyBackend(HFBackend):
             import torch
             from transformers import Qwen2Config, Qwen2ForCausalLM
         except ImportError as exc:
-            raise ImportError("TinyBackend requires mindwars[model]") from exc
+            raise ImportError("TinyBackend requires thoughtquake[model]") from exc
         config = Qwen2Config(
             vocab_size=256,
             hidden_size=32,

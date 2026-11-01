@@ -7,9 +7,9 @@ from typing import Literal
 
 import numpy as np
 
-from mindwars.engine.events import Push, Tick
-from mindwars.engine.immune import unit
-from mindwars.model.backend import Vector
+from thoughtquake.engine.events import Push, Tick
+from thoughtquake.engine.immune import unit
+from thoughtquake.model.backend import Vector
 
 ScheduleMode = Literal["answer", "sentence", "token"]
 NEUTRAL = "Neutral"

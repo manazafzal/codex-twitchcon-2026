@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 
-from mindwars.model.backend import DefendSpec, State, Vector, sample
+from thoughtquake.model.backend import DefendSpec, State, Vector, sample
 
 
 class HFBackend:
@@ -16,12 +16,12 @@ class HFBackend:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
         except ImportError as exc:
-            raise ImportError("Install mindwars[model] to use this backend") from exc
-        name = model_name or os.getenv("MINDWARS_MODEL", "Qwen/Qwen2.5-0.5B-Instruct")
+            raise ImportError("Install thoughtquake[model] to use this backend") from exc
+        name = model_name or os.getenv("THOUGHTQUAKE_MODEL", "Qwen/Qwen2.5-0.5B-Instruct")
         allowed = {"Qwen/Qwen2.5-0.5B-Instruct", "Qwen/Qwen2.5-1.5B-Instruct"}
         if name not in allowed:
             raise ValueError("Unsupported model")
-        target = device or os.getenv("MINDWARS_DEVICE", "auto")
+        target = device or os.getenv("THOUGHTQUAKE_DEVICE", "auto")
         if target == "auto":
             target = "cuda" if torch.cuda.is_available() else "cpu"
         self.tokenizer = AutoTokenizer.from_pretrained(name)

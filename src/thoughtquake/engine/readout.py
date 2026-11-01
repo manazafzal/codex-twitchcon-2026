@@ -3,9 +3,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from mindwars.concepts.library import ConceptLibrary
-from mindwars.engine.immune import unit
-from mindwars.model.backend import Vector
+from thoughtquake.concepts.library import ConceptLibrary
+from thoughtquake.engine.immune import unit
+from thoughtquake.model.backend import Vector
 
 
 @dataclass(frozen=True)

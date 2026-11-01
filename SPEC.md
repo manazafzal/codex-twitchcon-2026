@@ -1,4 +1,4 @@
-# MIND WARS — SPEC (build-ready)
+# THOUGHTQUAKE — SPEC (build-ready)
 
 Status: written Sun 1 Nov 2026 (AEDT). Target: submitted Mon 2 Nov 2026 22:00 AEDT.
 Repo: `manazafzal/codex-twitchcon-2026` (build in ONE Codex cloud thread).
@@ -6,7 +6,7 @@ Repo: `manazafzal/codex-twitchcon-2026` (build in ONE Codex cloud thread).
 ## 1. One-line pitch
 **Chat factions fight over the thoughts of a live AI — while a real-time Mind-Reader and a Neural Immune System watch every move.**
 
-Devpost title: **MIND WARS** · tagline: **"Chat fights over an AI's mind. Live, local, $0."** (≤ 60 chars)
+Devpost title: **THOUGHTQUAKE** · tagline: **"Chat fights over an AI's mind. Live, local, $0."** (≤ 60 chars)
 
 ## 2. Anti-"Golden Gate Claude" rules (product-level; enforced by tests)
 A judge must never think "this is Golden Gate Claude". Every one of these is designed out:
@@ -20,7 +20,7 @@ A judge must never think "this is Golden Gate Claude". Every one of these is des
 | Slider UI (brainscope / Neuronpedia-style) | No sliders for viewers. Doses come only from chat. |
 | SAE-feature framing | We state exactly: difference-of-means vectors from self-generated contrast sets (ActAdd/CAA lineage), not SAE features. |
 | Repeated-word wall-of-text screenshot | Words coloured by faction; mixed content in one sentence; no screenshot of a single-concept loop. |
-| Old name MINDWARP | Use MIND WARS only. |
+| Old name MINDWARP | Use THOUGHTQUAKE only. |
 
 **What GGC never showed (our hero):** several factions' concepts competing inside ONE answer, each word coloured by the faction the Mind-Reader says is driving it; a live readout of the AI's state while chat fights; a defender that detects and neutralises an injection; a chat guessing game against the Mind-Reader.
 
@@ -43,17 +43,17 @@ events ──▶ server/app.py (aiohttp) ──WS /ws──▶ overlay/ (browser
 
 Directories:
 ```
-src/mindwars/{config.py,cli.py}
-src/mindwars/model/{backend.py,hf_backend.py,tiny_backend.py,mock_backend.py}
-src/mindwars/concepts/{library.py,builder.py,concepts.yaml}
-src/mindwars/engine/{mixer.py,generate.py,readout.py,immune.py,rounds.py,events.py}
-src/mindwars/game/telepathy.py
-src/mindwars/twitch/{auth.py,eventsub.py,chat_send.py,parse.py}
-src/mindwars/sim/crowd.py
-src/mindwars/replay/{recorder.py,player.py}
-src/mindwars/server/app.py
-src/mindwars/overlay/{index.html,style.css,app.js}
-src/mindwars/eval/{run_eval.py,metrics.py,report.py}
+src/thoughtquake/{config.py,cli.py}
+src/thoughtquake/model/{backend.py,hf_backend.py,tiny_backend.py,mock_backend.py}
+src/thoughtquake/concepts/{library.py,builder.py,concepts.yaml}
+src/thoughtquake/engine/{mixer.py,generate.py,readout.py,immune.py,rounds.py,events.py}
+src/thoughtquake/game/telepathy.py
+src/thoughtquake/twitch/{auth.py,eventsub.py,chat_send.py,parse.py}
+src/thoughtquake/sim/crowd.py
+src/thoughtquake/replay/{recorder.py,player.py}
+src/thoughtquake/server/app.py
+src/thoughtquake/overlay/{index.html,style.css,app.js}
+src/thoughtquake/eval/{run_eval.py,metrics.py,report.py}
 tests/  golden/  library/  results/  docs/{related-work.md,streamer-guide.md}
 ```
 
@@ -67,16 +67,16 @@ tests/  golden/  library/  results/  docs/{related-work.md,streamer-guide.md}
 - `embed_texts(texts, layer) -> mean hidden states` (used by the library builder).
 
 Backends:
-1. `HFBackend` — `transformers` + `torch`. Default `Qwen/Qwen2.5-0.5B-Instruct` (Apache-2.0); optional `Qwen/Qwen2.5-1.5B-Instruct` on GPU or fast CPU. Config `MINDWARS_MODEL`, `MINDWARS_DEVICE=auto|cpu|cuda`. Layer L = round(0.55 × num_layers) (injection after `layers[L]`), readout layer R = L + 4. The hook adds the vector at the newest position only (prompt is prefilled uninjected; KV cache kept). Speed measured on an 8-core CPU box: about 34 tok/s unhooked, 16–26 tok/s hooked, 0.5B bf16.
+1. `HFBackend` — `transformers` + `torch`. Default `Qwen/Qwen2.5-0.5B-Instruct` (Apache-2.0); optional `Qwen/Qwen2.5-1.5B-Instruct` on GPU or fast CPU. Config `THOUGHTQUAKE_MODEL`, `THOUGHTQUAKE_DEVICE=auto|cpu|cuda`. Layer L = round(0.55 × num_layers) (injection after `layers[L]`), readout layer R = L + 4. The hook adds the vector at the newest position only (prompt is prefilled uninjected; KV cache kept). Speed measured on an 8-core CPU box: about 34 tok/s unhooked, 16–26 tok/s hooked, 0.5B bf16.
 2. `TinyBackend` — random-init model built in-process from a tiny `Qwen2Config` (e.g. 2 layers×32 hidden, vocab 256, byte-level tokenizer stub). Used in tests to exercise the real hook code paths (shapes, indices, KV cache, defender math) with no download. Requires torch; tests skip cleanly if torch is missing.
-3. `MockBackend` — pure numpy, deterministic: hidden state = sum of injected concept directions + noise; text = scripted words per dominant concept. Used for engine/server/Twitch/overlay tests and `mindwars demo --mock`.
+3. `MockBackend` — pure numpy, deterministic: hidden state = sum of injected concept directions + noise; text = scripted words per dominant concept. Used for engine/server/Twitch/overlay tests and `thoughtquake demo --mock`.
 
 Important: tests with Tiny/Mock prove plumbing, not quality. Quality is only claimed from `make eval` on the real model.
 
 ## 6. Concept library (~30 cached vectors)
 - `concepts.yaml`: 30 entries `{id, label, color_index, aliases[]}`. Everyday, abstract, diverse; **no landmarks, no place names, no people, no brands**. Seed list: ocean, space, jazz, horror, gardening, war, pirates, dinosaurs, chemistry, football, robots, wizards, detective, cats, dragons, medieval, romance, ninjas, volcano, desert, winter, circus, farm, disco, weather, library, school, pizza, time-travel, cooking. (Codex may swap ≤ 5 for better separation after eval.)
 - Aliases are ~8 words each (e.g. ocean: sea, wave, tide, whale…) used to match chat messages to factions: a message counts for faction F if it contains an alias or the id as a whole word (case-insensitive). A message matching ≥ 2 factions counts for the first match only. `!push <word>` is optional sugar; plain words work.
-- Builder (`mindwars build-library`): for each concept, generate N=8 short texts from the model ("Write one short vivid sentence that is all about {label}."), plus a shared neutral set (12 texts, ordinary sentences). Injection vector V_c = mean hidden at layer L (all token positions, all texts) − neutral mean. Readout direction D_c = same at layer R. Save `library/<model_slug>.npz` with V, D, neutral baselines HR_n, vector norms, and a hash of the config. Build time on 8-core CPU ≈ 12 s per concept with the 0.5B model (≈ 6 min for 30). Commit the built library for the default model (small: 30×2×896 floats) so streamers need no build step.
+- Builder (`thoughtquake build-library`): for each concept, generate N=8 short texts from the model ("Write one short vivid sentence that is all about {label}."), plus a shared neutral set (12 texts, ordinary sentences). Injection vector V_c = mean hidden at layer L (all token positions, all texts) − neutral mean. Readout direction D_c = same at layer R. Save `library/<model_slug>.npz` with V, D, neutral baselines HR_n, vector norms, and a hash of the config. Build time on 8-core CPU ≈ 12 s per concept with the 0.5B model (≈ 6 min for 30). Commit the built library for the default model (small: 30×2×896 floats) so streamers need no build step.
 - New word (not in library): `!push <new word>` triggers a background build (≈ 20–70 s CPU), overlay shows "synthesising concept…", cached after. Rate-limit: one build at a time; max 5 custom concepts per session. Stretch only.
 
 ## 7. Faction mixer (`engine/mixer.py`) — pure python, fully tested
@@ -119,8 +119,8 @@ State machine: `IDLE → ARMED(secret) → GENERATING → GUESSING(30 s) → REV
 - Pure state machine, unit-tested with a fake clock.
 
 ## 12. Twitch integration (all free; no Extension; no Affiliate features)
-Register a Twitch app (Client Type **Public**) at dev.twitch.tv/console; env `MINDWARS_TWITCH_CLIENT_ID`.
-- **Auth (`twitch/auth.py`) — Device Code Grant Flow:** `POST https://id.twitch.tv/oauth2/device` (form: `client_id`, `scopes="user:read:chat user:write:chat"`) → show `verification_uri` + `user_code`; poll `POST https://id.twitch.tv/oauth2/token` with `grant_type=urn:ietf:params:oauth:grant-type:device_code`, `device_code`, `client_id`, `scopes` until success (handle `authorization_pending`, honour `interval`, stop at `expires_in`). Store `{access_token, refresh_token, expires_at, user_id, login}` in `~/.config/mindwars/token.json` (0600). Access tokens last ~4 h; refresh tokens are single-use and expire after 30 days idle, so always persist the new refresh token atomically; refresh at 5 min before expiry or on 401. Validate via `GET https://id.twitch.tv/oauth2/validate`.
+Register a Twitch app (Client Type **Public**) at dev.twitch.tv/console; env `THOUGHTQUAKE_TWITCH_CLIENT_ID`.
+- **Auth (`twitch/auth.py`) — Device Code Grant Flow:** `POST https://id.twitch.tv/oauth2/device` (form: `client_id`, `scopes="user:read:chat user:write:chat"`) → show `verification_uri` + `user_code`; poll `POST https://id.twitch.tv/oauth2/token` with `grant_type=urn:ietf:params:oauth:grant-type:device_code`, `device_code`, `client_id`, `scopes` until success (handle `authorization_pending`, honour `interval`, stop at `expires_in`). Store `{access_token, refresh_token, expires_at, user_id, login}` in `~/.config/thoughtquake/token.json` (0600). Access tokens last ~4 h; refresh tokens are single-use and expire after 30 days idle, so always persist the new refresh token atomically; refresh at 5 min before expiry or on 401. Validate via `GET https://id.twitch.tv/oauth2/validate`.
 - **EventSub WebSocket (`twitch/eventsub.py`):** connect `wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30`. On `session_welcome` (must subscribe within 10 s) `POST https://api.twitch.tv/helix/eventsub/subscriptions` with `{type:"channel.chat.message", version:"1", condition:{broadcaster_user_id, user_id}, transport:{method:"websocket", session_id}}` (headers `Authorization: Bearer`, `Client-Id`). Handle `session_keepalive` (reconnect if none within timeout+5 s), `session_reconnect` (open the new `reconnect_url` first, then close the old one; do not resubscribe), `notification`, `revocation`, exponential-backoff reconnect with resubscribe. Optional second subscription `channel.raid` (condition `to_broadcaster_user_id`) → "reinforcements": +2 dose for a random faction named in the raid message… (stretch; cut first).
 - Parse: dedupe by `message_id`; ignore the bot/broadcaster's own bot replies; normalise to `Push`.
 - **Send Chat Message (`twitch/chat_send.py`):** `POST https://api.twitch.tv/helix/chat/messages` `{broadcaster_id, sender_id, message}`; ≤ 200 chars; max 1 message / 5 s; messages: round start/end, Telepathy reveal, short "Team X leads" announcements (at most every 60 s). Failures are logged and ignored.
@@ -128,7 +128,7 @@ Register a Twitch app (Client Type **Public**) at dev.twitch.tv/console; env `MI
 - Unit tests use recorded-style JSON fixtures and an in-process fake WebSocket/HTTP server (`aiohttp.test_utils`).
 
 ## 13. Eval harness (`make eval`) — the evidence table
-`mindwars eval` writes `results/eval.json`, `results/eval.md`, and updates the README table. Real model required for headline numbers; with Tiny/Mock it runs a smoke version and stamps `TINY MODEL / CI`.
+`thoughtquake eval` writes `results/eval.json`, `results/eval.md`, and updates the README table. Real model required for headline numbers; with Tiny/Mock it runs a smoke version and stamps `TINY MODEL / CI`.
 Metrics (all with n, seeds, and 95 % Wilson intervals):
 - **A. Readout vs text detector.** For each of 12 concepts × 3 prompts × 3 seeds at β ∈ {0.5, 1, 2}: does the Mind-Reader (argmax cosine over the library, answer-level mean hidden) name the injected concept? Compare with a keyword/alias detector on the generated text. (Earlier scratch result on this model: 47/58/83 % vs 6/22/39 %; use as a sanity target, not a promise.)
 - **B. Immune before/after.** Same attacks with defender OFF/ON: concept-mention rate, readout score, coherence proxy.
@@ -151,7 +151,7 @@ Design consequences: injection includes the prefill; default colour source is `a
 ## 15. Overlay (`overlay/`, 1920×1080, browser source, no build step)
 Design spec for the hero view (the one frame that must be perfect):
 - Canvas fixed 1920×1080, scaled by CSS transform to fit; `?bg=transparent` for OBS; dark theme default `#0B0F1A`, text `#F5F7FA`.
-- **Top bar (0–96 px):** left `MIND WARS` wordmark (no Twitch logos); centre round label (e.g. "Answer 7 · Explain how to make tea"); right chips: source badge (`LIVE` red / `REPLAY` amber / `SIMULATED ×40` grey outlined), `IMMUNE: OFF|ON`, `TAMPERING DETECTED: ocean` (red, only when firing).
+- **Top bar (0–96 px):** left `THOUGHTQUAKE` wordmark (no Twitch logos); centre round label (e.g. "Answer 7 · Explain how to make tea"); right chips: source badge (`LIVE` red / `REPLAY` amber / `SIMULATED ×40` grey outlined), `IMMUNE: OFF|ON`, `TAMPERING DETECTED: ocean` (red, only when firing).
 - **Hero text panel (x 120–1800, y 150–700):** the Subject's answer, 56 px / line-height 1.35, ≤ 5 lines, words appear with a 120 ms fade; each sentence/window coloured by faction (per `colour_source`, never per word; Okabe–Ito palette: #E69F00, #56B4E9, #009E73, #F0E442, #D55E00, #CC79A7, #0072B2) with a 4 px underline whose style (solid / dashed / dotted) also encodes the faction; neutral words `#F5F7FA`. A small legend row beneath: ● Team Ocean ● Team Space.
 - **Mind Share bar (y 740–840):** full-width 1680 px, height 80 px, segments per faction + grey Neutral, 600 ms ease transitions, in-segment text "OCEAN 54 %" (≥ 32 px, auto-hide label if segment < 12 %). A "75 % cap" tick mark.
 - **Lower third (y 880–1040):** left (x 120–1080) Mind-Reader strip chart (stacked area last 60 tokens, ≥ 24 px labels, a vertical "now" cursor); right (x 1120–1800) ticker of the latest 5 pushes: `name → faction` (names taken from Twitch display names; sim names visibly tagged `sim`).
@@ -162,8 +162,8 @@ Design spec for the hero view (the one frame that must be perfect):
 
 ## 16. Recording, replay, offline demo
 - **Recorder:** JSONL, one line per record: `{t, kind: "push"|"frame"|"mode"|"meta", ...}`; `meta` stores config, seeds, model slug, library hash, app version.
-- **Replay:** `mindwars replay file.jsonl` (a) `--engine` re-feeds the recorded pushes through the engine with the recorded seeds (deterministic on the same hardware and model; labelled `REPLAY`), or (b) `--frames` plays back the recorded output frames exactly (needs no model; always reproducible; used for the golden run that judges can run).
-- **Demo mode:** `mindwars demo` → labelled simulated crowd (`sim/crowd.py`): N (default 40) synthetic users with names tagged `sim_*`, each choosing a faction with a seeded script (e.g. waves for Team A then B). Badge `SIMULATED ×N` is mandatory, shown always, and the crowd is off when connected to Twitch unless `--sim` is passed explicitly (then both badges show).
+- **Replay:** `thoughtquake replay file.jsonl` (a) `--engine` re-feeds the recorded pushes through the engine with the recorded seeds (deterministic on the same hardware and model; labelled `REPLAY`), or (b) `--frames` plays back the recorded output frames exactly (needs no model; always reproducible; used for the golden run that judges can run).
+- **Demo mode:** `thoughtquake demo` → labelled simulated crowd (`sim/crowd.py`): N (default 40) synthetic users with names tagged `sim_*`, each choosing a faction with a seeded script (e.g. waves for Team A then B). Badge `SIMULATED ×N` is mandatory, shown always, and the crowd is off when connected to Twitch unless `--sim` is passed explicitly (then both badges show).
 - Golden run files committed under `golden/`: `golden_run.jsonl` (recorded real session on the streamer PC) and `demo_script.json` (seeded sim script).
 
 ## 17. Gates and decision rules

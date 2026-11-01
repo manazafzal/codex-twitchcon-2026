@@ -3,6 +3,6 @@ check:
 	ruff check .
 	pytest -q
 eval:
-	mindwars eval
+	thoughtquake eval
 demo:
-	mindwars demo --mock
+	thoughtquake demo --mock

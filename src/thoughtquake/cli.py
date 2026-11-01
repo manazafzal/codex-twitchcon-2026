@@ -2,15 +2,15 @@ import argparse
 import json
 from pathlib import Path
 
-from mindwars.concepts.builder import build_library
-from mindwars.concepts.library import load_concepts
-from mindwars.engine.generate import Generator
-from mindwars.engine.mixer import Mixer
-from mindwars.model.mock_backend import MockBackend
+from thoughtquake.concepts.builder import build_library
+from thoughtquake.concepts.library import load_concepts
+from thoughtquake.engine.generate import Generator
+from thoughtquake.engine.mixer import Mixer
+from thoughtquake.model.mock_backend import MockBackend
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="MIND WARS thought injection engine (M1)")
+    parser = argparse.ArgumentParser(description="THOUGHTQUAKE thought injection engine (M1)")
     commands = parser.add_subparsers(dest="command", required=True)
     demo = commands.add_parser("demo", help="Emit offline engine events: TINY MODEL / CI")
     demo.add_argument("--mock", action="store_true", help="Use the deterministic offline backend")
@@ -25,7 +25,7 @@ def main(argv: list[str] | None = None) -> None:
             2, "The evaluation harness is outside M1; no quality results have been produced.\n"
         )
     if args.command == "build-library":
-        from mindwars.model.hf_backend import HFBackend
+        from thoughtquake.model.hf_backend import HFBackend
 
         backend = HFBackend()
         build_library(backend, load_concepts(), model_id=backend.model.config._name_or_path).save(

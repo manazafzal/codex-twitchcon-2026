@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import yaml
 
-from mindwars.model.backend import DefendSpec, Vector
+from thoughtquake.model.backend import DefendSpec, Vector
 
 
 def config_hash(config: dict[str, Any]) -> str:

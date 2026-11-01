@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from mindwars.engine.readout import Readout
+from thoughtquake.engine.readout import Readout
 
 
 def test_cosine_margin_and_active_candidates(library):

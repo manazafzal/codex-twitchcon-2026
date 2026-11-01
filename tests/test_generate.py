@@ -4,10 +4,10 @@ import json
 import numpy as np
 import pytest
 
-from mindwars.engine.events import Badge, Mode, Push, Tamper, Tick, Token
-from mindwars.engine.generate import PROMPTS, Generator, readout_allowed
-from mindwars.engine.mixer import FakeClock, Mixer
-from mindwars.model.mock_backend import MockBackend
+from thoughtquake.engine.events import Badge, Mode, Push, Tamper, Tick, Token
+from thoughtquake.engine.generate import PROMPTS, Generator, readout_allowed
+from thoughtquake.engine.mixer import FakeClock, Mixer
+from thoughtquake.model.mock_backend import MockBackend
 
 
 def test_events_and_determinism(library):
@@ -97,7 +97,7 @@ def test_async_stream(library):
 def test_stream_holds_previous_answer_and_uses_single_worker(monkeypatch, library):
     import threading
 
-    from mindwars.engine import generate
+    from thoughtquake.engine import generate
 
     workers = set()
     pauses = []

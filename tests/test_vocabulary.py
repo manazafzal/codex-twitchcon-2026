@@ -2,7 +2,7 @@ import ast
 import re
 from pathlib import Path
 
-from mindwars.cli import main
+from thoughtquake.cli import main
 
 ROOT = Path(__file__).resolve().parents[1]
 

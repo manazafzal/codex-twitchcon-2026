@@ -3,8 +3,8 @@ import math
 import numpy as np
 import pytest
 
-from mindwars.engine.events import Push
-from mindwars.engine.mixer import FakeClock, Mixer
+from thoughtquake.engine.events import Push
+from thoughtquake.engine.mixer import FakeClock, Mixer
 
 
 def push(mixer, clock, user, faction="ocean"):

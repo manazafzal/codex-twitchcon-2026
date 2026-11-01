@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mindwars"
+name = "thoughtquake"
 version = "0.1.0"
-description = "MIND WARS local thought injection engine"
+description = "THOUGHTQUAKE local thought injection engine"
 requires-python = ">=3.11"
 dependencies = ["numpy", "aiohttp", "pyyaml"]
 
@@ -14,13 +14,13 @@ dev = ["pytest", "ruff"]
 model = ["torch", "transformers>=4.46,<5"]
 
 [project.scripts]
-mindwars = "mindwars.cli:main"
+thoughtquake = "thoughtquake.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"mindwars.concepts" = ["concepts.yaml"]
+"thoughtquake.concepts" = ["concepts.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,4 +1,4 @@
-# MIND WARS
+# THOUGHTQUAKE
 
 M1 implements the local thought injection engine and offline test fixtures.
 Twitch and the overlay are reserved for later milestones.
@@ -16,7 +16,7 @@ No synthetic crowd is implemented in M1. These fixtures are **TINY MODEL / CI**;
 they prove plumbing, and provide no model-quality results.
 
 Install `.[dev,model]` to run the optional random-init Tiny Qwen2 tests offline.
-Tests never fetch model weights. `mindwars build-library` explicitly loads the
+Tests never fetch model weights. `thoughtquake build-library` explicitly loads the
 real Qwen2.5 model and generates the contrast sets and neutral calibration data.
 `make eval` is reserved for the later eval milestone and currently exits with an
 explanation. No real-model library or evaluation results are committed.

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from mindwars.model.backend import DefendSpec, Vector
+from thoughtquake.model.backend import DefendSpec, Vector
 
 
 def unit(vector: Vector) -> Vector:

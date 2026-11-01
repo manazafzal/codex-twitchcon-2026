@@ -10,12 +10,12 @@ from typing import Literal
 
 import numpy as np
 
-from mindwars.concepts.library import ConceptLibrary
-from mindwars.engine.events import Badge, Event, Mode, Push, Tamper, Token
-from mindwars.engine.immune import ImmuneMonitor
-from mindwars.engine.mixer import NEUTRAL, Mixer
-from mindwars.engine.readout import Readout
-from mindwars.model.backend import ModelBackend
+from thoughtquake.concepts.library import ConceptLibrary
+from thoughtquake.engine.events import Badge, Event, Mode, Push, Tamper, Token
+from thoughtquake.engine.immune import ImmuneMonitor
+from thoughtquake.engine.mixer import NEUTRAL, Mixer
+from thoughtquake.engine.readout import Readout
+from thoughtquake.model.backend import ModelBackend
 
 PROMPTS = (
     "Explain how to make tea.",

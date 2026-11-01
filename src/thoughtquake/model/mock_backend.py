@@ -2,8 +2,8 @@ import hashlib
 
 import numpy as np
 
-from mindwars.engine.immune import clamp
-from mindwars.model.backend import DefendSpec, State, Vector, sample
+from thoughtquake.engine.immune import clamp
+from thoughtquake.model.backend import DefendSpec, State, Vector, sample
 
 
 class MockBackend:

@@ -3,7 +3,7 @@ import importlib.util
 import numpy as np
 import pytest
 
-from mindwars.model.backend import DefendSpec
+from thoughtquake.model.backend import DefendSpec
 
 pytestmark = pytest.mark.skipif(
     importlib.util.find_spec("torch") is None or importlib.util.find_spec("transformers") is None,
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture
 def backend():
-    from mindwars.model.tiny_backend import TinyBackend
+    from thoughtquake.model.tiny_backend import TinyBackend
 
     return TinyBackend(seed=7)
 

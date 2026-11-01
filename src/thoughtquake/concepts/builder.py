@@ -2,9 +2,9 @@ from typing import Any
 
 import numpy as np
 
-from mindwars.concepts.library import Concept, ConceptLibrary
-from mindwars.engine.immune import unit
-from mindwars.model.backend import ModelBackend, Vector
+from thoughtquake.concepts.library import Concept, ConceptLibrary
+from thoughtquake.engine.immune import unit
+from thoughtquake.model.backend import ModelBackend, Vector
 
 
 def generate_text(

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from mindwars.concepts.library import Concept, ConceptLibrary
+from thoughtquake.concepts.library import Concept, ConceptLibrary
 
 
 @pytest.fixture
