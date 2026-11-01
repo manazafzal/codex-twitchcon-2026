@@ -1,0 +1,43 @@
+$ErrorActionPreference = 'Stop'
+Set-Location (Split-Path $PSScriptRoot -Parent)
+$Log = Join-Path $PWD '.nous-setup.log'
+function Run-Checked {
+    param([string]$Program, [string[]]$Arguments)
+    & $Program @Arguments *>> $Log
+    if ($LASTEXITCODE -ne 0) { throw 'That step did not finish. Check your internet connection and try setup.bat again.' }
+}
+try {
+    Write-Host 'Finding Python, the helper that runs NOUS...'
+    $Launcher = Get-Command py -ErrorAction SilentlyContinue
+    if ($Launcher) {
+        & $Launcher.Source -3.11 -c "import sys; assert sys.version_info >= (3,11)" 2>$null
+        if ($LASTEXITCODE -ne 0) { $Launcher = $null }
+    }
+    if (-not $Launcher) {
+        $Winget = Get-Command winget -ErrorAction SilentlyContinue
+        if (-not $Winget) { throw 'Install Python 3.11 from python.org/downloads/windows, then double-click setup.bat again. Tick Add Python to PATH during installation.' }
+        Write-Host 'Installing Python. Windows may ask you to allow this...'
+        Run-Checked $Winget.Source @('install','--id','Python.Python.3.11','--exact','--scope','user','--silent','--accept-source-agreements','--accept-package-agreements')
+        $Python = Join-Path $env:LOCALAPPDATA 'Programs\Python\Python311\python.exe'
+        if (-not (Test-Path $Python)) { throw 'Python has installed. Close this window and double-click setup.bat once more.' }
+        Run-Checked $Python @('-m','venv','.venv')
+    } else {
+        Run-Checked $Launcher.Source @('-3.11','-m','venv','.venv')
+    }
+    $Python = Join-Path $PWD '.venv\Scripts\python.exe'
+    Write-Host 'Installing the helper tools. The first setup takes a few minutes...'
+    Run-Checked $Python @('-m','pip','install','--upgrade','pip')
+    Run-Checked $Python @('-m','pip','install','--prefer-binary','-e','.[model]')
+    Write-Host 'Downloading the AI brain (about 1 GB)...'
+    & $Python -m nous.install *>> $Log
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host 'The AI download paused. You can still try the recorded demo. Run setup.bat again later to retry.' -ForegroundColor Yellow
+    }
+    Write-Host 'Ready! Opening NOUS in your browser. Keep this window open while you play.' -ForegroundColor Green
+    Run-Checked $Python @('-m','nous.cli','start')
+} catch {
+    Write-Host ''
+    Write-Host ('We hit a snag: ' + $_.Exception.Message) -ForegroundColor Yellow
+    Write-Host 'You can safely run setup.bat again. Your saved scores will stay here. Details are in .nous-setup.log.'
+    exit 1
+}

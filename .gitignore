@@ -15,3 +15,5 @@ results/*.tmp
 
 .mypy_cache/
 **/readout-training.npz
+
+.nous-setup.log

@@ -15,4 +15,11 @@ class Rank:
     user_id: str
 
 
-Command: TypeAlias = Push | SetMode | Control | Guess | Rank
+@dataclass(frozen=True)
+class StartRound:
+    user: str = "broadcaster"
+    user_id: str | None = None
+    source: str = "LOCAL"
+
+
+Command: TypeAlias = Push | SetMode | Control | Guess | Rank | StartRound

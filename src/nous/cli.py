@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="NOUS local thought injection game")
     commands = parser.add_subparsers(dest="command", required=True)
+    start = commands.add_parser("start", help="Open the welcome screen")
     demo = commands.add_parser("demo", help="Serve the offline simulated crowd and overlay")
     demo.add_argument(
         "--mock", action="store_true", help="Use deterministic TINY MODEL / CI output"
@@ -61,7 +62,7 @@ def main(argv: list[str] | None = None) -> None:
         configured.add_argument(
             "--schedule-mode", choices=("answer", "sentence", "token"), default="answer"
         )
-    for serve in (demo, replay, run):
+    for serve in (start, demo, replay, run):
         serve.add_argument(
             "--eval-file", type=Path, help="Real-model evidence required for Mind-Reader colours"
         )
@@ -202,6 +203,13 @@ def main(argv: list[str] | None = None) -> None:
             return
         except (OSError, ValueError, ImportError) as exc:
             parser.exit(1, f"Offline evaluation unavailable: {exc}\n")
+    if args.command == "start" or (
+        args.command == "demo" and not args.mock and not args.script and not args.record
+    ):
+        from nous.server.experience import serve
+
+        serve(args, welcome=args.command == "start")
+        return
     client_id = os.getenv("NOUS_TWITCH_CLIENT_ID", "")
     if args.command in {"auth", "run"} and not client_id:
         parser.error("Set NOUS_TWITCH_CLIENT_ID to your Public app's client ID")
@@ -268,6 +276,7 @@ def main(argv: list[str] | None = None) -> None:
             concepts=session.library.concepts,
             switch_mode=session.switch_mode,
             set_immune=session.set_immune,
+            start_round=session.start_round,
             leaderboard=session.scoring.board,
             control_token=token,
         )
@@ -299,6 +308,7 @@ def main(argv: list[str] | None = None) -> None:
             control_token=token,
             switch_mode=session.switch_mode,
             set_immune=session.set_immune,
+            start_round=session.start_round,
             leaderboard=session.scoring.board,
         )
     else:

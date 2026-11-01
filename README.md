@@ -1,18 +1,37 @@
-# NOUS
+# Quick start in 3 steps
 
-Nous is the Greek word for mind: chat reaches into a mind, and the mind defends itself.
+1. **[Download NOUS](https://github.com/manazafzal/codex-twitchcon-2026/archive/refs/heads/main.zip)** and choose **Extract all**. Open the extracted folder.
+2. **Double-click `setup.bat`.** It installs the helpers, downloads the small AI, and opens NOUS in your browser. Keep its window open while you play. Internet is needed for this first setup.
+3. **Click “Try the demo”.** Watch a full round in under 30 seconds. No Twitch login needed. If the AI isn't ready, NOUS clearly shows a recorded round with pretend chat.
 
-Chat factions contest the Subject's mind territory, watched by a Mind-Reader
-and a Neural Immune System. M1–M4 provide the local engine, browser overlay, labelled offline crowd,
-recording, replay, and Twitch Device Code / EventSub integration.
+## Meet NOUS
+
+Chat tries to make an AI think about a team's idea. The AI tries to stay on task. Guess its hidden thought to win points. **NOUS** is the Greek word for mind.
+
+In Twitch chat: **`!join`** picks your team, **`!push word`** backs an idea, **`!guess word`** makes a guess, and **`!rank`** shows your score. Ordinary team words or team emotes count a little too. Your first contribution gets a friendly welcome; repeated messages cannot win extra points.
+
+## Connect your Twitch
+
+Choose **Connect my Twitch** on the welcome screen and follow the three ticked steps. Twitch requires a free Public app code; the screen links to its registration page and shows where to copy it. NOUS then opens Twitch sign-in, checks your channel, and prepares the local AI. No config files to edit. First-time AI preparation can take several minutes; the recording is ready while you wait.
+
+Open **controls** to start a round with a button or **R**. Streamers and moderators can also type **`!round`** or **`!immune on`**. Add the game's **`/overlay/`** address to OBS at **1920 × 1080**. Keep the private welcome/control address to yourself.
+
+If setup pauses, check your internet and double-click `setup.bat` again. Scores are saved locally. If the AI download pauses, you can still use the recording. On a PC without the Windows app installer, setup explains how to install Python and retry.
+
+## Developers and other systems
 
 ```sh
 python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
+nous start          # Welcome screen
+nous demo           # Offline recorded demo; no model or Twitch needed
 make check
-nous demo --mock
 ```
+
+`setup.bat` is for Windows. The commands above work on Linux/macOS too. Model downloads happen only in explicit setup (`python -m nous.install`), never as a side effect of opening the recorded demo.
+
+## Engine and advanced controls
 
 Open **http://127.0.0.1:8080/** for the overlay, or
 **http://127.0.0.1:8080/fixture.html** for the development hero view when
@@ -22,8 +41,8 @@ Append `?bg=transparent` for OBS. The canvas scales from 1920×1080.
 
 Every demo is labelled **SIMULATED ×40** and **TINY MODEL / CI**. Mock text is
 scripted to test presentation; its vectors and scores are test fixtures, not
-model-quality evidence. `nous demo` uses random-init Tiny Qwen2 when the
-optional model dependencies are installed, otherwise the mock. Neither downloads
+model-quality evidence. `nous demo --mock` explicitly uses the deterministic development engine.
+The default `nous demo` uses the shipped recording. Neither downloads
 weights. Install `.[dev,model]` for Tiny tests; tests allow only local loopback sockets.
 
 `--users N`, `--script golden/demo_script.json`, `--port 8080`, and `--no-browser`

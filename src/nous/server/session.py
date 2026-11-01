@@ -13,7 +13,7 @@ from typing import Any, Literal
 import numpy as np
 
 from nous.concepts.library import ConceptLibrary, load_concepts, match_concept
-from nous.engine.commands import Command, Rank, SetMode
+from nous.engine.commands import Command, Rank, SetMode, StartRound
 from nous.engine.events import (
     Badge,
     Connection,
@@ -122,6 +122,9 @@ class Session:
             raise ValueError("Unknown mode")
         self.pending.put_nowait(SetMode(mode))
 
+    def start_round(self) -> None:
+        self.pending.put_nowait(StartRound())
+
     def set_immune(self, enabled: bool) -> None:
         self.pending.put_nowait(Control(enabled, self.now(), "LOCAL"))
 
@@ -208,6 +211,27 @@ class Session:
         guessing_batch = self.telepathy.phase == Phase.GUESSING and not self._revealed
         while not self.pending.empty():
             item = self.pending.get_nowait()
+            if isinstance(item, StartRound):
+                if self.telepathy.phase == Phase.IDLE:
+                    self.mode = "telepathy"
+                    accepted.append(
+                        Round(
+                            self.current_mode,
+                            "notice",
+                            self.engine.answer_index,
+                            "New round starting! Get ready to guess.",
+                        )
+                    )
+                else:
+                    accepted.append(
+                        Round(
+                            self.current_mode,
+                            "notice",
+                            self.engine.answer_index,
+                            "A round is already running. Try !guess <word>.",
+                        )
+                    )
+                continue
             if isinstance(item, SetMode):
                 self.mode = item.mode
                 continue

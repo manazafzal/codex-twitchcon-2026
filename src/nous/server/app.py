@@ -29,7 +29,9 @@ class Server:
         switch_mode: Callable[[str], None] | None = None,
         set_immune: Callable[[bool], None] | None = None,
         leaderboard: Leaderboard | None = None,
+        start_round: Callable[[], None] | None = None,
     ) -> None:
+        self.start_round = start_round
         self.state = ViewState(concepts)
         self.leaderboard = leaderboard
         self.control_token = control_token or secrets.token_urlsafe(32)
@@ -124,7 +126,17 @@ class Server:
         except ValueError:
             local = False
         auth = request.headers.get("Authorization", "")
-        supplied = auth[7:] if auth.startswith("Bearer ") else ""
+        supplied = (
+            auth[7:] if auth.startswith("Bearer ") else request.cookies.get("nous_control", "")
+        )
+        if not auth.startswith("Bearer "):
+            if request.headers.get("Sec-Fetch-Site") == "cross-site":
+                raise web.HTTPForbidden(text="Open this page directly in NOUS.")
+            if (
+                request.method not in {"GET", "HEAD"}
+                and request.headers.get("Origin") != f"{request.scheme}://{request.host}"
+            ):
+                raise web.HTTPForbidden(text="Use the controls in your NOUS window.")
         if not local or not secrets.compare_digest(supplied, self.control_token):
             raise web.HTTPForbidden(text="Local broadcaster token required")
 
@@ -156,6 +168,13 @@ class Server:
         self.set_immune(enabled)
         return web.json_response({"enabled": enabled, "status": "queued"}, status=202)
 
+    async def api_round(self, request: web.Request) -> web.Response:
+        self.authorize(request)
+        if self.start_round is None:
+            raise web.HTTPConflict(text="Open a demo or live game first.")
+        self.start_round()
+        return web.json_response({"status": "queued"}, status=202)
+
 
 def create_app(
     *,
@@ -165,6 +184,7 @@ def create_app(
     switch_mode: Callable[[str], None] | None = None,
     set_immune: Callable[[bool], None] | None = None,
     leaderboard: Leaderboard | None = None,
+    start_round: Callable[[], None] | None = None,
 ) -> web.Application:
     server = Server(
         concepts=concepts,
@@ -172,6 +192,7 @@ def create_app(
         switch_mode=switch_mode,
         set_immune=set_immune,
         leaderboard=leaderboard,
+        start_round=start_round,
     )
     app = web.Application(client_max_size=4096)
     app[APP_KEY] = server
@@ -180,6 +201,7 @@ def create_app(
     app.router.add_get("/api/leaderboard", server.api_leaderboard)
     app.router.add_post("/api/mode", server.api_mode)
     app.router.add_post("/api/immune", server.api_immune)
+    app.router.add_post("/api/round", server.api_round)
     overlay = files("nous.overlay")
 
     async def asset(request: web.Request) -> web.StreamResponse:
@@ -203,6 +225,9 @@ def create_app(
             "fixture.js",
             "control.html",
             "control.js",
+            "welcome.html",
+            "welcome.js",
+            "welcome.css",
         }:
             raise web.HTTPNotFound()
         return web.FileResponse(str(overlay.joinpath(name)))

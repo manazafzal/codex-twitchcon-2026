@@ -54,7 +54,10 @@ class TokenStore:
         temporary = Path(name)
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as handle:
-                os.fchmod(handle.fileno(), 0o600)
+                if hasattr(os, "fchmod"):
+                    os.fchmod(handle.fileno(), 0o600)
+                else:
+                    os.chmod(temporary, 0o600)
                 json.dump(asdict(token), handle)
                 handle.flush()
                 os.fsync(handle.fileno())

@@ -6,8 +6,8 @@ h1 { color: #56B4E9; } input, button { font: inherit; padding: 12px; margin: 6px
 input { width: calc(100% - 40px); } button { cursor: pointer; } #status { min-height: 60px; }
 </style><script defer src="control.js"></script></head>
 <body><h1>NOUS</h1><p>Broadcaster controls · paste the random token printed in this run's console. The token stays in this page's memory.</p>
-<label>Control token <input id="token" type="password" autocomplete="off" spellcheck="false"></label>
-<p>Switch rounds after the current answer:</p><nav><button data-mode="war">War</button><button data-mode="attack">Attack</button><button data-mode="telepathy">Telepathy</button></nav>
+<label id="token-entry">Control token <input id="token" type="password" autocomplete="off" spellcheck="false"></label>
+<button id="round">Start a round (R)</button><p>Choose a game:</p><nav><button data-mode="war">War</button><button data-mode="attack">Attack</button><button data-mode="telepathy">Telepathy</button></nav>
 <p>Neural Immune System</p><button id="immune-on">IMMUNE: ON</button><button id="immune-off">IMMUNE: OFF</button>
-<p>Hotkey: press <b>I</b> here to toggle immune after entering the token. Comparison and secret rounds retain their prescribed settings; changes take effect in War.</p>
+<p>Hotkeys: <b>R</b> starts a round. Press <b>I</b> here to toggle immune after entering the token. Comparison and secret rounds retain their prescribed settings; changes take effect in War.</p>
 <p id="status" role="status">Ready.</p><a href="/" style="color:#56B4E9">Open overlay</a></body></html>

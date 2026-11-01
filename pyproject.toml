@@ -22,7 +22,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 "nous.concepts" = ["concepts.yaml"]
 "nous.overlay" = ["*.html", "*.css", "*.js", "fonts/*.ttf", "fonts/*.txt"]
-"nous.sim" = ["demo_script.json"]
+"nous.sim" = ["demo_script.json", "demo_round.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
