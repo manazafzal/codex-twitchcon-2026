@@ -1,0 +1,49 @@
+{
+  "war": {
+    "renderer": "gl",
+    "white_fraction": 0.0015219907407407406,
+    "console_errors": 0
+  },
+  "attack": {
+    "renderer": "gl",
+    "white_fraction": 0.0020476466049382715,
+    "console_errors": 0
+  },
+  "immune": {
+    "renderer": "gl",
+    "white_fraction": 0.0029605516975308643,
+    "console_errors": 0
+  },
+  "telepathy": {
+    "renderer": "gl",
+    "white_fraction": 0.0018484760802469137,
+    "console_errors": 0
+  },
+  "reveal": {
+    "renderer": "gl",
+    "white_fraction": 0.0006732253086419753,
+    "console_errors": 0
+  },
+  "performance": {
+    "frames": 120,
+    "mean_ms": 732.1933333333334,
+    "fps": 1.3657594988573145,
+    "p95_ms": 1350.7350000000013,
+    "wall_seconds": 87.88041013600014,
+    "stats": {
+      "renderer": "gl",
+      "scale": 0.5,
+      "meanFrameMs": 709.6491935483871,
+      "frames": 124,
+      "stars": 30,
+      "time": 87.99649999999998,
+      "queuedWords": 0
+    }
+  },
+  "transparent": {
+    "fraction_alpha_below_255": 0.9383424961419753
+  },
+  "quarter": {
+    "left_column_contrast_ratio": 4.789214265147968
+  }
+}

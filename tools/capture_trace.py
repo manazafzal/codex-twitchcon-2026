@@ -1,5 +1,6 @@
 """Record actual backend states for development scenes, with explicit provenance."""
 
+import copy
 import json
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -35,7 +36,11 @@ def capture(backend, library):
         ]
         frames.extend(Push(f"sim_{i:03}", library.ids[i % 3], 0, "SIMULATED") for i in range(5))
         panels = ("off", "on") if name in ("attack", "immune") else ("main",)
+        answer = engine.answer_index
+        rng_state = copy.deepcopy(engine.rng.bit_generator.state)
         for panel in panels:
+            engine.answer_index = answer
+            engine.rng.bit_generator.state = copy.deepcopy(rng_state)
             if name != "war":
                 engine.mixer = FixedInjection(mixer, library.ids[0])
             engine.immune = panel == "on"

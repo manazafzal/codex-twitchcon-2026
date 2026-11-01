@@ -12,6 +12,7 @@ import numpy as np
 from tools.overlay_browser import CHROME, Browser, fixture_environment, pixels
 
 SCENES = ("war", "attack", "immune", "telepathy", "reveal")
+SCENE_TIMES = {"attack": 3.5, "reveal": 8.5}
 
 
 async def advance(browser, seconds):
@@ -25,7 +26,7 @@ async def measure(output):
     results = {}
     for scene in SCENES:
         async with Browser(f"manual&scale=.5&scene={scene}") as browser:
-            await advance(browser, 8.5 if scene == "reveal" else 10)
+            await advance(browser, SCENE_TIMES.get(scene, 10))
             png = await browser.screenshot()
             (output / f"{scene}.png").write_bytes(png)
             image = pixels(png)

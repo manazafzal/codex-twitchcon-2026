@@ -78,7 +78,7 @@
     }
     event(event){
       if(event.kind==="layout")this.layout(event);
-      if(event.kind==="snapshot"){this.catalog=new Map(event.state.concepts.map(c=>[c.id,c]));if(event.state.layout)this.layout(event.state.layout);this.event(event.state.mode);this.event(event.state.tick);for(const token of event.state.tokens)this.event(token);}
+      if(event.kind==="snapshot"){if(this.trail.length){this.trail=[];this.rings=[];this.shocks=[];}this.catalog=new Map(event.state.concepts.map(c=>[c.id,c]));if(event.state.layout)this.layout(event.state.layout);this.event(event.state.mode);this.event(event.state.tick);for(const token of event.state.tokens)this.event(token);}
       if(event.kind==="tick"){this.shares=event.shares;this.beta=event.beta;const leader=Object.keys(this.shares).filter(k=>k!=="Neutral").sort((a,b)=>this.shares[b]-this.shares[a]||a.localeCompare(b))[0];
         if(this.lastLeader&&leader!==this.lastLeader)this.shocks.push({x:this.head.x,y:this.head.y,born:this.t,amp:.45,type:"leader"});this.lastLeader=leader;
         for(const s of this.stars)s.pressure=(this.shares[s.id]||0)*this.beta;}

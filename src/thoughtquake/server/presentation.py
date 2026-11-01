@@ -27,6 +27,16 @@ class Presentation:
         self.alias = {}
         self.round_id = None
 
+    def opaque(self, key: str) -> str:
+        if key in self.alias:
+            return key
+        return hmac.new(self.secret, f"{self.round_id}:{key}".encode(), hashlib.sha256).hexdigest()[
+            :16
+        ]
+
+    def mask_ids(self) -> None:
+        self.alias = {self.opaque(key): key for key in self.points}
+
     def layout(self) -> Layout:
         if not self.alias:
             return Layout(self.points)
@@ -46,6 +56,8 @@ class Presentation:
     def event(self, event: Event) -> Event:
         if isinstance(event, Layout):
             self.points = event.points
+            if self.blind and not self.alias:
+                self.mask_ids()
             return self.layout()
         if isinstance(event, Snapshot):
             data = deepcopy(event.state)
@@ -69,12 +81,7 @@ class Presentation:
             self.blind = event.mode == "telepathy" and event.phase != "reveal"
             if self.blind and (not self.alias or self.round_id != event.round_id):
                 self.round_id = event.round_id
-                self.alias = {
-                    hmac.new(
-                        self.secret, f"{event.round_id}:{key}".encode(), hashlib.sha256
-                    ).hexdigest()[:16]: key
-                    for key in self.points
-                }
+                self.mask_ids()
             elif event.mode != "telepathy":
                 self.alias = {}
             if self.blind:
@@ -87,10 +94,12 @@ class Presentation:
                     probe_top=None,
                 )
         if self.blind and isinstance(event, Tick):
-            inverse = {value: key for key, value in self.alias.items()}
             return replace(
                 event,
-                shares={inverse.get(key, key): value for key, value in event.shares.items()},
+                shares={
+                    key if key == "Neutral" else self.opaque(key): value
+                    for key, value in event.shares.items()
+                },
                 top_pushers=[],
             )
         if self.blind and isinstance(event, Token):
@@ -106,9 +115,8 @@ class Presentation:
             )
             sky = deepcopy(event.sky)
             if sky:
-                inverse = {value: key for key, value in self.alias.items()}
                 for field in ("z", "pulse"):
-                    sky[field] = {inverse.get(key, key): value for key, value in sky[field].items()}
+                    sky[field] = {self.opaque(key): value for key, value in sky[field].items()}
             return replace(
                 event,
                 sky=sky,

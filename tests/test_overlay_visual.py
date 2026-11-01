@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from tools.film import film
-from tools.measure_overlay import SCENES, advance
+from tools.measure_overlay import SCENE_TIMES, SCENES, advance
 from tools.overlay_browser import CHROME, Browser, pixels
 
 pytestmark = pytest.mark.skipif(not CHROME, reason="Chrome is not installed; no downloads")
@@ -18,7 +18,7 @@ def test_scenes_console_labels_and_luminance(scene, monkeypatch):
 
     async def run():
         async with Browser(f"manual&scale=.5&scene={scene}") as browser:
-            await advance(browser, 8.5 if scene == "reveal" else 10)
+            await advance(browser, SCENE_TIMES.get(scene, 10))
             image = pixels(await browser.screenshot())
             assert np.all(image[:, :, :3] >= 250, axis=2).mean() <= 0.005
             assert await browser.evaluate("document.getElementById('stage').dataset.renderer") in (
@@ -46,6 +46,9 @@ def test_scenes_console_labels_and_luminance(scene, monkeypatch):
                 assert not await browser.evaluate(
                     "/[a-f0-9]{16}/i.test(document.getElementById('share-legend').textContent)"
                 )
+            assert await browser.evaluate(
+                "(()=>{const a=document.getElementById('history').getBoundingClientRect(),b=document.getElementById('sky-caption').getBoundingClientRect();return a.right<=b.left||a.left>=b.right||a.bottom<=b.top||a.top>=b.bottom;})()"
+            )
             assert not browser.errors
 
     asyncio.run(run())
@@ -133,6 +136,9 @@ def test_virtual_timers_and_full_long_names(monkeypatch):
             )
             assert float(final.rstrip("%")) == pytest.approx(70)
             assert await browser.evaluate(
+                "ThoughtquakeOverlay.dispatch({kind:'badge',label:'LIVE',quality:null,simulated_users:40});document.getElementById('source').textContent==='LIVE'&&!document.getElementById('sim-source').hidden&&document.getElementById('sim-source').textContent==='SIMULATED ×40'"
+            )
+            assert await browser.evaluate(
                 "ThoughtquakeOverlay.dispatch({kind:'connection',service:'twitch',state:'reconnecting'});!document.getElementById('connection').hidden"
             )
             assert await browser.evaluate(
@@ -140,6 +146,9 @@ def test_virtual_timers_and_full_long_names(monkeypatch):
             )
             assert await browser.evaluate(
                 "ThoughtquakeOverlay.step(20);ThoughtquakeOverlay.dispatch({kind:'mode',mode:'war',immune:false,prompt:'Make tea.',answer:999,phase:'generating',panel:'main'});ThoughtquakeOverlay.step(.7);document.getElementById('answer').classList.contains('thinking')"
+            )
+            assert await browser.evaluate(
+                "(()=>{const ui=ThoughtquakeOverlay,frame=THOUGHTQUAKE_TRACES.mock.war[0];ui.dispatch(frame);ui.step(1);const once=document.getElementById('answer').textContent;ui.dispatch(frame);ui.step(1);return document.getElementById('answer').textContent===once;})()"
             )
             assert not browser.errors
 

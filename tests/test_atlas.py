@@ -81,6 +81,24 @@ def test_blind_sky_and_snapshot_do_not_reveal_identity():
     revealed = public.layout()
     assert set(revealed.alias) == set(blind.points)
     assert {key: points[value] for key, value in revealed.alias.items()} == revealed.points
+    late = Presentation()
+    late.event(Mode("telepathy", False, "Tea", 1, round_id=7))
+    early_token = late.event(
+        Token(
+            0,
+            "tea",
+            None,
+            {"scores": dict.fromkeys(library.ids, 0.2), "top": None, "margin": 0},
+            None,
+            signal,
+        )
+    )
+    assert not set(points).intersection(early_token.sky["z"])
+    delayed_layout = late.event(Layout(points))
+    assert set(early_token.sky["z"]) == set(delayed_layout.points)
+    assert not set(points).intersection(delayed_layout.points)
+    assert len(delayed_layout.points) == len(points)
+    assert not delayed_layout.alias
 
 
 def test_fixtures_are_opt_in_and_fonts_are_allowlisted(monkeypatch):
