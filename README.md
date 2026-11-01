@@ -155,3 +155,9 @@ No lead-time claim is made. Real-model quality, coherence, and throughput remain
 unverified; fixture output retains its **TINY MODEL / CI** label.
 
 Research write-up: [plain-English paper and evidence](docs/paper.md), [registered hypotheses](docs/hypotheses.md) and [reproduction commands](.codex/skills/nous-research/SKILL.md). Rows marked unrun are unavailable evidence, not measured effects.
+
+## How we built this with Codex
+
+We built NOUS milestone by milestone in one shared Codex thread. Codex wrote the engine, eval CLI, ablation runner, table and figure generator, concept builder and every test. We used git commits, executable checks and saved logs to track what worked, what failed and what still needs a real machine or trained model.
+
+Our [build story](docs/BUILT_WITH_CODEX.md) links each prompt to its implementation, tests, fixes and commits, including the usage-limit pauses. The [topic-builder guide](docs/topic-builder.md) explains the optional `!propose word` command, strict admission checks and honest pack rejections. The beginner quick start above stays the same.
