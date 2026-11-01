@@ -4,7 +4,8 @@ from collections.abc import Callable
 from typing import Any
 
 from nous.concepts.library import Concept, match_concept
-from nous.engine.commands import Rank, StartRound
+from nous.concepts.policy import validate_name
+from nous.engine.commands import Propose, Rank, StartRound
 from nous.engine.events import Control, Guess, Push
 
 TEAM_EMOTES = {
@@ -63,7 +64,9 @@ class ChatParser:
         self.participant: tuple[str, str, str] | None = None
         self.seen: OrderedDict[str, None] = OrderedDict()
 
-    def parse(self, message: dict[str, Any]) -> Push | Guess | Control | Rank | StartRound | None:
+    def parse(
+        self, message: dict[str, Any]
+    ) -> Push | Guess | Control | Rank | StartRound | Propose | None:
         self.passive = False
         self.participant = None
         if message.get("metadata", {}).get("message_type") != "notification":
@@ -105,9 +108,16 @@ class ChatParser:
                 return StartRound(name, user_id, "LIVE")
             return None
         if user_id == self.bot_id and (
-            user_id != self.broadcaster_id or command not in {"!join", "!push", "!guess", "!rank"}
+            user_id != self.broadcaster_id
+            or command not in {"!join", "!push", "!guess", "!rank", "!propose"}
         ):
             return None
+        if command == "!propose":
+            try:
+                topic = validate_name(argument, chat=True)
+            except ValueError:
+                return None
+            return Propose(topic, name, user_id)
         if command == "!rank":
             return Rank(name, user_id)
         if command == "!guess":

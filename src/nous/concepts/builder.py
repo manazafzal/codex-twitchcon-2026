@@ -216,6 +216,21 @@ def build_library(
         "readout_calibration_seed": calibration_seed,
     }
     texts = [row[0] for group in sets for row in group] + [row[0] for row in neutral]
+    origins = {
+        concept.id: {
+            "texts": [row[0] for row in group],
+            "seed": seed,
+            "sequence_offset": i * samples,
+            "model": model_id,
+            "source": "from-model",
+            "texts_hash": config_hash_texts([row[0] for row in group]),
+            "raw_means": {
+                str(layer): np.concatenate([row[1][layer] for row in group]).mean(axis=0).tolist()
+                for layer in {backend.injection_layer, backend.readout_layer}
+            },
+        }
+        for i, (concept, group) in enumerate(zip(concepts, sets, strict=True))
+    }
     library = ConceptLibrary(
         concepts,
         V,
@@ -226,6 +241,7 @@ def build_library(
         projections.mean(axis=0),
         np.maximum(projections.std(axis=0), 1e-6),
         provenance={
+            "concept_origins": origins,
             "git_hash": git_revision(),
             "texts_hash": config_hash_texts(texts),
             "calibration_text_hashes": [text_hash(row[0]) for row in neutral],

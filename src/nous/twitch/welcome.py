@@ -12,12 +12,15 @@ class Welcomes:
         self, concepts: list[Concept], *, clock: Callable[[], float] = time.monotonic
     ) -> None:
         self.clock = clock
-        self.labels = {c.id: c.label for c in concepts}
-        self.patterns = [concept_pattern(c, stems=True) for c in concepts]
+        self.update_concepts(concepts)
         self.seen: OrderedDict[str, None] = OrderedDict()
         self.pending: deque[tuple[str, str]] = deque()
         self.last = float("-inf")
         self.variant = 0
+
+    def update_concepts(self, concepts: list[Concept]) -> None:
+        self.labels = {c.id: c.label for c in concepts}
+        self.patterns = [concept_pattern(c, stems=True) for c in concepts]
 
     def offer(self, user_id: str, name: str, team: str) -> None:
         if user_id in self.seen or len(self.pending) >= 8:

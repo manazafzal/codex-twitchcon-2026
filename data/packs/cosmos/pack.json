@@ -1,0 +1,55 @@
+{
+  "name": "cosmos",
+  "seed": 0,
+  "concepts": [
+    {
+      "name": "aurora",
+      "status": "rejected",
+      "report": "aurora/quality.json",
+      "quality_hash": "eda87a001160315e8c20091122699595117fc54bc939452f45fd94858ff73f61"
+    },
+    {
+      "name": "comet",
+      "status": "rejected",
+      "report": "comet/quality.json",
+      "quality_hash": "e1d40881eccd6b27b6c360a75357849024935142db88844e5a427775ccd590cc"
+    },
+    {
+      "name": "nebula",
+      "status": "rejected",
+      "report": "nebula/quality.json",
+      "quality_hash": "db26dae31a566fb8b91539fe81249056b15788f3f9278b63fe6ee3cd5fa1e503"
+    },
+    {
+      "name": "eclipse",
+      "status": "rejected",
+      "report": "eclipse/quality.json",
+      "quality_hash": "487ba27b366ea76136bd13c3a127d0e7c92f2c13d6559f36cd4eba676882f987"
+    },
+    {
+      "name": "telescope",
+      "status": "rejected",
+      "report": "telescope/quality.json",
+      "quality_hash": "3c5cf5cf67bb3ed526d90e9ba95d7e3f0fdaad48a3418419502d95c0b9ee7dc3"
+    },
+    {
+      "name": "orbit",
+      "status": "rejected",
+      "report": "orbit/quality.json",
+      "quality_hash": "1dde6c3a7ac5d7ff133782ea623ee63a0feb44adee26101b8ae6cd706b6afebe"
+    },
+    {
+      "name": "galaxy",
+      "status": "rejected",
+      "report": "galaxy/quality.json",
+      "quality_hash": "f415cecfaf547456be68f23411acdff185cb3d3910019e9cc984fb74e49d6f73"
+    },
+    {
+      "name": "meteor",
+      "status": "rejected",
+      "report": "meteor/quality.json",
+      "quality_hash": "5d9369b8095614913525af899a63c01bd51da069289e46f9137da994eb25f47f"
+    }
+  ],
+  "pack_hash": "0769e84f2f2377e7cf50c4bfd75f87c745dc88ca99018b230409d220c773896e"
+}

@@ -1,0 +1,45 @@
+{
+  "name": "soup",
+  "status": "rejected",
+  "source": "unavailable",
+  "origin": {
+    "source": "from-model",
+    "requested_count": 24,
+    "texts": [],
+    "seed": 0,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "status": "unrun",
+    "texts_hash": null
+  },
+  "reasons": [
+    "Local trained weights and a verified base library are unavailable"
+  ],
+  "checks": {
+    "heldout_top1": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.8
+    },
+    "max_cosine": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    },
+    "injection_gain": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.1
+    },
+    "task_kept": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    }
+  },
+  "pack": "kitchen",
+  "report_hash": "7421412a0a635199829d28bf7896fe8456b0aa15e89c903c91ab795b89390018"
+}

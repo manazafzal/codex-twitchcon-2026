@@ -1,0 +1,45 @@
+{
+  "name": "griffin",
+  "status": "rejected",
+  "source": "unavailable",
+  "origin": {
+    "source": "from-model",
+    "requested_count": 24,
+    "texts": [],
+    "seed": 0,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "status": "unrun",
+    "texts_hash": null
+  },
+  "reasons": [
+    "Local trained weights and a verified base library are unavailable"
+  ],
+  "checks": {
+    "heldout_top1": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.8
+    },
+    "max_cosine": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    },
+    "injection_gain": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.1
+    },
+    "task_kept": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    }
+  },
+  "pack": "mythic",
+  "report_hash": "e830213c3c75ff4ffdaea28c1257833e92f3fc1d264a17c8b6a8c815974f9585"
+}

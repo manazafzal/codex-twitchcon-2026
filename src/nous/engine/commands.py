@@ -28,4 +28,11 @@ class Participation:
     passive: bool = True
 
 
-Command: TypeAlias = Push | SetMode | Control | Guess | Rank | StartRound | Participation
+@dataclass(frozen=True)
+class Propose:
+    name: str
+    user: str
+    user_id: str
+
+
+Command: TypeAlias = Propose | Push | SetMode | Control | Guess | Rank | StartRound | Participation

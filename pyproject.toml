@@ -21,7 +21,7 @@ nous = "nous.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"nous.concepts" = ["concepts.yaml"]
+"nous.concepts" = ["concepts.yaml", "builder_prompts.yaml", "name_policy.json"]
 "nous.overlay" = ["*.html", "*.css", "*.js", "fonts/*.ttf", "fonts/*.txt"]
 "nous.sim" = ["demo_script.json", "demo_round.json"]
 

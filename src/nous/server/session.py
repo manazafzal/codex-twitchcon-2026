@@ -6,14 +6,15 @@ import time
 from collections import deque
 from collections.abc import AsyncIterator
 from contextlib import aclosing
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
 
 from nous.concepts.library import ConceptLibrary, load_concepts, match_concept
-from nous.engine.commands import Command, Participation, Rank, SetMode, StartRound
+from nous.concepts.topics import approved
+from nous.engine.commands import Command, Participation, Propose, Rank, SetMode, StartRound
 from nous.engine.events import (
     Badge,
     Connection,
@@ -93,6 +94,29 @@ class Session:
         self.pending: asyncio.Queue[Command] = asyncio.Queue(maxsize=1024)
         self.owner: asyncio.Task | None = None
         self.scoring = Scoring(leaderboard, clock=self.now)
+        from nous.concepts.queue import TopicQueue
+        from nous.concepts.topics import TopicBuilder
+        from nous.config import data_dir
+
+        prepared = (
+            type(self.engine.backend).__name__ == "HFBackend" and self.library.variant == "others"
+        )
+        from threading import Event as StopEvent
+
+        from nous.model.serialized import SerializedBackend
+
+        self.topic_stop = StopEvent()
+        if prepared:
+            shared = SerializedBackend(self.engine.backend)
+            self.engine.backend = shared
+            topic_backend = SerializedBackend(shared.backend, shared.lock, self.topic_stop)
+        else:
+            topic_backend = self.engine.backend
+        self.topics = TopicQueue(
+            data_dir() / "topics", TopicBuilder(topic_backend, self.library) if prepared else None
+        )
+        self.topic_task: asyncio.Task | None = None
+        self.topic_name: str | None = None
         self.controller: tuple[str, str] | None = None
         self.answer_running = False
         self.round_deadline: float | None = None
@@ -212,6 +236,22 @@ class Session:
         guessing_batch = self.telepathy.phase == Phase.GUESSING and not self._revealed
         while not self.pending.empty():
             item = self.pending.get_nowait()
+            if isinstance(item, Propose):
+                queued = self.topics.offer(
+                    item.name, item.user_id, self.now(), set(self.library.ids)
+                )
+                blind = self.current_mode == "telepathy" and self.telepathy.phase != Phase.REVEAL
+                if not queued:
+                    continue
+                message = (
+                    "Thanks! Your topic is queued for testing."
+                    if blind
+                    else f"Thanks! Testing '{item.name}' now..."
+                )
+                accepted.append(
+                    Round(self.current_mode, "notice", self.engine.answer_index, message)
+                )
+                continue
             if isinstance(item, StartRound):
                 if self.telepathy.phase == Phase.IDLE:
                     self.mode = "telepathy"
@@ -468,6 +508,19 @@ class Session:
             self.engine.immune = self.immune_enabled
             self.telepathy.cancel()
 
+    def install_library(self, library: ConceptLibrary) -> None:
+        if self.answer_running or self.telepathy.phase != Phase.IDLE:
+            raise RuntimeError("Topic publication must wait for the round boundary")
+        from nous.engine.atlas import AtlasSignals
+        from nous.engine.readout import Readout
+
+        self.library = self.engine.library = library
+        self.engine.readout = Readout(library, window=self.engine.readout.window.maxlen or 12)
+        self.engine.atlas = AtlasSignals(library)
+        self.engine.monitor.reset()
+        self.engine.history.clear()
+        self.telepathy.concepts = library.concepts
+
     async def _events(self) -> AsyncIterator[Event]:
         badge = (
             self.crowd.badge
@@ -477,7 +530,10 @@ class Session:
             )
         )
         yield replace(
-            badge, quality="TINY MODEL / CI" if self.library.config.get("model") == "mock" else None
+            badge,
+            quality="TINY MODEL / CI"
+            if self.library.config.get("model") in {"mock", "TINY MODEL / CI"}
+            else None,
         )
         yield Layout(self.engine.atlas.points)
         crowd_task = asyncio.create_task(self._crowd())
@@ -487,6 +543,50 @@ class Session:
                 self.begin_round()
                 for event in self.drain():
                     yield event
+                if self.topic_task is None and self.topics.pending:
+                    self.topic_stop.clear()
+                    self.topic_name = self.topics.pending.popleft()
+                    self.topics.active = self.topic_name
+                    self.topic_task = asyncio.create_task(
+                        asyncio.to_thread(self.topics.build, self.topic_name)
+                    )
+                if (
+                    self.topic_task is not None
+                    and self.topic_task.done()
+                    and self.telepathy.phase == Phase.IDLE
+                ):
+                    result = self.topic_task.result()
+                    self.topic_task = None
+                    if (
+                        approved(result)
+                        and result.report.get("base_hash") == self.library.hash
+                        and self.topics.added < 5
+                    ):
+                        yield Mode(
+                            "war", False, "A new chat topic is ready.", self.engine.answer_index
+                        )
+                        self.topics.accept(result)
+                        assert result.library is not None
+                        self.install_library(result.library)
+                        yield Round(
+                            "war",
+                            "catalog",
+                            self.engine.answer_index,
+                            json.dumps(
+                                {
+                                    "concepts": [asdict(c) for c in result.library.concepts],
+                                    "library_hash": result.library.hash,
+                                },
+                                separators=(",", ":"),
+                            ),
+                        )
+                        yield Layout(self.engine.atlas.points)
+                        message = "New topic ready! Try !push " + result.report["name"] + "."
+                    else:
+                        message = "Thanks for the idea! It did not pass testing, so it stays out of the game."
+                    self.topic_name = None
+                    self.topics.active = None
+                    yield Round("war", "notice", self.engine.answer_index, message)
                 self.current_mode = self.mode
                 if self.mode == "attack":
                     async with aclosing(self._attack()) as stream:
@@ -551,6 +651,10 @@ class Session:
                 finally:
                     await stream.aclose()
         finally:
+            self.topic_stop.set()
+            if self.topic_task is not None:
+                await asyncio.gather(self.topic_task, return_exceptions=True)
+                self.topic_task = None
             self.owner = None
             if self.recorder:
                 self.recorder.close()

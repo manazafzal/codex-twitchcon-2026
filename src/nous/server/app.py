@@ -11,7 +11,7 @@ from typing import Any
 from aiohttp import WSMsgType, web
 
 from nous.concepts.library import Concept, load_concepts
-from nous.engine.events import Event, Mode, Tick
+from nous.engine.events import Event, Mode, Round, Tick
 from nous.server.leaderboard import Leaderboard
 from nous.server.presentation import Presentation
 from nous.server.state import ViewState
@@ -43,6 +43,14 @@ class Server:
         self.last_tick: Tick | None = None
 
     async def publish(self, event: Event) -> None:
+        if isinstance(event, Round) and event.phase == "catalog":
+            import json
+
+            payload = json.loads(event.message)
+            concepts = [
+                Concept(**{**c, "aliases": tuple(c["aliases"])}) for c in payload["concepts"]
+            ]
+            await self.update_catalog(concepts)
         if isinstance(event, Tick):
             self.last_tick = event
         if isinstance(event, Mode) and event.phase in {"guessing", "reveal", "idle"}:
@@ -67,6 +75,16 @@ class Server:
                 if self.last_tick is not None:
                     await self.broadcast(self.last_tick)
                 await self.broadcast(self.state.snapshot())
+
+    async def update_catalog(self, concepts: list[Concept]) -> None:
+        if self.presentation.blind:
+            raise RuntimeError("Catalog publication must wait for a visible boundary")
+        previous = self.state.data
+        self.state = ViewState(concepts)
+        for key in ("badge", "connections", "immune", "immune_requested", "mode"):
+            self.state.data[key] = previous[key]
+        self.presentation = Presentation(concepts)
+        await self.broadcast(self.state.snapshot())
 
     async def broadcast(self, event: Event) -> None:
         self.state.apply(event)

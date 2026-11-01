@@ -76,6 +76,9 @@ class LiveSession:
                     self.announce(event.message)
 
     async def receive_chat(self, parser: ChatParser, notification: dict) -> None:
+        parser.concepts = self.session.library.concepts
+        parser.known = set(self.session.library.ids)
+        self.welcomes.update_concepts(self.session.library.concepts)
         command = parser.parse(notification)
         if command:
             await self.session.submit(Participation(command) if parser.passive else command)

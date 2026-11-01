@@ -88,6 +88,11 @@ class Player:
 
     def engine_events(self, engine: Generator, clock: FakeClock) -> Iterator[tuple[float, Event]]:
         """Recorded timing drives fresh model calls; recorded token text is never reused."""
+        if any(
+            row.get("event", {}).get("kind") == "round" and row["event"].get("phase") == "catalog"
+            for row in self.rows
+        ):
+            raise ValueError("Topic catalog changes need --frames replay with the recorded catalog")
         if self.metadata["library_hash"] != engine.library.hash:
             raise ValueError("Replay library hash mismatch")
         if engine.mixer.schedule_mode != self.metadata["config"]["schedule_mode"]:

@@ -66,7 +66,7 @@ const handlers = {
     guess(){},
     control(){},
     immune(e){mode.immune=e.enabled;$('immune-chip').hidden=!e.enabled;if(!e.enabled)$('tamper').hidden=true;},
-    round(e){if(e.phase==='end'){deadline=null;text('countdown','Next round soon');}if(e.phase!=='mvp')return;let card;try{card=JSON.parse(e.message);}catch(_){return;}renderMvp(card);},
+    round(e){if(e.phase==='catalog'){let data;try{data=JSON.parse(e.message);}catch(_){return;}catalog=data.concepts||[];catalog.forEach((c,i)=>{names.set(c.id,c.label||c.id);colours.set(c.id,palette[i%palette.length]);});return;}if(e.phase==='end'){deadline=null;text('countdown','Next round soon');}if(e.phase!=='mvp')return;let card;try{card=JSON.parse(e.message);}catch(_){return;}renderMvp(card);},
     layout(e){if(Object.keys(e.alias||{}).length){if(lastTick)shares({...lastTick,shares:Object.fromEntries(Object.entries(lastTick.shares).map(([id,value])=>[e.alias[id]||id,value]))});rows=rows.map(row=>Object.fromEntries(Object.entries(row).map(([id,z])=>[e.alias[id]||id,z])));ridge();}},
 };
 function dispatch(e){if(!handlers[e.kind])throw Error(`Unknown event ${e.kind}`);handlers[e.kind](e);atlas.event(e);}

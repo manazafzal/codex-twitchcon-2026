@@ -1,0 +1,45 @@
+{
+  "name": "oracle",
+  "status": "rejected",
+  "source": "unavailable",
+  "origin": {
+    "source": "from-model",
+    "requested_count": 24,
+    "texts": [],
+    "seed": 0,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "status": "unrun",
+    "texts_hash": null
+  },
+  "reasons": [
+    "Local trained weights and a verified base library are unavailable"
+  ],
+  "checks": {
+    "heldout_top1": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.8
+    },
+    "max_cosine": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    },
+    "injection_gain": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.1
+    },
+    "task_kept": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    }
+  },
+  "pack": "mythic",
+  "report_hash": "b183a1c461af611dd8e72f2b715518b1826cb584d3f9f18782b6acf4feecb9cb"
+}

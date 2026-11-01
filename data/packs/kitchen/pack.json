@@ -1,0 +1,55 @@
+{
+  "name": "kitchen",
+  "seed": 0,
+  "concepts": [
+    {
+      "name": "soup",
+      "status": "rejected",
+      "report": "soup/quality.json",
+      "quality_hash": "7421412a0a635199829d28bf7896fe8456b0aa15e89c903c91ab795b89390018"
+    },
+    {
+      "name": "baking",
+      "status": "rejected",
+      "report": "baking/quality.json",
+      "quality_hash": "3081af25bacc840e8a75009eeec54318b5c92e0a180a352389129b3f1318b953"
+    },
+    {
+      "name": "spice",
+      "status": "rejected",
+      "report": "spice/quality.json",
+      "quality_hash": "41d23a7848824aba629121253cfc63d702bf62820d0d0984f98352c38194a159"
+    },
+    {
+      "name": "knife",
+      "status": "rejected",
+      "report": "knife/quality.json",
+      "quality_hash": "bac47c23de1d8df0a2fe4d09d207d6e56d82ee0056443a64151a4ff6bb84c354"
+    },
+    {
+      "name": "oven",
+      "status": "rejected",
+      "report": "oven/quality.json",
+      "quality_hash": "2b7d694be92d5e9259ffcea34ade7e9ec0d66becf9c1803452a0ed2add877dd5"
+    },
+    {
+      "name": "pasta",
+      "status": "rejected",
+      "report": "pasta/quality.json",
+      "quality_hash": "4022a3a2648dcfe441ecb89cb6a6cb77b159f063948d04bb8dc414796b4018cb"
+    },
+    {
+      "name": "coffee",
+      "status": "rejected",
+      "report": "coffee/quality.json",
+      "quality_hash": "c1c7a942cfc96dd54ea9357ed5737fa584a82ba296e0978f64a946e9079d432d"
+    },
+    {
+      "name": "grill",
+      "status": "rejected",
+      "report": "grill/quality.json",
+      "quality_hash": "aeac80d9d076d98fdd5262799c8e20f54e30f236986429a9947fe217b901da41"
+    }
+  ],
+  "pack_hash": "22553a63d4c347d7ec9191de612cfa25a48ee320cd811a251b2926f3aa342c8a"
+}

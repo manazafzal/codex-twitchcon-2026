@@ -41,13 +41,14 @@ def violations(text):
 def test_user_facing_files():
     paths = [ROOT / "README.md"]
     paths += list((ROOT / "docs").rglob("*"))
+    paths += list((ROOT / "data").rglob("*"))
     paths += list((ROOT / "src").rglob("*"))
     paths += list((ROOT / "tests").rglob("*"))
     paths += list((ROOT / ".codex/skills").rglob("*"))
     for path in paths:
         if not path.is_file() or path == ROOT / "docs/related-work.md":
             continue
-        if path.suffix not in {".md", ".py", ".html", ".css", ".js", ".yaml"}:
+        if path.suffix not in {".md", ".py", ".html", ".css", ".js", ".yaml", ".json", ".txt"}:
             continue
         text = python_strings(path) if path.suffix == ".py" else path.read_text()
         assert not violations(text), f"{path}: {violations(text)}"

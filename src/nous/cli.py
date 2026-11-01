@@ -125,8 +125,56 @@ def main(argv: list[str] | None = None) -> None:
     study.add_argument("--config", type=Path, default=Path("configs/ablations.yaml"))
     study.add_argument("--seed", type=int, default=0)
     study.add_argument("--output", type=Path, default=Path("research"))
+    concept = commands.add_parser("concept", help="Build and test a new chat topic")
+    concept_sub = concept.add_subparsers(dest="concept_command", required=True)
+    add = concept_sub.add_parser("add", help="Keep a topic private until it passes testing")
+    add.add_argument("name")
+    inputs = add.add_mutually_exclusive_group()
+    inputs.add_argument("--from-model", type=int, default=24, metavar="N")
+    inputs.add_argument("--examples", type=Path)
+    from nous.config import data_dir, library_path, model_dir
+
+    add.add_argument("--library", type=Path, default=library_path())
+    add.add_argument("--model-path", type=Path, default=model_dir())
+    add.add_argument("--output", type=Path, default=data_dir() / "topics")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    if args.command == "concept":
+        from nous.concepts.policy import validate_name
+        from nous.concepts.topics import (
+            BuildResult,
+            TopicBuilder,
+            load_examples,
+            save_result,
+            unavailable,
+        )
+        from nous.model.hf_backend import HFBackend
+
+        try:
+            name = validate_name(args.name)
+        except ValueError as exc:
+            parser.exit(1, str(exc) + "\n")
+        try:
+            library = ConceptLibrary.load(args.library)
+            backend = HFBackend(local_path=str(args.model_path))
+            examples = load_examples(args.examples) if args.examples else None
+            result = TopicBuilder(backend, library).build(
+                name, count=args.from_model, examples=examples
+            )
+        except (OSError, ValueError, ImportError) as exc:
+            result = BuildResult(
+                unavailable(name, f"Local build unavailable: {type(exc).__name__}")
+            )
+        save_result(result, args.output / name)
+        if result.library is not None and result.report["status"] == "accepted":
+            result.library.save(args.library)
+        log.info(
+            "Topic %s: %s; report: %s",
+            name,
+            result.report["status"],
+            args.output / name / "quality.json",
+        )
+        return
     if args.command == "research":
         from nous.research.runner import run_research
 

@@ -1,0 +1,45 @@
+{
+  "name": "pasta",
+  "status": "rejected",
+  "source": "unavailable",
+  "origin": {
+    "source": "from-model",
+    "requested_count": 24,
+    "texts": [],
+    "seed": 0,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "status": "unrun",
+    "texts_hash": null
+  },
+  "reasons": [
+    "Local trained weights and a verified base library are unavailable"
+  ],
+  "checks": {
+    "heldout_top1": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.8
+    },
+    "max_cosine": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    },
+    "injection_gain": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.1
+    },
+    "task_kept": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    }
+  },
+  "pack": "kitchen",
+  "report_hash": "4022a3a2648dcfe441ecb89cb6a6cb77b159f063948d04bb8dc414796b4018cb"
+}

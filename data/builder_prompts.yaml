@@ -1,0 +1,4 @@
+version: 1
+seed: 0
+concept: 'Write one distinct, concrete sentence about {name}. Use fresh wording.'
+neutral: 'Write one ordinary sentence about a daily task, using {length} words.'

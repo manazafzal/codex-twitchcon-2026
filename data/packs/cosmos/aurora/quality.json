@@ -1,0 +1,45 @@
+{
+  "name": "aurora",
+  "status": "rejected",
+  "source": "unavailable",
+  "origin": {
+    "source": "from-model",
+    "requested_count": 24,
+    "texts": [],
+    "seed": 0,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "status": "unrun",
+    "texts_hash": null
+  },
+  "reasons": [
+    "Local trained weights and a verified base library are unavailable"
+  ],
+  "checks": {
+    "heldout_top1": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.8
+    },
+    "max_cosine": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    },
+    "injection_gain": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.1
+    },
+    "task_kept": {
+      "status": "unrun",
+      "n": 0,
+      "value": null,
+      "threshold": 0.6
+    }
+  },
+  "pack": "cosmos",
+  "report_hash": "eda87a001160315e8c20091122699595117fc54bc939452f45fd94858ff73f61"
+}

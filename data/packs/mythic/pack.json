@@ -1,0 +1,55 @@
+{
+  "name": "mythic",
+  "seed": 0,
+  "concepts": [
+    {
+      "name": "labyrinth",
+      "status": "rejected",
+      "report": "labyrinth/quality.json",
+      "quality_hash": "e1b69fd24726d01438597dc74002982d8e8397d306f14490a2b477994fa47da4"
+    },
+    {
+      "name": "phoenix",
+      "status": "rejected",
+      "report": "phoenix/quality.json",
+      "quality_hash": "e0b420ce8f9d9278f773353967243aea6dd9fc83b97ec623f4726cdc69e57209"
+    },
+    {
+      "name": "oracle",
+      "status": "rejected",
+      "report": "oracle/quality.json",
+      "quality_hash": "b183a1c461af611dd8e72f2b715518b1826cb584d3f9f18782b6acf4feecb9cb"
+    },
+    {
+      "name": "titan",
+      "status": "rejected",
+      "report": "titan/quality.json",
+      "quality_hash": "3cbbe6c6c8be1dd4fdbf656a72ce18d336ee51560ed405456c0533ca2daaf8cd"
+    },
+    {
+      "name": "siren",
+      "status": "rejected",
+      "report": "siren/quality.json",
+      "quality_hash": "5834db20272417d6cfc2a5a0442927425102b6c6c0e0b37e01ec88dab337bbf2"
+    },
+    {
+      "name": "griffin",
+      "status": "rejected",
+      "report": "griffin/quality.json",
+      "quality_hash": "e830213c3c75ff4ffdaea28c1257833e92f3fc1d264a17c8b6a8c815974f9585"
+    },
+    {
+      "name": "trident",
+      "status": "rejected",
+      "report": "trident/quality.json",
+      "quality_hash": "f7db240c69e0b35bb92a9d86adfbabbc7496ac22128fc6e8207efa790d4bd82f"
+    },
+    {
+      "name": "legend",
+      "status": "rejected",
+      "report": "legend/quality.json",
+      "quality_hash": "9f380641f00065e88a8ba3ecad7078a6f70e0ea8ed838e987053e9da754956c3"
+    }
+  ],
+  "pack_hash": "0be62a5f5f83e4ecf4b387383719980d5230f5957825a81fac7a0ba913ad559d"
+}
