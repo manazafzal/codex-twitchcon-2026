@@ -20,7 +20,16 @@ CHROME = shutil.which("chromium") or shutil.which("google-chrome")
 
 
 class Browser:
-    def __init__(self, query="manual&scale=.5", width=1920, height=1080):
+    def __init__(
+        self,
+        query="manual&scale=.5",
+        width=1920,
+        height=1080,
+        *,
+        app_factory=create_app,
+        path="/fixture.html",
+    ):
+        self.app_factory, self.path = app_factory, path
         self.query, self.width, self.height = query, width, height
         self.errors = []
         self.counter = 0
@@ -28,10 +37,8 @@ class Browser:
     async def __aenter__(self):
         if not CHROME:
             raise RuntimeError("Chrome is unavailable")
-        self.temp = tempfile.TemporaryDirectory(
-            prefix="nous-chrome-", ignore_cleanup_errors=True
-        )
-        self.server = TestServer(create_app())
+        self.temp = tempfile.TemporaryDirectory(prefix="nous-chrome-", ignore_cleanup_errors=True)
+        self.server = TestServer(self.app_factory())
         await self.server.start_server()
         self.process = await asyncio.to_thread(
             subprocess.Popen,
@@ -93,10 +100,15 @@ class Browser:
         await self.call(
             "Emulation.setDefaultBackgroundColorOverride", color={"r": 0, "g": 0, "b": 0, "a": 0}
         )
-        url = str(self.server.make_url("/fixture.html")) + "?" + self.query
+        url = str(self.server.make_url(self.path).with_query(self.query))
         await self.call("Page.navigate", url=url)
         for _ in range(200):
-            if await self.evaluate("!!window.NousOverlay?.fixture"):
+            condition = (
+                "!!window.NOUS_WELCOME_READY"
+                if self.path.startswith("/welcome")
+                else "!!window.NousOverlay?.fixture"
+            )
+            if await self.evaluate(condition):
                 break
             await asyncio.sleep(0.025)
         else:

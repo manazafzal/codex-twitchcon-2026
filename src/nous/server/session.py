@@ -457,7 +457,7 @@ class Session:
                     yield self.telepathy_mode()
                     await asyncio.sleep(0.1)
             if self.telepathy.phase == Phase.REVEAL:
-                await asyncio.sleep(2)
+                await asyncio.sleep(6)
                 self.telepathy.reset()
             else:
                 self.telepathy.cancel()

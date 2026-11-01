@@ -11,7 +11,7 @@ from typing import Any
 from aiohttp import WSMsgType, web
 
 from nous.concepts.library import Concept, load_concepts
-from nous.engine.events import Event, Mode
+from nous.engine.events import Event, Mode, Tick
 from nous.server.leaderboard import Leaderboard
 from nous.server.presentation import Presentation
 from nous.server.state import ViewState
@@ -40,8 +40,11 @@ class Server:
         self.clients: dict[web.WebSocketResponse, asyncio.Queue[dict[str, Any]]] = {}
         self.task: asyncio.Task[None] | None = None
         self.closing = False
+        self.last_tick: Tick | None = None
 
     async def publish(self, event: Event) -> None:
+        if isinstance(event, Tick):
+            self.last_tick = event
         if isinstance(event, Mode) and event.phase in {"guessing", "reveal", "idle"}:
             tail = self.presentation.finish_token()
             if tail:
@@ -61,6 +64,8 @@ class Server:
         if isinstance(event, Mode) and self.presentation.points:
             await self.broadcast(self.presentation.layout())
             if event.phase == "reveal":
+                if self.last_tick is not None:
+                    await self.broadcast(self.last_tick)
                 await self.broadcast(self.state.snapshot())
 
     async def broadcast(self, event: Event) -> None:
@@ -185,6 +190,7 @@ def create_app(
     set_immune: Callable[[bool], None] | None = None,
     leaderboard: Leaderboard | None = None,
     start_round: Callable[[], None] | None = None,
+    welcome_home: bool = False,
 ) -> web.Application:
     server = Server(
         concepts=concepts,
@@ -206,7 +212,9 @@ def create_app(
 
     async def asset(request: web.Request) -> web.StreamResponse:
         name = (
-            "control.html"
+            "welcome.html"
+            if welcome_home and request.path == "/"
+            else "control.html"
             if request.path == "/control"
             else request.match_info.get("name") or "index.html"
         )

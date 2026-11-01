@@ -1,4 +1,19 @@
-# NOUS streamer guide
+# Play NOUS with your chat
+
+Extract the downloaded folder, double-click **setup.bat**, and click **Try the demo**. You can watch a full round without Twitch. A recording is clearly labelled, with pretend chat and a test AI; it is not a trained-model result.
+
+Choose **Connect my Twitch** when you're ready. Follow the app-code, sign-in and channel steps; each gets a green tick when completed. Twitch requires a free Public app registration. The screen links to Twitch, explains the form and saves the app code locally. You never enter a Twitch password in NOUS or edit a config file. First-time AI preparation can take several minutes; use the recording while waiting. A failed step has a retry button and a plain fix. The final tick waits for chat to connect.
+
+Tell viewers to type **!join**. NOUS picks a team and welcomes new participants with a next command. **!push word** backs an idea, **!guess word** guesses the hidden thought, and **!rank** shows a score. Ordinary team words and the starter team emotes (🌊, 🚀, 🎷) count a little. Repetition cannot take over. Broadcasters/moderators can type **!round** to start the next guessing round or **!immune** to turn on defence. The private control page also has a Start a round button and R hotkey.
+
+Use the game's **/overlay/** address in an OBS browser source at **1920 × 1080**. Add **?bg=transparent** for a transparent background. Do not share the private welcome/control address. The Nerd panel starts closed and hides its signals during a secret round.
+
+Try a real chat message from a friend's account before going live. The bot may post short round notices, reveals, score replies, occasional MVP messages and a once-per-viewer welcome. All replies pass through the existing five-second limiter; welcomes have an additional ten-second gap and a short bounded queue. The bot does not post every push. Live chat is never mixed with pretend users unless explicitly enabled through the advanced command.
+
+The Windows installer, OBS composition and actual Twitch registration/login still need a streamer-machine check. Twitch field names and endpoints below remain based on public documentation and fake-server tests, not a live check.
+
+## Advanced setup and protocol notes
+
 
 M3–M4 connect real Twitch chat to the local thought injection engine. The **LIVE**
 badge describes chat input. **TINY MODEL / CI** separately identifies fixture model

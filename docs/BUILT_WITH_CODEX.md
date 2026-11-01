@@ -77,3 +77,23 @@ Rename validation: ruff and scoped mypy passed; 131 non-browser tests passed. Sc
 **Final validation.** `make check` passed: ruff; mypy on 19 source files; **152 passed, 4 deselected in 1243.96 s**. This includes two complete 600-frame films with identical frame hashes and the MVP snapshot/blind test. The real-model opt-in suite reported four skips and 152 deselections because local artifacts are absent. CLI smoke served NOUS overlay/control/WebSocket/leaderboard and confirmed fixture gating. Case-insensitive tracked-text and path searches found no previous product name. The scoring rules in this prompt supersede SPEC's older public one-point scheme; existing internal M4 game-state tests remain intact.
 
 [Full check output](nous-check-output.txt), [opt-in model skips](nous-real-check-output.txt), [CLI smoke](nous-cli-smoke.txt), [film summary](nous-film-check.json), and [all frame hashes](film-hashes.json). Refreshed NOUS screenshots remain in [screenshots/](screenshots/). No trained-model benchmark was reproduced; neither the local study file nor the required trained artifacts is available. No live Twitch or OBS check was performed in this milestone.
+
+
+## M-easy — beginner setup, demo and chat
+
+**Prompt.** Make NOUS understandable in five seconds: three-step Windows install, one large demo button, guided browser Twitch connection, a complete offline round in under thirty seconds, plain on-screen labels, a timed reveal, few obvious chat commands, gentle natural participation and a safe optional Nerd panel. Preserve fair points and secret handling, verify everything possible locally and publish small milestone commits.
+
+**Built.** A Windows batch/PowerShell launcher provisions helpers, explicitly downloads Qwen2.5-0.5B, then opens the private welcome screen. A model-download failure still leaves a playable recording. The first README section is download / double-click / Try the demo. The browser wizard guides Public app registration, device-code permission and channel connection without config-file edits, with ticks and plain retry instructions. Successful chat subscription controls the final connection tick. The required Twitch app code is entered by the streamer; this repository cannot supply an unregistered shared app identity.
+
+Default `nous demo` uses a prepared local model/library when available or three captured test-AI rounds with pretend chat, explicitly labelled RECORDING. Recordings are captured from actual MockBackend calls, not invented signals, and stay private server resources. Each slot lasts twenty-four seconds. No Twitch token or network request is needed to play them. Demo totals do not enter saved live leaderboards. Switching sources stops the old owner and refreshes opaque identities before another starts.
+
+The overlay now asks what chat is trying to make the AI think about, shows a countdown and short command strip, calls the readout AI's guess, and gives the word and winner a large delayed reveal. The closed Nerd panel holds the technical chart and hides its content while blind. `!join` assigns a team; deliberate pushes, guesses and ranks retain their point protections; broadcaster/mod `!round` and the R control hotkey start rounds. Ordinary words and starter emotes make small, separately limited contributions. Once-per-viewer welcomes vary their wording and pass through bounded queues and existing chat limits; blind welcomes cannot name a team.
+
+**Tests and fixes.** Added no-network/no-token recording and default-CLI tests, private bootstrap/cookie/origin checks, fake Twitch pending-to-success/retry/connection checks, source ownership/identity renewal, Windows permission fallback and an explicit-download spy, command/role cases, exact passive-vs-deliberate arithmetic, welcome deduplication/timing, browser welcome-to-game navigation, default visible-label checks, and Nerd/reveal/countdown checks. Browser inspection caught the need to pause the fixture timeline for interactive tests; a development-only pause API keeps those tests deterministic. Review also caught demo/live score mixing, identity reuse across source changes, and connection ticks being set before chat connected. Native Windows/real Twitch/OBS remain unverified; no trained-model quality result is claimed.
+
+**Milestone commits.**
+
+- [64de04a — install, welcome and offline recording](https://github.com/manazafzal/codex-twitchcon-2026/commit/64de04a)
+- [2c672f7 — simple commands, light participation and welcomes](https://github.com/manazafzal/codex-twitchcon-2026/commit/2c672f7)
+
+Final check counts and refreshed visual evidence follow after the complete run.

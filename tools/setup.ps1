@@ -3,15 +3,22 @@ Set-Location (Split-Path $PSScriptRoot -Parent)
 $Log = Join-Path $PWD '.nous-setup.log'
 function Run-Checked {
     param([string]$Program, [string[]]$Arguments)
-    & $Program @Arguments *>> $Log
-    if ($LASTEXITCODE -ne 0) { throw 'That step did not finish. Check your internet connection and try setup.bat again.' }
+    $PreviousPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $Program @Arguments *>> $Log
+        $ResultCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $PreviousPreference }
+    if ($ResultCode -ne 0) { throw 'That step did not finish. Check your internet connection and try setup.bat again.' }
 }
 try {
     Write-Host 'Finding Python, the helper that runs NOUS...'
     $Launcher = Get-Command py -ErrorAction SilentlyContinue
     if ($Launcher) {
-        & $Launcher.Source -3.11 -c "import sys; assert sys.version_info >= (3,11)" 2>$null
-        if ($LASTEXITCODE -ne 0) { $Launcher = $null }
+        try {
+            & $Launcher.Source -3.11 -c "import sys; assert sys.version_info >= (3,11)" 2>$null
+            if ($LASTEXITCODE -ne 0) { $Launcher = $null }
+        } catch { $Launcher = $null }
     }
     if (-not $Launcher) {
         $Winget = Get-Command winget -ErrorAction SilentlyContinue
@@ -29,12 +36,13 @@ try {
     Run-Checked $Python @('-m','pip','install','--upgrade','pip')
     Run-Checked $Python @('-m','pip','install','--prefer-binary','-e','.[model]')
     Write-Host 'Downloading the AI brain (about 1 GB)...'
-    & $Python -m nous.install *>> $Log
-    if ($LASTEXITCODE -ne 0) {
+    try { Run-Checked $Python @('-m','nous.install') } catch {
         Write-Host 'The AI download paused. You can still try the recorded demo. Run setup.bat again later to retry.' -ForegroundColor Yellow
     }
     Write-Host 'Ready! Opening NOUS in your browser. Keep this window open while you play.' -ForegroundColor Green
-    Run-Checked $Python @('-m','nous.cli','start')
+    try { Run-Checked $Python @('-m','nous.cli','start') } catch {
+        throw 'NOUS could not open. If an older NOUS window is running, use its browser tab or close that window and try setup.bat again.'
+    }
 } catch {
     Write-Host ''
     Write-Host ('We hit a snag: ' + $_.Exception.Message) -ForegroundColor Yellow

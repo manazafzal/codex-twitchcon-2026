@@ -11,24 +11,22 @@ from nous.server.session import Session, mock_library
 from nous.sim.crowd import Crowd
 
 
-async def capture():
+async def capture(secret="ocean"):
+    library = mock_library()
+    active = [name for name in ("ocean", "space", "jazz") if name != secret]
     clock = FakeClock()
     seed = next(
-        s
-        for s in range(1000)
-        if Telepathy(mock_library().concepts, seed=s).arm({"space", "jazz"}) == "ocean"
+        s for s in range(1000) if Telepathy(library.concepts, seed=s).arm(set(active)) == secret
     )
     session = Session(clock=clock, seed=seed, crowd=Crowd(twitch_connected=True))
     session.telepathy.seconds = 10
     session.switch_mode("telepathy")
     for i in range(40):
-        session.pending.put_nowait(
-            Push(f"sim_{i + 1:03}", "space" if i % 2 else "jazz", 0, "SIMULATED")
-        )
+        session.pending.put_nowait(Push(f"sim_{i + 1:03}", active[i % 2], 0, "SIMULATED"))
     real_sleep = asyncio.sleep
 
     async def sleep(seconds):
-        clock.advance(0.2 if seconds == 0.08 else seconds)
+        clock.advance(0.2 if seconds == 0.08 else 7 if seconds == 6 else seconds)
         await real_sleep(0)
 
     asyncio.sleep = sleep
@@ -45,7 +43,9 @@ async def capture():
                 and not guessed
                 and event.remaining <= 2
             ):
-                session.pending.put_nowait(Guess("sim_001", "sea", clock(), "SIMULATED", "sim_001"))
+                session.pending.put_nowait(
+                    Guess("sim_001", secret, clock(), "SIMULATED", "sim_001")
+                )
                 guessed = True
             if isinstance(event, Mode) and event.phase == "idle":
                 break
@@ -61,7 +61,14 @@ async def capture():
     }
 
 
+async def capture_all():
+    return {
+        "description": "Three recorded test-AI rounds with pretend chat; no trained-model claim.",
+        "rounds": [await capture(secret) for secret in ("ocean", "space", "jazz")],
+    }
+
+
 if __name__ == "__main__":
     Path("src/nous/sim/demo_round.json").write_text(
-        json.dumps(asyncio.run(capture()), indent=2) + "\n"
+        json.dumps(asyncio.run(capture_all()), indent=2) + "\n"
     )

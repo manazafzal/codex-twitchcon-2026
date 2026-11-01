@@ -6,4 +6,4 @@ check:
 eval:
 	nous eval
 demo:
-	nous demo --mock
+	nous demo

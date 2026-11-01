@@ -20,7 +20,7 @@ from nous.engine.events import Badge, Connection, Event, Mode, event_from_dict
 from nous.server.app import APP_KEY, create_app
 from nous.server.leaderboard import Leaderboard
 from nous.server.state import ViewState
-from nous.twitch.auth import AUTH_BASE, HELIX_BASE, OAuth, TokenStore
+from nous.twitch.auth import AUTH_BASE, HELIX_BASE, AuthError, OAuth, TokenStore
 
 log = logging.getLogger(__name__)
 
@@ -36,8 +36,10 @@ class RecordedDemo:
             from nous.concepts.library import load_concepts
 
             yield ViewState(load_concepts()).snapshot()
+            recordings = self.data.get("rounds", [self.data])
+            recording = recordings[number % len(recordings)]
             previous = 0.0
-            for item in self.data["rows"]:
+            for item in recording["rows"]:
                 await self.sleep(max(0, item["at"] - previous))
                 previous = item["at"]
                 event = event_from_dict(item["event"])
@@ -46,7 +48,7 @@ class RecordedDemo:
                     if event.phase == "generating":
                         event = replace(event, remaining=6.4)
                 yield event
-            await self.sleep(max(0, self.data["duration"] - previous))
+            await self.sleep(max(0, recording["duration"] - previous))
             number += 1
 
 
@@ -58,8 +60,11 @@ class Experience:
         self.session: Any = None
         self.auth_base, self.helix_base = auth_base, helix_base
         self.login_task: asyncio.Task | None = None
+        self.signed_in = False
         self.login: dict[str, Any] = {"status": "idle", "message": "Let's connect your Twitch."}
         self.client_id = os.getenv("NOUS_TWITCH_CLIENT_ID") or settings().get("client_id", "")
+        self.server: Any = None
+        self.current_board = Leaderboard()
         self.board = Leaderboard(
             data_dir() / "leaderboard.json", stream_id=os.getenv("NOUS_STREAM_ID")
         )
@@ -69,9 +74,37 @@ class Experience:
         self.version += 1
         self.changed.set()
 
+    def game_board(self, board: Leaderboard) -> None:
+        self.current_board = board
+        if self.server:
+            self.server.leaderboard = board
+
     def demo(self) -> None:
         self.session = None
-        self.use(RecordedDemo().events)
+        self.game_board(Leaderboard())
+        self.use(self.demo_events)
+
+    async def demo_events(self) -> AsyncIterator[Event]:
+        if library_path().exists() and (model_dir() / "config.json").exists():
+            try:
+                from nous.concepts.library import ConceptLibrary
+                from nous.model.hf_backend import HFBackend
+                from nous.server.session import Session
+                from nous.sim.crowd import Crowd
+
+                backend = await asyncio.to_thread(HFBackend, local_path=str(model_dir()))
+                library = await asyncio.to_thread(ConceptLibrary.load, library_path())
+                self.session = Session(
+                    backend=backend, library=library, crowd=Crowd(), leaderboard=self.current_board
+                )
+            except (ImportError, OSError, ValueError):
+                self.session = None
+        stream = self.session.events() if self.session else RecordedDemo().events()
+        try:
+            async for event in stream:
+                yield event
+        finally:
+            await stream.aclose()
 
     def start_round(self) -> None:
         if self.session:
@@ -94,6 +127,13 @@ class Experience:
             if self.factory is None:
                 await self.changed.wait()
                 continue
+            if self.server:
+                from nous.concepts.library import load_concepts
+                from nous.server.presentation import Presentation
+
+                self.server.presentation = Presentation(load_concepts())
+                self.server.last_tick = None
+                yield ViewState(load_concepts()).snapshot()
             queue: asyncio.Queue = asyncio.Queue(maxsize=64)
             factory, version = self.factory, self.version
 
@@ -108,9 +148,11 @@ class Experience:
                                     "message": "Connected! Open your game and type !join in Twitch chat.",
                                 }
                             elif event.state in {"auth_required", "revoked"}:
+                                self.signed_in = False
                                 self.login = {
                                     "status": "error",
                                     "message": "Twitch needs permission again. Click Try login again.",
+                                    "stage": "login",
                                 }
                         await queue.put(event)
                     await queue.put(RuntimeError("The game stopped. Please retry."))
@@ -145,6 +187,7 @@ class Experience:
                 )
 
     async def authorize(self) -> None:
+        self.signed_in = False
         try:
             async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=20), trust_env=self.auth_base == AUTH_BASE
@@ -166,6 +209,7 @@ class Experience:
                     }
 
                 token = await auth.authorize(show)
+                self.signed_in = True
                 self.login = {
                     "status": "connected",
                     "message": "You're signed in!",
@@ -178,6 +222,7 @@ class Experience:
             self.login = {
                 "status": "error",
                 "message": "Twitch could not finish signing in. Check your internet, check your app code, then click Try login again.",
+                "stage": "login",
             }
 
     async def connect(self, channel: str) -> None:
@@ -238,6 +283,7 @@ class Experience:
                     "We couldn't find that channel. Use its Twitch name and click Retry."
                 )
         self.session = session
+        self.game_board(self.board)
         self.use(live.events)
         self.login = {
             "status": "connecting",
@@ -261,6 +307,7 @@ def add_welcome(app: web.Application, experience: Experience, *, home: bool = Fa
             {
                 **experience.login,
                 "has_app_code": bool(experience.client_id),
+                "signed_in": experience.signed_in,
                 "brain_downloaded": (model_dir() / "config.json").exists(),
             }
         )
@@ -268,7 +315,14 @@ def add_welcome(app: web.Application, experience: Experience, *, home: bool = Fa
     async def demo(request: web.Request) -> web.Response:
         await protected(request)
         experience.demo()
-        return web.json_response({"url": "/overlay/", "recording": True})
+        return web.json_response(
+            {
+                "url": "/overlay/",
+                "recording": not (
+                    library_path().exists() and (model_dir() / "config.json").exists()
+                ),
+            }
+        )
 
     async def login(request: web.Request) -> web.Response:
         body = await protected(request)
@@ -289,7 +343,7 @@ def add_welcome(app: web.Application, experience: Experience, *, home: bool = Fa
         channel = str(body.get("channel") or experience.login.get("name", "")).strip().lower()
         if not re.fullmatch(r"[a-z0-9_]{1,25}", channel):
             raise web.HTTPBadRequest(text="Type your Twitch channel name, then retry.")
-        if experience.login.get("status") not in {"connected", "error", "live"}:
+        if not experience.signed_in:
             raise web.HTTPBadRequest(text="Finish signing in to Twitch first.")
         if experience.login_task and not experience.login_task.done():
             raise web.HTTPConflict(text="That step is still running. Please wait.")
@@ -297,10 +351,18 @@ def add_welcome(app: web.Application, experience: Experience, *, home: bool = Fa
         async def prepare() -> None:
             try:
                 await experience.connect(channel)
+            except AuthError:
+                experience.signed_in = False
+                experience.login = {
+                    "status": "error",
+                    "stage": "login",
+                    "message": "Twitch needs permission again. Click Try login again.",
+                }
             except Exception:  # noqa: BLE001 - keep private failures out of browser messages
                 experience.login = {
                     "status": "error",
                     "message": "We couldn't open the game. Check your channel name and internet. If the AI download is unfinished, run setup.bat again. Then click Retry.",
+                    "stage": "connect",
                 }
 
         experience.login = {
@@ -335,8 +397,10 @@ def add_welcome(app: web.Application, experience: Experience, *, home: bool = Fa
     app.on_cleanup.append(cleanup)
 
 
-def make_experience_app(*, token: str | None = None, demo: bool = False) -> web.Application:
-    experience = Experience()
+def make_experience_app(
+    *, token: str | None = None, demo: bool = False, experience: Experience | None = None
+) -> web.Application:
+    experience = experience or Experience()
     if demo:
         experience.demo()
     from nous.concepts.library import load_concepts
@@ -347,9 +411,11 @@ def make_experience_app(*, token: str | None = None, demo: bool = False) -> web.
         control_token=token,
         switch_mode=experience.switch_mode,
         set_immune=experience.set_immune,
-        leaderboard=experience.board,
+        leaderboard=experience.current_board,
         start_round=experience.start_round,
+        welcome_home=not demo,
     )
+    experience.server = app[APP_KEY]
     add_welcome(app, experience)
     return app
 
