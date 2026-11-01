@@ -39,3 +39,10 @@ Review caught and fixed double-standardizing SD scores, active-only ranking, a c
 **Evidence and limits.** The supplied benchmark bands were not copied into result files. No trained weights, saved fitted classifier, training corpus or referenced readout study exists in this checkout. The real eval command stops at the missing local library rather than downloading or silently substituting a mock. CI measurements are explicitly labelled `source: mock`, `TINY MODEL / CI`; their scripted text and sparse fixture vectors cannot establish trained-model quality. In particular, the fixture's neutral text itself contains concept vocabulary, so its control keyword rate is measured honestly rather than forced to zero. The v4 columns stay unavailable without a fit. The default fixture traces are historical development captures, not newly calibrated trained-model data.
 
 **Validation.** `make check`: ruff passed; scoped mypy passed; 139 tests passed in 1238.09 s, including both complete films. The explicitly enabled real-model suite skipped four tests because local artifacts are absent. [Complete check output](backend-check-output.txt), [real-run blocker and skips](backend-real-check-output.txt), and [architecture and evidence limits](architecture.md). Final measured CI tables and milestone commit links follow below.
+
+
+**Measured CI evidence.** [Evaluation notes and cluster intervals](backend-evaluation.md), [generated complete table](../results/backend-ci/eval.md), [raw trials and provenance](../results/backend-ci/eval.json), and [film hash verification](backend-film-check.json). All evaluation numbers in these artifacts are measured mock output, with n and concept-cluster intervals. No real-model result is claimed.
+
+**Milestone commits.**
+
+- [cdd4a58 — offline evaluation, strict secrecy, viewer points and tests](https://github.com/manazafzal/codex-twitchcon-2026/commit/cdd4a58)
