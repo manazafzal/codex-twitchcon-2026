@@ -35,3 +35,21 @@ def test_committed_script_is_packaged():
     root = Path(__file__).resolve().parents[1]
     assert load_script(root / "golden/demo_script.json") == load_script()
     assert files("nous.sim").joinpath("demo_script.json").is_file()
+
+
+def test_disabled_crowd_never_claims_forty_participants():
+    from contextlib import aclosing
+
+    from nous.server.session import Session
+
+    async def run():
+        for source in ("SIMULATED", "LIVE"):
+            session = Session(source=source, crowd=Crowd(twitch_connected=True))
+            async with aclosing(session.events()) as stream:
+                badge = await anext(stream)
+                assert badge.label == ("LIVE" if source == "LIVE" else "SIMULATED ×0")
+                assert not badge.simulated_users
+            assert session.engine.badge == ("LIVE" if source == "LIVE" else "SIMULATED ×0")
+        assert Crowd(twitch_connected=True).badge.label == "SIMULATED ×0"
+
+    asyncio.run(run())

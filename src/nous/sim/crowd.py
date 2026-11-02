@@ -40,7 +40,7 @@ class Crowd:
 
     @property
     def badge(self) -> Badge:
-        return Badge(f"SIMULATED ×{self.users}")
+        return Badge(f"SIMULATED ×{self.users if self.enabled else 0}")
 
     def push_at(self, elapsed: float, timestamp: float) -> Push:
         offset = elapsed % sum(w["duration"] for w in self.script["waves"])

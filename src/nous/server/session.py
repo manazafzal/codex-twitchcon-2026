@@ -82,7 +82,7 @@ class Session:
             self.library,
             Mixer(clock=self.clock, schedule_mode=schedule_mode),
             seed=seed,
-            simulated_users=self.crowd.users,
+            simulated_users=self.crowd.users if self.crowd.enabled else 0,
             source=source,
             clock=self.clock,
             colour_source=colour_source,

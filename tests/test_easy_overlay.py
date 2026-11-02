@@ -174,3 +174,92 @@ def test_uncertain_readout_clears_the_previous_label(monkeypatch):
             assert not browser.errors
 
     asyncio.run(run())
+
+
+def test_stream_text_markdown_idle_history_and_active_crowd_only(monkeypatch, tmp_path):
+    monkeypatch.setenv("NOUS_DEV_FIXTURES", "1")
+
+    async def run():
+        async with Browser("manual&scale=.5&nogl") as browser:
+            await browser.evaluate("NousOverlay.fixture.pause();NousOverlay.reset()")
+
+            async def dispatch(event):
+                await browser.evaluate(f"NousOverlay.dispatch({json.dumps(event)})")
+
+            await dispatch(Mode("war", False, "Explain a morning routine.", 1).to_dict())
+            # The format markers deliberately cross model-event boundaries.
+            for i, piece in enumerate(
+                ["**Wake ", "Up** ", "and *make tea*. <img src=x onerror=alert(1)>"]
+            ):
+                await dispatch(
+                    Token(
+                        i, piece, None, {"scores": {}, "top": None, "margin": 0}, "ocean"
+                    ).to_dict()
+                )
+            await browser.evaluate("NousOverlay.step(1)")
+            assert await browser.evaluate(
+                "document.getElementById('answer').textContent.startsWith('Wake Up and make tea.')"
+            )
+            assert await browser.evaluate(
+                "[...document.querySelectorAll('#answer strong')].map(n=>n.textContent).join('')==='Wake Up'"
+            )
+            assert await browser.evaluate(
+                "[...document.querySelectorAll('#answer em')].map(n=>n.textContent).join('')==='make tea'"
+            )
+            assert not await browser.evaluate("document.querySelector('#answer img')!==null")
+            assert await browser.evaluate(
+                "[...document.querySelectorAll('#answer span')].every(n=>getComputedStyle(n).color==='rgb(241, 233, 214)'&&getComputedStyle(n).textDecorationLine==='none')"
+            )
+            assert await browser.evaluate(
+                "getComputedStyle(document.getElementById('answer')).textShadow.includes('91, 140, 255')"
+            )
+            for target in ("colour-label", "prompt", "share-legend", "pushes"):
+                selector = "#share-legend span" if target == "share-legend" else f"#{target}"
+                if target == "share-legend":
+                    await dispatch(
+                        {
+                            "kind": "tick",
+                            "shares": {"ocean": 0.75, "Neutral": 0.25},
+                            "beta": 1,
+                            "top_pushers": [],
+                        }
+                    )
+                assert await browser.evaluate(
+                    f"[...document.querySelectorAll('{selector}')].every(n=>parseFloat(getComputedStyle(n).fontSize)>=22)"
+                )
+            await dispatch(Mode("war", False, "Pack a bag.", 2).to_dict())
+            assert await browser.evaluate(
+                "document.querySelector('#history b').textContent==='AI ANSWER'"
+            )
+            assert await browser.evaluate(
+                "[...document.querySelectorAll('#history strong')].map(n=>n.textContent).join('')==='Wake Up'"
+            )
+            assert await browser.evaluate(
+                "(()=>{const r=document.getElementById('history').getBoundingClientRect();return r.left>=1600*(innerWidth/1920);})()"
+            )
+            assert await browser.evaluate(
+                "getComputedStyle(document.querySelector('#history article')).opacity==='1'"
+            )
+            for label, count, visible in (
+                ("SIMULATED ×0", None, False),
+                ("SIMULATED ×40", 40, True),
+                ("LIVE", None, True),
+            ):
+                await dispatch(
+                    {"kind": "badge", "label": label, "quality": None, "simulated_users": count}
+                )
+                assert (
+                    await browser.evaluate("!document.getElementById('source').hidden") == visible
+                )
+                assert await browser.evaluate("document.getElementById('sim-source').hidden")
+            await dispatch(
+                {"kind": "badge", "label": "LIVE", "quality": None, "simulated_users": 40}
+            )
+            assert await browser.evaluate(
+                "!document.getElementById('sim-source').hidden&&document.getElementById('sim-source').textContent==='SIMULATED ×40'"
+            )
+            await browser.evaluate("NousOverlay.step(2)")
+            (tmp_path / "stream-readability.png").write_bytes(await browser.screenshot())
+            assert not browser.errors
+
+    asyncio.run(run())

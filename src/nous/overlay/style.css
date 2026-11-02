@@ -9,3 +9,22 @@
 #mvp{position:absolute;left:1120px;top:275px;max-width:680px;padding:18px 24px;background:#02061Dee;border:1px solid #E1C679;color:#F1E9D6;font:24px/1.4 Plex}
 
 #round-headline{position:absolute;left:96px;top:119px;right:280px;font:600 42px/1.1 Cormorant,serif;color:var(--paper)}#target-word{color:#F2C340}#countdown{position:absolute;right:96px;top:126px;font:24px Plex;color:#F2C340}#sky-caption{display:none}#hero{top:205px;height:500px}#answer{height:360px}#mind-share{top:735px}#simple-reader{position:absolute;left:96px;top:858px;width:780px}#ai-guess{font:500 40px Cormorant;margin:5px 0;color:#E1C679}#nerd{position:absolute;left:96px;bottom:34px;width:780px;font:18px Plex;z-index:8}#nerd summary{display:inline-block;cursor:pointer;border:1px solid #7d775c;border-radius:8px;padding:10px 16px;background:#02061Dee}#nerd-content{position:absolute;bottom:52px;left:0;width:820px;height:340px;background:#02061Dfa;border:1px solid #7d775c;padding:20px}#nerd-values{font:17px/1.4 Plex;margin:0;white-space:pre-wrap}#nerd #mind-reader{left:20px;top:80px;width:780px}body.blind #nerd #mind-reader{display:none}#winner{position:absolute;left:950px;top:645px;width:880px;text-align:center;font:600 60px/1.1 Cormorant;color:#F2C340;text-shadow:0 2px 15px #02061D}#reveal{top:465px}#instruction{max-width:840px;font-size:20px}#mode-caption{font-size:76px}#mvp{top:320px}
+
+/* Stream text keeps a constant parchment foreground; team signals remain in the map and bar. */
+#answer{color:#F1E9D6;text-shadow:0 2px 6px #02061D,0 0 18px #5B8CFF66}
+#answer span{text-decoration:none;color:inherit}
+#answer strong,#history strong{font-weight:700}
+#answer code,#history code{font-family:inherit;background:#182645;border-radius:4px;padding:0 3px}
+.eyebrow{font-size:22px;line-height:32px;color:#F1DC9E}
+#prompt{font-size:24px;line-height:32px;color:#F1E9D6;margin:12px 0}
+#answer{height:348px}
+#share-legend span{font-size:22px;line-height:29px;color:#F1E9D6}
+#share-legend b{font-weight:500}
+#simple-reader{top:875px}
+#pushes{font-size:24px;line-height:34px;text-shadow:0 2px 6px #02061D;background:#02061Ddf;padding:12px 18px;border-radius:8px}
+/* A separate right rail keeps earlier answers outside the central map's 350px radius. */
+#history{left:1536px;top:0;width:264px;max-height:520px;gap:14px}
+#history article{font:24px/1.2 Cormorant,serif;opacity:1;padding:14px;background:#02061Df5;border:1px solid #8C7945;border-radius:8px;color:#F1E9D6;max-height:160px;overflow:auto;scrollbar-width:thin;overflow-wrap:break-word;text-shadow:0 2px 5px #02061D}
+#history article b{font:19px/1.3 Plex;color:#F1DC9E;margin-bottom:8px}
+
+body.revealed #history{visibility:hidden}
