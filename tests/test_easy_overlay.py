@@ -229,7 +229,7 @@ def test_stream_text_markdown_idle_history_and_active_crowd_only(monkeypatch, tm
                 )
             await dispatch(Mode("war", False, "Pack a bag.", 2).to_dict())
             assert await browser.evaluate(
-                "document.querySelector('#history b').textContent==='AI ANSWER'"
+                "document.querySelector('#history b').textContent==='No clear thought'"
             )
             assert await browser.evaluate(
                 "[...document.querySelectorAll('#history strong')].map(n=>n.textContent).join('')==='Wake Up'"
@@ -260,6 +260,60 @@ def test_stream_text_markdown_idle_history_and_active_crowd_only(monkeypatch, tm
             )
             await browser.evaluate("NousOverlay.step(2)")
             (tmp_path / "stream-readability.png").write_bytes(await browser.screenshot())
+            assert not browser.errors
+
+    asyncio.run(run())
+
+
+def test_history_titles_follow_readout_and_survive_reconnect(monkeypatch):
+    from nous.concepts.library import load_concepts
+    from nous.server.state import ViewState
+
+    monkeypatch.setenv("NOUS_DEV_FIXTURES", "1")
+
+    async def run():
+        async with Browser("manual&scale=.5&nogl") as browser:
+            await browser.evaluate("NousOverlay.fixture.pause();NousOverlay.reset()")
+            state = ViewState(load_concepts())
+            await browser.evaluate(
+                f"NousOverlay.dispatch({json.dumps(state.snapshot().to_dict())})"
+            )
+
+            async def emit(event):
+                state.apply(event)
+                await browser.evaluate(f"NousOverlay.dispatch({json.dumps(event.to_dict())})")
+
+            # Applied team and raw scores deliberately disagree with the chosen readout.
+            for answer, top in enumerate(("ocean", "space", None), start=1):
+                await emit(Mode("war", False, "Make tea.", answer))
+                if top is None:
+                    await emit(
+                        Token(
+                            0,
+                            "A warm ",
+                            "space",
+                            {"scores": {"ocean": 9}, "top": "ocean", "margin": 2},
+                            "space",
+                        )
+                    )
+                await emit(
+                    Token(
+                        1,
+                        "cup of tea. ",
+                        "space",
+                        {"scores": {"ocean": 9}, "top": top, "margin": 2},
+                        "space",
+                    )
+                )
+                await browser.evaluate("NousOverlay.step(1)")
+            await emit(Mode("war", False, "Pack a bag.", 4))
+            titles = "[...document.querySelectorAll('#history b')].map(n=>n.textContent)"
+            expected = ["Ocean", "Space", "No clear thought"]
+            assert await browser.evaluate(titles) == expected
+            await browser.evaluate(
+                f"NousOverlay.dispatch({json.dumps(state.snapshot().to_dict())})"
+            )
+            assert await browser.evaluate(titles) == expected
             assert not browser.errors
 
     asyncio.run(run())
