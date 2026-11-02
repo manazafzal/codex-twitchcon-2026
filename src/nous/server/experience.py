@@ -250,8 +250,7 @@ class Experience:
             }
 
     async def connect(self, channel: str) -> None:
-        from nous.concepts.builder import build_library
-        from nous.concepts.library import ConceptLibrary, load_concepts
+        from nous.concepts.library import ConceptLibrary
         from nous.model.hf_backend import HFBackend
         from nous.server.session import Session
         from nous.sim.crowd import Crowd
@@ -263,19 +262,7 @@ class Experience:
             )
         self.login["message"] = "Getting the AI ready. You can watch the recording while you wait."
         backend = await asyncio.to_thread(HFBackend, local_path=str(model_dir()))
-        if library_path().exists():
-            library = await asyncio.to_thread(ConceptLibrary.load, library_path())
-        else:
-            library = await asyncio.to_thread(
-                build_library,
-                backend,
-                load_concepts(),
-                samples=2,
-                neutral_samples=60,
-                median_norm=26.78,
-                model_id="Qwen/Qwen2.5-0.5B-Instruct",
-            )
-            library.save(library_path())
+        library = await asyncio.to_thread(ConceptLibrary.load, library_path())
         session = Session(
             backend=backend,
             library=library,

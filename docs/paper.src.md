@@ -69,6 +69,14 @@ Intervals resample concepts with replacement and retain all answers in each sele
 
 ## Results
 
+### Separately reported local checks
+
+The project author supplied [a real-model results note](REAL_MODEL_RESULTS.md) and a fitted library after the original unavailable-artifact report. The table below reproduces that note; it is external, streamer-reported evidence, not a rerun by this paper's code or a completed cell in the registered grid. The reported intervals are described as across-idea intervals; raw outcomes and the resampling implementation were not supplied, so we do not independently verify their construction. The immune checks used an earlier library and code revision and were not repeated on the final library. The note records these limits, revisions and the artifact digest. The starter packs remain experimental and untested on the real model.
+
+{{table:reported_checks}}
+
+### Preregistered study status
+
 The decision table applies the registered rules. Crossing a required confidence bound is inconclusive; absent observations remain unrun. Neither outcome is silently converted to support. Tables and figures below are generated exclusively from the evidence artifacts. Full machine-readable grids accompany the condensed classifier and alarm views. No exploratory hints are treated as results.
 
 {{table:hypotheses}}

@@ -68,6 +68,15 @@ def render(source: str, research: Path) -> str:
 
             relative = os.path.relpath(path, ROOT / "docs")
             return f"![{name}; run status and actual n in companion table]({relative})"
+        if name == "reported_checks":
+            note = (ROOT / "docs/REAL_MODEL_RESULTS.md").read_text()
+            section = note.split("## What I measured\n", 1)[1].split("## Notes and limits", 1)[0]
+            if not section.strip().startswith("| Check | Result |"):
+                raise ValueError("Reported results table is missing")
+            return (
+                section.strip()
+                + "\n\nSource: [streamer-supplied results and limits](REAL_MODEL_RESULTS.md)."
+            )
         if name == "registration":
             return (
                 f"Registered before measurement: [{REGISTRATION}]"

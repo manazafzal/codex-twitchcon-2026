@@ -2,6 +2,7 @@
 
 import json
 import os
+import sysconfig
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -15,8 +16,31 @@ def model_dir() -> Path:
     return Path(os.getenv("NOUS_MODEL_PATH", str(data_dir() / "model")))
 
 
-def library_path() -> Path:
+def user_library_path() -> Path:
     return data_dir() / "concepts.npz"
+
+
+def bundled_library_path() -> Path:
+    source = Path(__file__).resolve().parents[2] / "library" / "nous-fitted.npz"
+    if source.is_file():
+        return source
+    return Path(sysconfig.get_path("data")) / "share" / "nous" / "nous-fitted.npz"
+
+
+def library_path() -> Path:
+    custom = user_library_path()
+    return custom if custom.is_file() else bundled_library_path()
+
+
+def require_model_path(local_path: str | None = None) -> Path:
+    location = Path(local_path) if local_path else model_dir()
+    if not (location / "config.json").is_file():
+        raise FileNotFoundError(
+            f"The AI brain is not ready at {location}. Run setup.bat on Windows, "
+            "or install nous[model] and run python -m nous.install, then try again. "
+            "Use --model-path or NOUS_MODEL_PATH for a different local folder."
+        )
+    return location
 
 
 def settings() -> dict[str, Any]:

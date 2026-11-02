@@ -3,6 +3,7 @@ from typing import Any
 
 import numpy as np
 
+from nous.config import require_model_path
 from nous.model.backend import DefendSpec, State, Vector, sample
 
 
@@ -18,6 +19,7 @@ class HFBackend:
         *,
         local_path: str | None = None,
     ) -> None:
+        location = str(require_model_path(local_path))
         try:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -27,16 +29,12 @@ class HFBackend:
         allowed = {"Qwen/Qwen2.5-0.5B-Instruct", "Qwen/Qwen2.5-1.5B-Instruct"}
         if name not in allowed:
             raise ValueError("Unsupported model")
-        target = device or os.getenv("NOUS_DEVICE", "auto")
+        target = device or os.getenv("NOUS_DEVICE", "cpu")
         if target == "auto":
             target = "cuda" if torch.cuda.is_available() else "cpu"
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            local_path or os.getenv("NOUS_MODEL_PATH") or name, local_files_only=True
-        )
+        self.tokenizer = AutoTokenizer.from_pretrained(location, local_files_only=True)
         loader: Any = AutoModelForCausalLM
-        model = loader.from_pretrained(
-            local_path or os.getenv("NOUS_MODEL_PATH") or name, local_files_only=True
-        )
+        model = loader.from_pretrained(location, local_files_only=True)
         self._configure(model.to(target).eval())
 
     def _configure(self, model: Any) -> None:

@@ -12,6 +12,7 @@ from aiohttp import web
 
 from nous.concepts.builder import build_library
 from nous.concepts.library import ConceptLibrary, load_concepts
+from nous.config import data_dir, library_path, model_dir, user_library_path
 from nous.engine.generate import Generator
 from nous.engine.mixer import FakeClock, Mixer
 from nous.model.mock_backend import MockBackend
@@ -53,7 +54,13 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument("--record", type=Path)
     run.add_argument("--mock", action="store_true", help="Use TINY MODEL / CI with real chat input")
     run.add_argument(
-        "--library", type=Path, help="Real-model library; otherwise use TINY MODEL / CI"
+        "--library",
+        type=Path,
+        default=library_path(),
+        help="Custom library; defaults to your saved library or the bundled fitted library",
+    )
+    run.add_argument(
+        "--model-path", type=Path, default=model_dir(), help="Local AI folder from setup"
     )
     for configured in (demo, run):
         configured.add_argument(
@@ -132,9 +139,7 @@ def main(argv: list[str] | None = None) -> None:
     inputs = add.add_mutually_exclusive_group()
     inputs.add_argument("--from-model", type=int, default=24, metavar="N")
     inputs.add_argument("--examples", type=Path)
-    from nous.config import data_dir, library_path, model_dir
-
-    add.add_argument("--library", type=Path, default=library_path())
+    add.add_argument("--library", type=Path)
     add.add_argument("--model-path", type=Path, default=model_dir())
     add.add_argument("--output", type=Path, default=data_dir() / "topics")
     args = parser.parse_args(argv)
@@ -157,7 +162,7 @@ def main(argv: list[str] | None = None) -> None:
         examples = None
         try:
             examples = load_examples(args.examples) if args.examples else None
-            library = ConceptLibrary.load(args.library)
+            library = ConceptLibrary.load(args.library or library_path())
             backend = HFBackend(local_path=str(args.model_path))
             result = TopicBuilder(backend, library).build(
                 name, count=args.from_model, examples=examples
@@ -177,7 +182,7 @@ def main(argv: list[str] | None = None) -> None:
             )
         save_result(result, args.output / name)
         if result.library is not None and result.report["status"] == "accepted":
-            result.library.save(args.library)
+            result.library.save(args.library or user_library_path())
         log.info(
             "Topic %s: %s; report: %s",
             name,
@@ -358,11 +363,19 @@ def main(argv: list[str] | None = None) -> None:
 
         backend = MockBackend()
         library = mock_library(all_concepts=True)
-        if args.library and not args.mock:
+        if not args.mock:
             from nous.model.hf_backend import HFBackend
 
-            library = ConceptLibrary.load(args.library)
-            backend = HFBackend()
+            try:
+                library = ConceptLibrary.load(args.library)
+                backend = HFBackend(local_path=str(args.model_path))
+            except (OSError, ValueError, ImportError) as exc:
+                parser.exit(
+                    1,
+                    f"Local AI unavailable: {exc}\n"
+                    "Run setup.bat on Windows, or install nous[model] and run "
+                    "python -m nous.install. The recorded demo is available with nous demo.\n",
+                )
         crowd = Crowd(twitch_connected=True, explicit_sim=args.sim)
         session = Session(
             backend=backend,

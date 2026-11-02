@@ -25,6 +25,9 @@ where = ["src"]
 "nous.overlay" = ["*.html", "*.css", "*.js", "fonts/*.ttf", "fonts/*.txt"]
 "nous.sim" = ["demo_script.json", "demo_round.json"]
 
+[tool.setuptools.data-files]
+"share/nous" = ["library/nous-fitted.npz"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]

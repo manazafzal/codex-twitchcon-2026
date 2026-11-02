@@ -4,6 +4,8 @@
 2. **Double-click `setup.bat`.** It installs the helpers, downloads the small AI, and opens NOUS in your browser. Keep its window open while you play. Internet is needed for this first setup.
 3. **Click “Try the demo”.** Watch a full round in under 30 seconds. No Twitch login needed. If the AI isn't ready, NOUS clearly shows a recorded round with pretend chat.
 
+**The AI runs on CPU by default; no graphics card is needed.** The fitted Mind-Reader library is included, so trying the real AI requires no library build or fitting. Windows setup downloads the model; the recorded demo remains available if that download pauses.
+
 ## Meet NOUS
 
 Chat tries to make an AI think about a team's idea. The AI tries to stay on task. Guess its hidden thought to win points. **NOUS** is the Greek word for mind.
@@ -12,7 +14,7 @@ In Twitch chat: **`!join`** picks your team, **`!push word`** backs an idea, **`
 
 ## Connect your Twitch
 
-Choose **Connect my Twitch** on the welcome screen and follow the three ticked steps. Twitch requires a free Public app code; the screen links to its registration page and shows where to copy it. NOUS then opens Twitch sign-in, checks your channel, and prepares the local AI. No config files to edit. First-time AI preparation can take several minutes; the recording is ready while you wait.
+Choose **Connect my Twitch** on the welcome screen and follow the three ticked steps. Twitch requires a free Public app code; the screen links to its registration page and shows where to copy it. NOUS then opens Twitch sign-in, checks your channel, and prepares the local AI. No config files to edit and no library building or fitting. The recording is ready while the local AI loads.
 
 Open **controls** to start a round with a button or **R**. Streamers and moderators can also type **`!round`** or **`!immune on`**. Add the game's **`/overlay/`** address to OBS at **1920 × 1080**. Keep the private welcome/control address to yourself.
 
@@ -39,10 +41,10 @@ Open **http://127.0.0.1:8080/** for the overlay, or
 The fixture uses a canned event list and the same renderer as the live view.
 Append `?bg=transparent` for OBS. The canvas scales from 1920×1080.
 
-Every demo is labelled **SIMULATED ×40** and **TINY MODEL / CI**. Mock text is
+Every demo labels its pretend chat **SIMULATED ×40**. Shipped recordings and mock runs also show **TINY MODEL / CI**; a demo using your downloaded real model and the fitted library does not use that test-model label. Mock text is
 scripted to test presentation; its vectors and scores are test fixtures, not
 model-quality evidence. `nous demo --mock` explicitly uses the deterministic development engine.
-The default `nous demo` uses the shipped recording. Neither downloads
+The default `nous demo` uses the local model when it is ready, otherwise the shipped recording. Neither downloads
 weights. Install `.[dev,model]` for Tiny tests; tests allow only local loopback sockets.
 
 `--users N`, `--script golden/demo_script.json`, `--port 8080`, and `--no-browser`
@@ -125,20 +127,20 @@ nous eval --library library/qwen2.5-0.5b-instruct.npz --output results
 nous eval --mock --output work/eval-ci
 ```
 
-Set `NOUS_MODEL_PATH` to locally provisioned weights. Evaluation writes
+The default model folder is `~/.config/nous/model` (Windows: `C:\Users\<you>\.config\nous\model`), shared by setup, Connect and `nous run`. `NOUS_DATA_DIR` changes the base folder. Use `nous run --model-path PATH` or `NOUS_MODEL_PATH` for another local model folder. `NOUS_DEVICE=cuda` or `NOUS_DEVICE=auto` is an optional override; the default is CPU.
+
+For a command-line live session after setup, run `nous auth`, then `nous run --channel NAME`; no model-path variable is required. On other systems, install `.[model]` and run `python -m nous.install` once. To create your own library, use `nous build-library --output PATH` and `nous fit-readout --library PATH`, then select it with `--library PATH` (or save it as `~/.config/nous/concepts.npz`). Evaluation writes
 ordered JSON/Markdown tables with sample counts, concept-cluster uncertainty,
 matched controls and provenance. Missing trained artifacts stop a real run; they
 never trigger a mock substitute. CI output is explicitly **TINY MODEL / CI**.
 Task retention uses a documented lexical/repetition proxy and needs human review.
-See [architecture and evidence limits](docs/architecture.md). No trained-model
-quality, throughput or false-alarm result has been verified in this checkout.
+See [architecture and evidence limits](docs/architecture.md) and the [streamer-reported real-model checks](docs/REAL_MODEL_RESULTS.md). On 360 held-out answers across 30 concepts, the reported fitted Mind-Reader top-1 was **94.2% (91.7–96.4% interval across concepts)** and top-3 was **96.1% (94.2–98.1%)**. The reporter also observed **192/192** idle abstentions and **320/320** pushed labels. The earlier-library immune checks reported **0/20** clean false alarms and **20/20** pushed answers caught; they were not repeated on the final library. These are supplied CPU checks, not a completed preregistered study or an independent rerun here. Throughput and live-audience results remain unavailable.
 
 Live chat setup: register a **Public** Twitch app, set
 `NOUS_TWITCH_CLIENT_ID`, run `nous auth`, then
 `nous run --channel NAME [--sim] [--record FILE]`. The source badge is
 **LIVE**. Simulation is disabled unless explicitly requested and then retains its
-own badge. A built library can be supplied with `--library`; otherwise the model
-output remains explicitly labelled **TINY MODEL / CI**. See the streamer guide
+own badge. Fresh clones use the committed `library/nous-fitted.npz`. An existing saved `~/.config/nous/concepts.npz` takes precedence; use `--library PATH` for a different library. `--mock` is the explicit **TINY MODEL / CI** option. See the streamer guide
 for credential storage, bot announcements, OBS setup, and the required live check.
 
 Colouring defaults to `--schedule-mode answer --colour-source applied`: one faction
@@ -151,10 +153,11 @@ evidence: `source: "realmodel"` and
 `schedule_modes.<mode>.window_agreement >= 0.75`. The overlay labels the source
 as **territory** or **Mind-Reader colours**. Optional reveal accuracy comes only
 from `telepathy: {"accuracy": ..., "n": ...}` in that real-model evidence file.
-No lead-time claim is made. Real-model quality, coherence, and throughput remain
-unverified; fixture output retains its **TINY MODEL / CI** label.
+No lead-time claim is made. The supplied CPU checks above cover the stated readout and detection samples; coherence and throughput remain unverified. Fixture output retains its **TINY MODEL / CI** label.
 
 Research write-up: [plain-English paper and evidence](docs/paper.md), [registered hypotheses](docs/hypotheses.md) and [reproduction commands](.codex/skills/nous-research/SKILL.md). Rows marked unrun are unavailable evidence, not measured effects.
+
+**The 24 starter concepts across the three packs remain experimental and untested on the real model.** Their admission reports remain rejected/unrun; the supplied library covers the original concepts.
 
 ## How we built this with Codex
 

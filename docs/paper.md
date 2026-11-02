@@ -73,6 +73,24 @@ Intervals resample concepts with replacement and retain all answers in each sele
 
 ## Results
 
+### Separately reported local checks
+
+The project author supplied [a real-model results note](REAL_MODEL_RESULTS.md) and a fitted library after the original unavailable-artifact report. The table below reproduces that note; it is external, streamer-reported evidence, not a rerun by this paper's code or a completed cell in the registered grid. The reported intervals are described as across-idea intervals; raw outcomes and the resampling implementation were not supplied, so we do not independently verify their construction. The immune checks used an earlier library and code revision and were not repeated on the final library. The note records these limits, revisions and the artifact digest. The starter packs remain experimental and untested on the real model.
+
+| Check | Result |
+| --- | --- |
+| Mind-Reader names the right idea (first guess), 360 held-out answers, 30 ideas | 94.2% (91.7 to 96.4% interval across ideas) |
+| Right idea in its first three guesses | 96.1% (94.2 to 98.1%) |
+| Same test before fitting the Mind-Reader | 47.5% first guess, 66.7% first three |
+| Nobody pushing: says "No clear thought yet" | 192 of 192 |
+| Rounds with pushes: reading names the pushed idea | 320 of 320 |
+| Neural Immune System: false alarms on normal answers | 0 of 20 |
+| Neural Immune System: pushed answers caught | 20 of 20 |
+
+Source: [streamer-supplied results and limits](REAL_MODEL_RESULTS.md).
+
+### Preregistered study status
+
 The decision table applies the registered rules. Crossing a required confidence bound is inconclusive; absent observations remain unrun. Neither outcome is silently converted to support. Tables and figures below are generated exclusively from the evidence artifacts. Full machine-readable grids accompany the condensed classifier and alarm views. No exploratory hints are treated as results.
 
 | clusters | decision | hypothesis | n | reason | status |

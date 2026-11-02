@@ -31,32 +31,32 @@ try {
         }
     }
     if ($ExistingPython) {
-        Run-Checked $ExistingPython @('-m','venv','.venv')
+        Run-Checked -Program $ExistingPython -Arguments @('-m','venv','.venv')
     } elseif (-not $Launcher) {
         $Winget = Get-Command winget -ErrorAction SilentlyContinue
         if (-not $Winget) { throw 'Install Python 3.11 from python.org/downloads/windows, then double-click setup.bat again. Tick Add Python to PATH during installation.' }
         Write-Host 'Installing Python. Windows may ask you to allow this...'
-        Run-Checked $Winget.Source @('install','--id','Python.Python.3.11','--exact','--scope','user','--silent','--accept-source-agreements','--accept-package-agreements')
+        Run-Checked -Program $Winget.Source -Arguments @('install','--id','Python.Python.3.11','--exact','--scope','user','--silent','--accept-source-agreements','--accept-package-agreements')
         $Python = Join-Path $env:LOCALAPPDATA 'Programs\Python\Python311\python.exe'
         if (-not (Test-Path $Python)) { throw 'Python has installed. Close this window and double-click setup.bat once more.' }
-        Run-Checked $Python @('-m','venv','.venv')
+        Run-Checked -Program $Python -Arguments @('-m','venv','.venv')
     } else {
-        Run-Checked $Launcher.Source @('-3.11','-m','venv','.venv')
+        Run-Checked -Program $Launcher.Source -Arguments @('-3.11','-m','venv','.venv')
     }
     $Python = Join-Path $PWD '.venv\Scripts\python.exe'
     Write-Host 'Installing the helper tools. The first setup takes a few minutes...'
-    Run-Checked $Python @('-m','pip','install','--upgrade','pip')
-    Run-Checked $Python @('-m','pip','install','--prefer-binary','-e','.')
+    Run-Checked -Program $Python -Arguments @('-m','pip','install','--upgrade','pip')
+    Run-Checked -Program $Python -Arguments @('-m','pip','install','--prefer-binary','-e','.')
     Write-Host 'Getting the AI helper ready. The recording works even if this step pauses...'
-    try { Run-Checked $Python @('-m','pip','install','--prefer-binary','-e','.[model]') } catch {
+    try { Run-Checked -Program $Python -Arguments @('-m','pip','install','--prefer-binary','-e','.[model]') } catch {
         Write-Host 'The AI helper paused. The recorded demo is ready; run setup.bat again later for the AI.' -ForegroundColor Yellow
     }
     Write-Host 'Downloading the AI brain (about 1 GB)...'
-    try { Run-Checked $Python @('-m','nous.install') } catch {
+    try { Run-Checked -Program $Python -Arguments @('-m','nous.install') } catch {
         Write-Host 'The AI download paused. You can still try the recorded demo. Run setup.bat again later to retry.' -ForegroundColor Yellow
     }
     Write-Host 'Ready! Opening NOUS in your browser. Keep this window open while you play.' -ForegroundColor Green
-    try { Run-Checked $Python @('-m','nous.cli','start') } catch {
+    try { Run-Checked -Program $Python -Arguments @('-m','nous.cli','start') } catch {
         throw 'NOUS could not open. If an older NOUS window is running, use its browser tab or close that window and try setup.bat again.'
     }
 } catch {
