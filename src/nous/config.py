@@ -13,7 +13,7 @@ def data_dir() -> Path:
 
 
 def model_dir() -> Path:
-    return Path(os.getenv("NOUS_MODEL_PATH", str(data_dir() / "model")))
+    return Path(os.getenv("NOUS_MODEL_PATH") or str(data_dir() / "model"))
 
 
 def user_library_path() -> Path:

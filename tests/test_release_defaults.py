@@ -206,3 +206,16 @@ def test_reported_results_remain_separate_from_registered_unrun_cells():
     for path in (ROOT / "research/tables").glob("*.json"):
         rows = json.loads(path.read_text())
         assert all(row["status"] == "unrun" for row in rows)
+
+
+def test_eval_also_defaults_to_the_shipped_fitted_library(fresh_home, monkeypatch):
+    calls = []
+    monkeypatch.setattr("nous.model.hf_backend.HFBackend", lambda **kwargs: FakeHF())
+    monkeypatch.setattr(
+        "nous.evaluation.evaluate", lambda backend, library, **kwargs: calls.append(library) or {}
+    )
+    monkeypatch.setattr("nous.evaluation.write_report", lambda *args: None)
+    cli.main(["eval", "--output", str(fresh_home / "results")])
+    assert calls[0].hash == ConceptLibrary.load(config.bundled_library_path()).hash
+    monkeypatch.setenv("NOUS_MODEL_PATH", "")
+    assert config.model_dir() == fresh_home / "model"

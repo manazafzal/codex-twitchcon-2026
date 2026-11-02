@@ -121,9 +121,11 @@ to generate contrast sets and neutral calibration. Runtime never downloads weigh
 Offline evaluation and readout fitting:
 
 ```sh
-nous calibrate-alarm --library library/qwen2.5-0.5b-instruct.npz --seed 1
-nous fit-readout --library library/qwen2.5-0.5b-instruct.npz
-nous eval --library library/qwen2.5-0.5b-instruct.npz --output results
+# Optional: build and fit your own library
+nous build-library --output library/custom.npz
+nous fit-readout --library library/custom.npz
+# Evaluate the shipped fitted library with the model downloaded by setup
+nous eval --library library/nous-fitted.npz --output results
 nous eval --mock --output work/eval-ci
 ```
 

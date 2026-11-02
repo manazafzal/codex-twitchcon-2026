@@ -21,7 +21,7 @@ Hackathon: Codex x TwitchCon (Devpost). The repo must be new work, built mostly 
 ## Commands
 - Install (dev, CI-safe): `pip install -e ".[dev]"`; with tiny-model tests: `pip install -e ".[dev,model]"` (CPU torch).
 - `make check` → ruff + mypy on engine/model/concepts/evaluation + pytest (non-real-model).
-- `make eval` → the offline real-model harness, requiring a verified local library and weights. Equivalent: `nous eval --library library/qwen2.5-0.5b-instruct.npz --output results --alphas .3 .45 --seeds 1 --prompts 6 --concepts 30 --held-out 3 --seed 0`. Output is `eval.json` plus `eval.md`; no automatic README quality claims.
+- `make eval` → the offline real-model harness, requiring a verified local library and weights. Equivalent: `nous eval --library library/nous-fitted.npz --output results --alphas .3 .45 --seeds 1 --prompts 6 --concepts 30 --held-out 3 --seed 0`. Output is `eval.json` plus `eval.md`; no automatic README quality claims.
 - CI-only evaluation: `nous eval --mock --output work/eval-ci`. The source is `mock` and quality is `TINY MODEL / CI`; never relabel this as real evidence.
 - `nous demo` → offline demo mode (labelled simulated crowd), opens overlay URL.
 - `nous replay golden/golden_run.jsonl` → deterministic replay of a recorded run.

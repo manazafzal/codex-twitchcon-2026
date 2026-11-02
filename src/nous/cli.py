@@ -79,9 +79,7 @@ def main(argv: list[str] | None = None) -> None:
     evaluation = commands.add_parser(
         "eval", help="Run matched local evaluation with concept-cluster intervals"
     )
-    evaluation.add_argument(
-        "--library", type=Path, default=Path("library/qwen2.5-0.5b-instruct.npz")
-    )
+    evaluation.add_argument("--library", type=Path, default=library_path())
     evaluation.add_argument("--output", type=Path, default=Path("results"))
     evaluation.add_argument("--alphas", type=float, nargs="+", default=[0.3, 0.45])
     evaluation.add_argument("--seeds", type=int, default=1)
