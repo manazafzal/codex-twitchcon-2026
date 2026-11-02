@@ -3,9 +3,10 @@
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search), manual = params.has('manual');
 const atlas = window.NousAtlas, palette = ['#5B8CFF','#F2C340','#2FC79A','#F0604A','#E877A6','#7CD0EE','#A685E6'];
-let time=0, jobs=[], queue=[], words=[], rows=[], catalog=[], mode={}, history=[], socket, generation=0, nextWord=0, captionBorn=-10, lastTick=null, shareTween=null, currentShares=null, overlayConnected=true, twitchState='connected', engineState='connected', mvpVersion=0, deadline=null, revealVersion=0, answerParts=[], answerPushed=false;
+let time=0, jobs=[], queue=[], words=[], rows=[], catalog=[], mode={}, history=[], socket, generation=0, nextWord=0, captionBorn=-10, lastTick=null, shareTween=null, currentShares=null, overlayConnected=true, twitchState='connected', engineState='connected', mvpVersion=0, deadline=null, revealVersion=0, answerParts=[], answerPushed=false, currentTarget=null;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const names=new Map(), colours=new Map();
+const roundLabels={war:'TEAM ROUND',attack:'DEFENCE CHALLENGE',telepathy:'GUESS THE THOUGHT'};
 const label = id => names.get(id) || String(/^(?:[a-f0-9]{16}|voc\d{3})$/.test(id)?'Hidden thought':id==='Neutral'?'No team':id || 'No team').replaceAll('_',' ').toUpperCase();
 function colour(id){if(!colours.has(id))colours.set(id,palette[colours.size%palette.length]);return colours.get(id);}
 function later(fn,seconds){jobs.push({at:time+seconds,fn});}
@@ -39,18 +40,45 @@ function markdown(target,parts,animate=false){
  }
  append(raw.slice(cursor),cursor);return spans;
 }
+function fitAnswer(reset=false){
+ const answer=$('answer');let upper=reset?56:Math.round(parseFloat(getComputedStyle(answer).fontSize));
+ answer.style.fontSize=`${upper}px`;
+ if(answer.scrollHeight>answer.clientHeight||answer.scrollWidth>answer.clientWidth){
+  let lower=17,best=17;
+  while(lower<=upper){const size=Math.floor((lower+upper)/2);answer.style.fontSize=`${size}px`;
+   if(answer.scrollHeight<=answer.clientHeight&&answer.scrollWidth<=answer.clientWidth){best=size;lower=size+1;}else upper=size-1;
+  }
+  answer.style.fontSize=`${best}px`;
+ }
+ answer.scrollTop=0;
+}
 function addWord(part,token){
  $('answer').classList.remove('thinking');answerParts.push({text:part,born:time});
  words=markdown($('answer'),answerParts,true);
- $('answer').classList.toggle('scrolled',$('answer').scrollHeight>$('answer').clientHeight);
- $('answer').scrollTop=$('answer').scrollHeight;
+ fitAnswer();
 }
 function ridge(){const c=$('reader'),ctx=c.getContext('2d'),W=780,H=200;ctx.clearRect(0,0,W,H);const peaks=new Map();rows.forEach(row=>Object.entries(row).forEach(([id,z])=>peaks.set(id,Math.max(peaks.get(id)||0,z))));const ids=[...peaks].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,4).map(p=>p[0]);const zmax=Math.max(8,Math.ceil(Math.max(0,...peaks.values())+.5));$('ridge-labels').replaceChildren();ids.forEach((id,i)=>{const baseline=46+i*36;ctx.beginPath();ctx.moveTo(0,baseline);rows.forEach((row,j)=>ctx.lineTo(j*510/59,baseline-Math.max(0,row[id]||0)/zmax*68));ctx.lineTo(Math.max(0,rows.length-1)*510/59,baseline);ctx.closePath();ctx.fillStyle='#02061D';ctx.fill();ctx.strokeStyle=mode.mode==='telepathy'&&mode.phase!=='reveal'?'#F1E9D6':colour(id);ctx.lineWidth=2;ctx.stroke();const div=document.createElement('div');div.className='ridge-label';const title=document.createElement('span');title.textContent=mode.mode==='telepathy'&&mode.phase!=='reveal'?`SIGNAL ${i+1}`:label(id);const val=document.createElement('small');const z=rows.at(-1)?.[id]||0;val.textContent=z>.05?`${z.toFixed(1)} SD`:'—';div.append(title,val);$('ridge-labels').append(div);});}
 function shareValues(){if(!shareTween)return currentShares||{};const p=Math.max(0,Math.min(1,(time-shareTween.born)/.6));return Object.fromEntries(shareTween.ids.map(id=>[id,(shareTween.from[id]||0)*(1-p)+(shareTween.to[id]||0)*p]));}
 function drawShares(){if(!shareTween)return;const values=shareValues();$('share-bar').querySelectorAll('span').forEach(span=>span.style.width=`${(values[span.dataset.faction]||0)*100}%`);if(time-shareTween.born>=.6){currentShares=shareTween.to;shareTween=null;}}
 function shares(event){const from=shareValues(),to=event.shares,ids=[...new Set([...Object.keys(from),...Object.keys(to)])];if(currentShares&&ids.some(id=>Math.abs((from[id]||0)-(to[id]||0))>1e-9))shareTween={from,to,ids,born:time};else shareTween=null;currentShares=to;lastTick=event;$('share-bar').querySelectorAll('span').forEach(e=>e.remove());$('share-legend').replaceChildren();Object.entries(event.shares).sort((a,b)=>b[1]-a[1]).forEach(([id,value])=>{const segment=document.createElement('span');segment.dataset.faction=id;segment.style.width=`${(shareTween?(from[id]||0):value)*100}%`;segment.style.background=id==='Neutral'?'#526074':colour(id);$('share-bar').append(segment);const item=document.createElement('span');const name=document.createElement('b');name.textContent=label(id);item.append(name,document.createTextNode(` ${(value*100).toFixed(0)}%`));item.style.borderBottom=`2px solid ${id==='Neutral'?'#526074':colour(id)}`;$('share-legend').append(item);});if(shareTween)ids.filter(id=>!(id in to)).forEach(id=>{const segment=document.createElement('span');segment.dataset.faction=id;segment.style.width=`${(from[id]||0)*100}%`;segment.style.background=id==='Neutral'?'#526074':colour(id);$('share-bar').append(segment);});}
 function blind(){return mode.mode==='telepathy'&&mode.phase!=='reveal';}
+function playing(){
+ if(!mode.mode||mode.phase==='idle')return false;
+ if(mode.mode!=='war')return true;
+ return answerPushed||!!mode.injection||Object.entries(lastTick?.shares||{}).some(([id,value])=>id!=='Neutral'&&value>0);
+}
+function refreshWaiting(){
+ const waiting=!playing();document.body.classList.toggle('waiting',waiting);
+ if(waiting)$('mode-caption').hidden=true;
+ text('mode',waiting?'WAITING':roundLabels[mode.mode]||'READY');
+ text('instruction',waiting?'How to play: !join':mode.mode==='telepathy'?(mode.phase==='reveal'?'Next round soon · !rank for your score':'How to play: !guess word · !rank'):'How to play: !join · !push word · !guess word');
+ if(mode.phase!=='reveal'){
+  const leader=Object.entries(lastTick?.shares||{}).filter(([id,value])=>id!=='Neutral'&&value>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]?.[0];
+  headline(currentTarget?label(currentTarget):mode.injection?label(mode.injection):leader?label(leader):null);
+ }
+}
 function headline(target){
+ if(!playing()){text('round-headline','Waiting for chat. Type !join to play.');return;}
  if(mode.phase==='guessing'){$('round-headline').replaceChildren(document.createTextNode('Guess what the AI is thinking!'));return;}
  const word=blind()?'???':target||'an idea';
  $('round-headline').replaceChildren(document.createTextNode('Chat is trying to make the AI think about... '));
@@ -82,16 +110,52 @@ function renderMvp(card){
  if(mode.phase==='reveal')text('scoreboard',(card.board?.stream||[]).slice(0,5).map(row=>`${row.name} ${Number(row.points).toFixed(2)}`).join(' · '));
 }
 function renderHistory(){ $('history').replaceChildren();history.slice(-3).forEach(h=>{const a=document.createElement('article'),b=document.createElement('b'),body=document.createElement('div');b.textContent=h.title;markdown(body,[{text:h.text,born:0}]);a.append(b,body);$('history').append(a);}); }
-function modeEvent(e){const change=e.mode!==mode.mode||e.panel!==mode.panel;const newAnswer=e.answer!==mode.answer||e.panel!==mode.panel||e.mode!==mode.mode;if(newAnswer&&['armed','generating'].includes(e.phase)){if($('answer').textContent)history.push({title:answerPushed?(mode.mode?.toUpperCase()||'TEAM ROUND'):'AI ANSWER',text:answerParts.map(p=>p.text).join('')});history=history.slice(-3);renderHistory();answerParts=[];answerPushed=false;$('mvp').hidden=true;$('answer').replaceChildren();$('answer').classList.remove('thinking');const key=`${e.mode}/${e.answer}/${e.panel}`;later(()=>{if(`${mode.mode}/${mode.answer}/${mode.panel}`===key&&mode.phase==='generating'&&!$('answer').childNodes.length)$('answer').classList.add('thinking');},.6);words=[];queue=[];if(e.mode==='telepathy')rows=[];}
-mode=e;text('mode',({war:'TEAM ROUND',attack:'DEFENCE CHALLENGE',telepathy:'GUESS THE THOUGHT'})[e.mode]||'READY');text('prompt',e.prompt);text('colour-label',e.colour_source==='readout'?"AI's guess colours":'Team colours');text('panel-label',e.mode==='attack'?`DEFENCE ${e.immune?'ON':'OFF'}`:'');$('immune-chip').hidden=!e.immune;text('immune-chip','Defence on');$('tamper').hidden=true;document.body.classList.toggle('blind',e.mode==='telepathy'&&e.phase!=='reveal');document.body.classList.toggle('revealed',e.phase==='reveal');if(e.mode==='telepathy'&&e.phase!=='reveal')renderMvp(null);deadline=['armed','generating','guessing'].includes(e.phase)?(e.remaining!=null?time+e.remaining:e.phase==='generating'?time+12:null):null;headline(e.injection&&!blind()?label(e.injection):null);if(blind())simpleReadout({});reveal(e);countdown();text('scoreboard',(e.scoreboard||[]).map(([user,score])=>`${user}  ${score}`).join(' · '));text('instruction',e.mode==='telepathy'?(e.phase==='reveal'?'Next round soon · !rank for your score':'How to play: !guess word · !rank'):'How to play: !join · !push word · !guess word');if(change){const g=++generation;captionBorn=time;text('mode-caption',({war:'TEAM ROUND',attack:'DEFENCE CHALLENGE',telepathy:'GUESS THE THOUGHT'})[e.mode]||'READY');$('mode-caption').hidden=false;later(()=>{if(g===generation)$('mode-caption').hidden=true;},reduced?.1:1.7);}ridge();}
+function modeEvent(e){
+ const change=e.mode!==mode.mode||e.panel!==mode.panel;
+ const newAnswer=e.answer!==mode.answer||e.panel!==mode.panel||e.mode!==mode.mode;
+ if(newAnswer&&['armed','generating'].includes(e.phase)){
+  if($('answer').textContent)history.push({title:answerPushed?(mode.mode?.toUpperCase()||'TEAM ROUND'):'AI ANSWER',text:answerParts.map(p=>p.text).join('')});
+  history=history.slice(-3);renderHistory();answerParts=[];answerPushed=false;currentTarget=null;
+  $('mvp').hidden=true;$('answer').replaceChildren();fitAnswer(true);$('answer').classList.remove('thinking');
+  const key=`${e.mode}/${e.answer}/${e.panel}`;
+  later(()=>{if(`${mode.mode}/${mode.answer}/${mode.panel}`===key&&mode.phase==='generating'&&!$('answer').childNodes.length)$('answer').classList.add('thinking');},.6);
+  words=[];queue=[];if(e.mode==='telepathy')rows=[];
+ }
+ mode=e;text('prompt',e.prompt);
+ text('colour-label',e.colour_source==='readout'?"AI's guess colours":'Team colours');
+ text('panel-label',e.mode==='attack'?`DEFENCE ${e.immune?'ON':'OFF'}`:'');
+ $('immune-chip').hidden=!e.immune;text('immune-chip','Defence on');$('tamper').hidden=true;
+ document.body.classList.toggle('blind',e.mode==='telepathy'&&e.phase!=='reveal');
+ document.body.classList.toggle('revealed',e.phase==='reveal');
+ if(blind())renderMvp(null);
+ deadline=['armed','generating','guessing'].includes(e.phase)?(e.remaining!=null?time+e.remaining:e.phase==='generating'?time+12:null):null;
+ refreshWaiting();if(blind())simpleReadout({});reveal(e);countdown();
+ text('scoreboard',(e.scoreboard||[]).map(([user,score])=>`${user}  ${score}`).join(' · '));
+ if(change&&playing()){
+  const g=++generation;captionBorn=time;text('mode-caption',roundLabels[e.mode]||'READY');$('mode-caption').hidden=false;
+  later(()=>{if(g===generation)$('mode-caption').hidden=true;},reduced?.1:1.7);
+ }
+ ridge();
+}
 const handlers = {
     push(e){const p=document.createElement('div');p.textContent=`${e.user} → ${label(e.faction)}`;$('pushes').prepend(p);while($('pushes').children.length>5)$('pushes').lastChild.remove();},
-    tick(e){shares(e);if(!blind())text('nerd-values',`Push strength: ${Number(e.beta).toFixed(2)}`);},
-    token(e){answerPushed=answerPushed||!!e.applied;simpleReadout(e);queue.push(...(e.text.match(/\S+\s*|\s+/g)||[]).map(part=>({part,token:e})));if(e.sky?.z){rows.push(e.sky.z);rows=rows.slice(-60);ridge();}},
+    tick(e){shares(e);refreshWaiting();if(!blind())text('nerd-values',`Push strength: ${Number(e.beta).toFixed(2)}`);},
+    token(e){answerPushed=answerPushed||!!e.applied;if(e.applied)currentTarget=e.applied;refreshWaiting();simpleReadout(e);queue.push(...(e.text.match(/\S+\s*|\s+/g)||[]).map(part=>({part,token:e})));if(e.sky?.z){rows.push(e.sky.z);rows=rows.slice(-60);ridge();}},
     mode(e){modeEvent(e);},
     tamper(e){$('tamper').hidden=!mode.immune||!e.concepts.length;text('tamper','Tamper alarm · caught!');},
     badge(event){text('source',event.label);$('source').hidden=/^SIMULATED ×0$/.test(event.label);$('sim-source').hidden=!event.simulated_users||event.label.startsWith('SIMULATED');text('sim-source',event.simulated_users!=null?`SIMULATED ×${event.simulated_users}`:'');text('quality',event.quality||'');$('quality').hidden=!event.quality;},
-    snapshot(e){const s=e.state;if($('answer').childNodes.length||queue.length||rows.length){$('answer').replaceChildren();$('pushes').replaceChildren();words=[];queue=[];rows=[];answerParts=[];answerPushed=false;nextWord=time;}catalog=s.concepts||[];catalog.forEach((c,i)=>{names.set(c.id,c.label||c.name||c.id.replaceAll('_',' ').toUpperCase());colours.set(c.id,palette[i%palette.length]);});if(s.badge)handlers.badge(s.badge);modeEvent(s.mode);if(s.tamper)handlers.tamper(s.tamper);history=(s.history||[]).map(h=>({title:h.tokens.some(t=>t.applied)?h.mode.mode.toUpperCase():'AI ANSWER',text:h.tokens.map(t=>t.text).join('')}));renderHistory();if(s.tick)shares(s.tick);if(s.layout)handlers.layout(s.layout);(s.tokens||[]).forEach(handlers.token);(s.pushes||[]).forEach(handlers.push);twitchState=s.connections?.twitch||'connected';engineState=s.connections?.engine||'connected';renderConnection();renderMvp(s.mvp?{mvp:s.mvp,board:s.leaderboard}:null);},
+    snapshot(e){
+        const s=e.state;lastTick=null;currentTarget=null;answerPushed=false;
+        $('answer').replaceChildren();$('pushes').replaceChildren();
+        words=[];queue=[];rows=[];answerParts=[];nextWord=time;fitAnswer(true);
+        catalog=s.concepts||[];catalog.forEach((c,i)=>{names.set(c.id,c.label||c.name||c.id.replaceAll('_',' ').toUpperCase());colours.set(c.id,palette[i%palette.length]);});
+        if(s.badge)handlers.badge(s.badge);modeEvent(s.mode);if(s.tamper)handlers.tamper(s.tamper);
+        history=(s.history||[]).map(h=>({title:h.tokens.some(t=>t.applied)?h.mode.mode.toUpperCase():'AI ANSWER',text:h.tokens.map(t=>t.text).join('')}));renderHistory();
+        if(s.tick)handlers.tick(s.tick);if(s.layout)handlers.layout(s.layout);
+        (s.tokens||[]).forEach(handlers.token);(s.pushes||[]).forEach(handlers.push);
+        twitchState=s.connections?.twitch||'connected';engineState=s.connections?.engine||'connected';renderConnection();
+        renderMvp(s.mvp?{mvp:s.mvp,board:s.leaderboard}:null);
+    },
     connection(e){if(e.service==='twitch')twitchState=e.state;if(e.service==='engine')engineState=e.state;renderConnection();},
     guess(){},
     control(){},
@@ -110,13 +174,14 @@ for(let pass=0;pass<10000;pass++){
   if(queue.length&&time>=nextWord){const count=Math.max(1,Math.ceil(queue.length/18));for(let j=0;j<count&&queue.length;j++){const w=queue.shift();addWord(w.part,w.token);}nextWord=time+.035;}
 }
 time=end;
-const bounds=$('answer').getBoundingClientRect(),scrolled=$('answer').classList.contains('scrolled');
-words.forEach(w=>{w.style.opacity=reduced?'1':Math.min(1,(time-Number(w.dataset.born))/.12);const r=w.getBoundingClientRect();w.style.visibility=scrolled&&r.top<bounds.top+bounds.height*.41?'hidden':'visible';});
+words.forEach(w=>{w.style.opacity=reduced?'1':Math.min(1,(time-Number(w.dataset.born))/.12);});
 $('mode-caption').style.opacity=reduced?'1':Math.max(0,Math.min(1,(time-captionBorn)/.2,(1.7-time+captionBorn)/.35));
 drawShares();countdown();atlas.step(dt);
 }
 function connect(){socket=new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/ws`);socket.onopen=()=>{overlayConnected=true;renderConnection();};socket.onmessage=e=>dispatch(JSON.parse(e.data));socket.onclose=()=>{overlayConnected=false;renderConnection();later(connect,2);};socket.onerror=()=>socket.close();}
-window.NousOverlay={step,dispatch,later,ready:document.fonts.ready,stats:()=>({...atlas.stats(),time,queuedWords:queue.length}),reset(){deadline=null;revealVersion++;time=0;jobs=[];queue=[];words=[];rows=[];mode={};history=[];answerParts=[];answerPushed=false;nextWord=0;$('answer').replaceChildren();$('history').replaceChildren();$('pushes').replaceChildren();}};
+window.NousOverlay={step,dispatch,later,ready:document.fonts.ready,stats:()=>({...atlas.stats(),time,queuedWords:queue.length}),reset(){deadline=null;revealVersion++;time=0;jobs=[];queue=[];words=[];rows=[];mode={};history=[];answerParts=[];answerPushed=false;currentTarget=null;lastTick=null;currentShares=null;shareTween=null;nextWord=0;$('answer').replaceChildren();$('history').replaceChildren();$('pushes').replaceChildren();fitAnswer(true);refreshWaiting();}};
+document.fonts.ready.then(()=>fitAnswer(true));
+refreshWaiting();
 if(!manual){let previous;function frame(t){if(previous!=null){atlas.frame(t-previous);window.NousOverlay.step((t-previous)/1000);}previous=t;requestAnimationFrame(frame);}requestAnimationFrame(frame);}
 if(!location.pathname.endsWith('fixture.html'))connect();
 else {const trace=document.createElement('script');trace.src='trace_data.js';trace.onload=()=>{const fixture=document.createElement('script');fixture.src='fixture.js';document.head.append(fixture);};document.head.append(trace);}

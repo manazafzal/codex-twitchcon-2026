@@ -488,6 +488,9 @@ def test_overlay_renders_dynamic_topic_labels_without_adding_bonus_to_play_strip
     async def run():
         async with Browser("manual&scale=.5&nogl") as browser:
             await browser.evaluate("NousOverlay.fixture.pause()")
+            # Team labels appear during a round; the initial waiting screen stays calm.
+            mode = Mode("war", False, "Make tea.", 1)
+            await browser.evaluate(f"NousOverlay.dispatch({json.dumps(mode.to_dict())})")
             await browser.evaluate(f"NousOverlay.dispatch({json.dumps(update.to_dict())})")
             await browser.evaluate(f"NousOverlay.dispatch({json.dumps(tick.to_dict())})")
             await browser.evaluate("NousOverlay.step(2)")
