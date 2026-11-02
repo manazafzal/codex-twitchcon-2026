@@ -61,17 +61,11 @@ work as in demo mode. Open `/control`, paste the fresh per-run token printed in
 the console, and choose a mode or toggle immune. Press **I** there for the immune
 hotkey; keep the token and control page out of the OBS browser source.
 
-Without a real-model library, live mode uses the mock and displays **TINY MODEL / CI**.
-This is suitable for testing the chat connection and presentation. For a real run,
-install `.[model]`, build the calibrated library, and pass its path:
+Live mode uses the bundled fitted `library/nous-fitted.npz` and the model downloaded by setup in `~/.config/nous/model`. It runs on CPU by default. An existing `~/.config/nous/concepts.npz` remains an override. No build or fit is required after `setup.bat`; on other systems install `.[model]` and run `python -m nous.install` once. Use `--model-path PATH` or `NOUS_MODEL_PATH` for a different model folder, and `--library PATH` for a custom library.
 
-```sh
-nous build-library
-nous run --channel YOUR_CHANNEL --library library/qwen2.5-0.5b-instruct.npz
-```
+`--mock` explicitly selects **TINY MODEL / CI** for testing chat and presentation. Missing real-model files otherwise stop with setup instructions; there is no implicit test-model substitute. To make your own library, use `nous build-library --output library/custom.npz`, then `nous fit-readout --library library/custom.npz`, and select it with `--library library/custom.npz`.
 
-Real model weights are loaded locally; they are not available in CI. Neither the
-mock nor Tiny output supplies evidence for quality or speed claims.
+Real weights stay local and are not downloaded in tests. The [streamer-reported CPU checks](REAL_MODEL_RESULTS.md) describe the supplied artifact and their limits. Neither mock nor Tiny output supplies trained-model quality evidence, and the starter topic packs remain experimental.
 
 Simulation is **off** in live mode. `--sim` explicitly adds the seeded crowd;
 its users are named `sim_*`, and a separate **SIMULATED ×40** chip accompanies
