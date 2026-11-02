@@ -12,7 +12,7 @@ from typing import Any, Literal
 
 import numpy as np
 
-from nous.concepts.library import ConceptLibrary, load_concepts, match_concept
+from nous.concepts.library import ConceptLibrary, concept_pattern, load_concepts, match_concept
 from nous.concepts.topics import approved
 from nous.engine.commands import Command, Participation, Propose, Rank, SetMode, StartRound
 from nous.engine.events import (
@@ -278,7 +278,11 @@ class Session:
                 continue
             if isinstance(item, Rank):
                 rank, points = self.scoring.board.rank(item.user_id)
-                message = f"Viewer rank: {rank or 'unranked'}; {points:.2f} points."
+                name = item.user
+                if self.current_mode == "telepathy" and self.telepathy.phase != Phase.REVEAL:
+                    for concept in self.library.concepts:
+                        name = concept_pattern(concept, stems=True).sub("Friend", name)
+                message = f"@{name} — Viewer rank: {rank or 'unranked'}; {points:.2f} points."
                 accepted.append(Round(self.current_mode, "rank", self.engine.answer_index, message))
                 continue
             if isinstance(item, (Push, Participation)):

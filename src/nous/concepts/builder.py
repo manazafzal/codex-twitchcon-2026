@@ -3,6 +3,7 @@ from typing import Any
 import numpy as np
 
 from nous.concepts.library import Concept, ConceptLibrary
+from nous.concepts.sampling import replacement
 from nous.engine.immune import unit
 from nous.model.backend import ModelBackend, Vector
 
@@ -134,13 +135,36 @@ def trace_answer(
     )
 
 
+def distinct_trace(
+    backend: ModelBackend, prompt: str, rng: np.random.Generator, seen: set[str]
+) -> tuple[str, dict[int, Vector], Vector]:
+    def generate(attempt: int) -> tuple[str, tuple[str, dict[int, Vector], Vector]]:
+        row = trace_answer(backend, prompt, rng)
+        return row[0], row
+
+    return replacement(generate, seen)
+
+
 def neutral_set(
-    backend: ModelBackend, count: int, seed: int
+    backend: ModelBackend,
+    count: int,
+    seed: int,
+    *,
+    exclude: set[str] | None = None,
+    unique: bool = False,
 ) -> list[tuple[str, dict[int, Vector], Vector]]:
     from nous.engine.generate import PROMPTS
 
     rng = np.random.default_rng(seed)
-    return [trace_answer(backend, PROMPTS[10 + i % 30], rng) for i in range(count)]
+    seen = set(exclude or ())
+    rows = []
+    for i in range(count):
+        rows.append(
+            distinct_trace(
+                backend, PROMPTS[10 + i % 30], rng, seen if unique else set(exclude or ())
+            )
+        )
+    return rows
 
 
 def build_library(
@@ -170,13 +194,17 @@ def build_library(
             "The others variant needs at least two concepts and 60 neutral generations"
         )
     rng = np.random.default_rng(seed)
-    sets = [
-        [
-            trace_answer(backend, f"Write one short vivid sentence about {c.label}.", rng)
-            for _ in range(samples)
-        ]
-        for c in concepts
-    ]
+    seen: set[str] = set()
+    sets = []
+    for concept in concepts:
+        group = []
+        for _ in range(samples):
+            group.append(
+                distinct_trace(
+                    backend, f"Write one short vivid sentence about {concept.label}.", rng, seen
+                )
+            )
+        sets.append(group)
 
     def directions(layer: int) -> Vector:
         means = np.stack(
@@ -187,7 +215,7 @@ def build_library(
 
     V, D = directions(backend.injection_layer), directions(backend.readout_layer)
     calibration_seed = seed if seed != 1 else 2
-    neutral = neutral_set(backend, neutral_samples, calibration_seed)
+    neutral = neutral_set(backend, neutral_samples, calibration_seed, unique=True)
     positions = np.concatenate([row[1][backend.readout_layer] for row in neutral])
     projections = unit(positions) @ D.T
     defence = np.concatenate([row[2] for row in neutral])
@@ -265,8 +293,8 @@ def calibrate_alarm(
 
     if count < 60 or seed == library.config.get("readout_calibration_seed"):
         raise ValueError("Alarm calibration needs at least 60 generations with a fresh seed")
-    fresh = neutral_set(backend, count, seed)
     old = set(library.provenance.get("calibration_text_hashes", []))
+    fresh = neutral_set(backend, count, seed, exclude=old, unique=True)
     if old & {text_hash(row[0]) for row in fresh}:
         raise ValueError("Alarm generations overlap the readout calibration texts")
     positions = np.concatenate([row[2] for row in fresh])

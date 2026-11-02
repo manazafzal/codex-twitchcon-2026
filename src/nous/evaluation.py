@@ -14,6 +14,7 @@ import numpy as np
 from nous.concepts.builder import git_revision, neutral_set, trace_answer
 from nous.concepts.library import ConceptLibrary, concept_pattern
 from nous.concepts.probe import Example, check_partitions, fit_lda, lda_scores, text_hash
+from nous.concepts.sampling import replacement
 from nous.engine.events import Push, Tamper, Token
 from nous.engine.generate import PROMPTS, Generator
 from nous.engine.immune import unit
@@ -499,40 +500,55 @@ def generate_training(
 ) -> tuple[list[Example], list[Example], list[Example]]:
     train, validation, test = [], [], []
     text_count = 0
+    seen: set[str] = set()
+
+    def text_example(key: str, template: str, seed: int) -> Example:
+        def generate(attempt: int) -> tuple[str, Example]:
+            row = example(backend, library, key, template, seed + attempt * 1000000)
+            return row.text, row
+
+        return replacement(generate, seen)
+
+    def injected_example(key: str, index: int, immune: bool) -> Example:
+        def generate(attempt: int) -> tuple[str, Example]:
+            actual_seed = 300 + index + attempt * 1000000
+            clock = FakeClock()
+            mixer = ForcedMixer(
+                key, alpha=0.45, median_norm=library.median_residual_norm, clock=clock
+            )
+            engine = Generator(
+                backend, library, mixer, seed=actual_seed, immune=immune, clock=clock
+            )
+            for user in range(60):
+                engine.push(Push(f"sim_{user:03}", key, 0, "SIMULATED"))
+            list(engine.events(prompt=PROMPTS[index], max_tokens=32))
+            features = engine.readout.features([engine.last_layer_means])
+            if features is None:
+                raise ValueError("Backend did not return all readout layers")
+            row = Example(
+                engine.last_text,
+                key,
+                PROMPTS[index],
+                actual_seed,
+                features,
+                "on" if immune else "off",
+            )
+            return row.text, row
+
+        return replacement(generate, seen)
+
     for key in library.ids:
         for i in range(48):
-            train.append(example(backend, library, key, TRAIN_FAMILIES[i % 14], 100 + i))
+            train.append(text_example(key, TRAIN_FAMILIES[i % 14], 100 + i))
             text_count += 1
             progress(f"Readout training text {text_count}/{48 * len(library.ids)}")
         for i, template in enumerate(VAL_FAMILIES):
-            validation.append(example(backend, library, key, template, 10000 + i))
+            validation.append(text_example(key, template, 10000 + i))
         for i in range(12):
-            test.append(example(backend, library, key, TEST_FAMILIES[i % 4], 20000 + i))
+            test.append(text_example(key, TEST_FAMILIES[i % 4], 20000 + i))
         for immune in (False, True):
             for i in range(9):
-                clock = FakeClock()
-                mixer = ForcedMixer(
-                    key, alpha=0.45, median_norm=library.median_residual_norm, clock=clock
-                )
-                engine = Generator(
-                    backend, library, mixer, seed=300 + i, immune=immune, clock=clock
-                )
-                for user in range(60):
-                    engine.push(Push(f"sim_{user:03}", key, 0, "SIMULATED"))
-                list(engine.events(prompt=PROMPTS[i], max_tokens=32))
-                features = engine.readout.features([engine.last_layer_means])
-                if features is None:
-                    raise ValueError("Backend did not return all readout layers")
-                train.append(
-                    Example(
-                        engine.last_text,
-                        key,
-                        PROMPTS[i],
-                        300 + i,
-                        features,
-                        "on" if immune else "off",
-                    )
-                )
+                train.append(injected_example(key, i, immune))
     return train, validation, test
 
 

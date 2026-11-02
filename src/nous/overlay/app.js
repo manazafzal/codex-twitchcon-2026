@@ -28,7 +28,7 @@ function headline(target){
 }
 function simpleReadout(e){
  if(blind()){text('ai-guess','Hidden until the reveal');text('nerd-values','Hidden until the reveal');return;}
- if(e.readout?.top)text('ai-guess',label(e.readout.top));
+ text('ai-guess',e.readout?.top?label(e.readout.top):'No clear thought yet');
  if(e.applied)headline(label(e.applied));
  if(e.sky)text('nerd-values',`Push strength: ${Number(lastTick?.beta||0).toFixed(2)} · signal drive: ${Number(e.sky.drive||0).toFixed(3)}`);
 }

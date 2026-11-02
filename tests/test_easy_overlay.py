@@ -135,3 +135,42 @@ def test_welcome_button_opens_an_offline_recording_in_a_real_browser(monkeypatch
             assert not browser.errors
 
     asyncio.run(run())
+
+
+def test_uncertain_readout_clears_the_previous_label(monkeypatch):
+    monkeypatch.setenv("NOUS_DEV_FIXTURES", "1")
+
+    async def run():
+        async with Browser("manual&scale=.5&nogl") as browser:
+            await browser.evaluate("NousOverlay.fixture.pause()")
+
+            def token(top):
+                return Token(
+                    0,
+                    "",
+                    None,
+                    {"scores": {"war": 0.2, "ocean": 0.19}, "top": top, "margin": 0.01},
+                    None,
+                ).to_dict()
+
+            await browser.evaluate(f"NousOverlay.dispatch({json.dumps(token('war'))})")
+            assert (
+                await browser.evaluate("document.getElementById('ai-guess').textContent")
+                != "No clear thought yet"
+            )
+            await browser.evaluate(f"NousOverlay.dispatch({json.dumps(token(None))})")
+            assert (
+                await browser.evaluate("document.getElementById('ai-guess').textContent")
+                == "No clear thought yet"
+            )
+            await browser.evaluate(
+                f"NousOverlay.dispatch({json.dumps(Mode('telepathy', False, 'Make tea', 1, phase='armed').to_dict())})"
+            )
+            await browser.evaluate(f"NousOverlay.dispatch({json.dumps(token(None))})")
+            assert (
+                await browser.evaluate("document.getElementById('ai-guess').textContent")
+                == "Hidden until the reveal"
+            )
+            assert not browser.errors
+
+    asyncio.run(run())

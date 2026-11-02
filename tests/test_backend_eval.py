@@ -45,7 +45,7 @@ def test_others_vectors_calibration_and_all_array_checks(monkeypatch, tmp_path):
             np.stack([v, v]),
         )
 
-    def neutral(backend, count, seed):
+    def neutral(backend, count, seed, **kwargs):
         result = []
         for i in range(count):
             v = np.array([1 + i / 100, 2 + i / 200, 3 + i / 300])

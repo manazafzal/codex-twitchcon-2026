@@ -183,6 +183,7 @@ def test_rank_command_and_mvp_chat_cooldown():
         await session.submit(command)
         reply = session.drain()[0]
         assert reply.phase == "rank" and "1; 8.00 points" in reply.message
+        assert reply.message.startswith("@viewer ")
         card = json.dumps({"mvp": {"name": "Viewer", "points": 8}})
 
         async def events():
@@ -203,3 +204,15 @@ def test_rank_command_and_mvp_chat_cooldown():
         assert sum(message.startswith("Round MVP:") for message in notices) == 2
 
     asyncio.run(run())
+
+
+def test_rank_mention_does_not_expose_a_hidden_concept_name():
+    from nous.engine.commands import Rank
+
+    session, _ = session_with_clock()
+    session.current_mode = "telepathy"
+    session.telepathy.arm(set())
+    session.pending.put_nowait(Rank("ocean", "viewer"))
+    reply = session.drain()[0]
+    assert reply.message.startswith("@Friend ")
+    assert "ocean" not in reply.message.casefold()

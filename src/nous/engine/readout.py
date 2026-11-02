@@ -81,4 +81,4 @@ class Readout:
         top = ranking[0] if ranking else None
         margin = labels[top] - (labels[ranking[1]] if len(ranking) > 1 else 0) if top else 0.0
         color = top if margin >= self.margin_threshold and valid else None
-        return Reading(scores, top, margin, color)
+        return Reading(scores, color, margin, color)

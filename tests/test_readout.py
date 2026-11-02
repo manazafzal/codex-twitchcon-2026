@@ -32,3 +32,16 @@ def test_windowed_mean_baseline_and_reset(library):
     reader.reset()
     assert reader.observe(library.HR_neutral, ["ocean", "space"]).color is None
     assert reader.observe(b, []).top == "space"
+
+
+def test_uncertain_readout_abstains_without_changing_alarm_scores(library):
+    reader = Readout(library, margin_threshold=0.1)
+    hidden = np.zeros(32)
+    hidden[:3] = [1.0, 1.01, 1.0]
+    reading = reader.decide(hidden, [])
+    assert reading.top is None and reading.color is None
+    assert reading.margin < 0.1
+    assert reading.scores["space"] > reading.scores["ocean"]
+    hidden[:3] = [0, 2, 0]
+    assert reader.decide(hidden, []).top == "space"
+    assert reader.decide(np.zeros(32), []).top is None
