@@ -248,21 +248,25 @@ def main(argv: list[str] | None = None) -> None:
                 calibrate_alarm(backend, library, count=args.generations, seed=args.seed)
                 library.save(args.output or args.library)
             else:
-                from nous.evaluation_data import load_examples, save_examples
+                from nous.evaluation_data import load_calibration, load_examples, save_examples
 
+                calibration = []
                 if args.data:
+                    calibration = load_calibration(args.data, library)
                     partitions = load_examples(args.data, library)
                 else:
-                    partitions = generate_training(backend, library)
+                    partitions = generate_training(backend, library, calibration=calibration)
                     destination = (args.output or args.library).parent / "readout-training.npz"
-                    save_examples(destination, partitions, library)
+                    save_examples(destination, partitions, library, calibration=calibration)
                 import hashlib
 
                 dataset_path = args.data or destination
                 library.provenance["readout_dataset_hash"] = hashlib.sha256(
                     dataset_path.read_bytes()
                 ).hexdigest()
-                report = fit_readout(library, *partitions, seed=args.seed)
+                report = fit_readout(library, *partitions, seed=args.seed, calibration=calibration)
+                if not calibration:
+                    log.warning("No idle calibration in this corpus; regenerate without --data")
                 library.save(args.output or args.library)
                 import json
 

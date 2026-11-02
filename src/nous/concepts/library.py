@@ -79,6 +79,9 @@ class ConceptLibrary:
             self.alarm_thresholds.shape != (n,) or not np.isfinite(self.alarm_thresholds).all()
         ):
             raise ValueError("Invalid alarm thresholds")
+        margin = self.config.get("readout_v4_margin_threshold", 0.1)
+        if not isinstance(margin, (int, float)) or not np.isfinite(margin) or margin < 0:
+            raise ValueError("Invalid fitted readout margin threshold")
         if self.readout_v4:
             required = {"center", "scale", "weights", "intercept", "shrinkage"}
             if set(self.readout_v4) != required or self.readout_v4["weights"].shape[0] != n:

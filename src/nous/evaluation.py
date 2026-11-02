@@ -496,7 +496,11 @@ def example(
 
 
 def generate_training(
-    backend: ModelBackend, library: ConceptLibrary, progress: Callable[[str], None] = log.info
+    backend: ModelBackend,
+    library: ConceptLibrary,
+    progress: Callable[[str], None] = log.info,
+    *,
+    calibration: list[Example] | None = None,
 ) -> tuple[list[Example], list[Example], list[Example]]:
     train, validation, test = [], [], []
     text_count = 0
@@ -549,7 +553,68 @@ def generate_training(
         for immune in (False, True):
             for i in range(9):
                 train.append(injected_example(key, i, immune))
+    if calibration is not None:
+        for i in range(60):
+            prompt = PROMPTS[10 + i % 30]
+
+            def neutral_example(
+                attempt: int, index: int = i, prompt: str = prompt
+            ) -> tuple[str, Example]:
+                actual_seed = 90000 + index + attempt * 1000000
+                text, layers, _ = trace_answer(backend, prompt, np.random.default_rng(actual_seed))
+                wanted = library.config.get("probe_layers", [16, 20, 22])
+                features = np.concatenate([layers[layer].mean(axis=0) for layer in wanted])
+                return text, Example(text, "", prompt, actual_seed, features, "neutral")
+
+            calibration.append(replacement(neutral_example, seen))
+            progress(f"Readout idle calibration {i + 1}/60")
     return train, validation, test
+
+
+def calibrate_readout_margin(
+    library: ConceptLibrary,
+    calibration: list[Example],
+    train: list[Example],
+    validation: list[Example],
+    test: list[Example],
+) -> dict[str, Any]:
+    """Choose a display-only cutoff without inspecting held-out classifier scores."""
+    seen = {text_hash(e.text) for part in (train, validation, test) for e in part}
+    seeds = {e.seed for part in (train, validation, test) for e in part}
+    families = {e.family for part in (train, validation, test) for e in part}
+    hashes = [text_hash(e.text) for e in calibration]
+    if len(set(hashes)) != len(hashes) or any(
+        text_hash(e.text) in seen or e.seed in seeds or e.family in families or e.mode != "neutral"
+        for e in calibration
+    ):
+        raise ValueError("Readout idle calibration overlaps fitted partitions")
+
+    def margin(e: Example) -> float:
+        scores = np.sort(lda_scores(library.readout_v4, e.features))
+        return float(scores[-1] - (scores[-2] if len(scores) > 1 else 0))
+
+    idle = [margin(e) for e in calibration]
+    pushed = [margin(e) for e in train if e.mode == "off"]
+    if not idle:
+        library.config.pop("readout_v4_margin_threshold", None)
+        return {"status": "unavailable", "idle_n": 0, "pushed_n": len(pushed)}
+    upper = float(np.quantile(idle, 0.99))
+    lower = float(np.quantile(pushed, 0.1)) if pushed else upper
+    cutoff = max(upper, (upper + lower) / 2, 0.1)
+    if not np.isfinite(cutoff):
+        raise ValueError("Non-finite readout margin calibration")
+    library.config["readout_v4_margin_threshold"] = cutoff
+    return {
+        "status": "calibrated",
+        "threshold": cutoff,
+        "idle_n": len(idle),
+        "pushed_n": len(pushed),
+        "idle_q99": upper,
+        "pushed_q10": lower if pushed else None,
+        "text_hashes": hashes,
+        "seeds": [e.seed for e in calibration],
+        "method": "midpoint of idle q99 and training immune-off q10; floor idle q99",
+    }
 
 
 def fit_readout(
@@ -560,6 +625,7 @@ def fit_readout(
     *,
     seed: int = 0,
     bootstrap: int = 2000,
+    calibration: list[Example] | None = None,
 ) -> dict[str, Any]:
     check_partitions(train, validation, test)
     choices = []
@@ -588,6 +654,9 @@ def fit_readout(
             for name, part in (("train", train), ("validation", validation), ("test", test))
         },
     }
+    library.provenance["readout_v4"]["margin_calibration"] = calibrate_readout_margin(
+        library, calibration or [], train, validation, test
+    )
     rows = []
     for e in test:
         ranked = np.argsort(-lda_scores(parameters, e.features), kind="stable")

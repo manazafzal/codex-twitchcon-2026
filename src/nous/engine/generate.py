@@ -86,7 +86,7 @@ class Generator:
         seed: int = 0,
         immune: bool = False,
         window: int = 12,
-        margin_threshold: float = 0.1,
+        margin_threshold: float | None = None,
         colour_source: Literal["applied", "readout"] = "applied",
         eval_path: Path | None = None,
         inject_prefill: bool = True,

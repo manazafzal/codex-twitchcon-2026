@@ -19,9 +19,9 @@ class Reading:
 
 class Readout:
     def __init__(
-        self, library: ConceptLibrary, *, window: int = 12, margin_threshold: float = 0.1
+        self, library: ConceptLibrary, *, window: int = 12, margin_threshold: float | None = None
     ) -> None:
-        if window < 1 or margin_threshold < 0:
+        if window < 1 or (margin_threshold is not None and margin_threshold < 0):
             raise ValueError("Invalid readout parameters")
         self.library = library
         self.window: deque[Vector] = deque(maxlen=window)
@@ -80,5 +80,12 @@ class Readout:
         ranking = sorted(labels, key=lambda f: (-labels[f], f)) if valid else []
         top = ranking[0] if ranking else None
         margin = labels[top] - (labels[ranking[1]] if len(ranking) > 1 else 0) if top else 0.0
-        color = top if margin >= self.margin_threshold and valid else None
+        threshold = self.margin_threshold
+        if threshold is None:
+            threshold = (
+                float(self.library.config.get("readout_v4_margin_threshold", 0.1))
+                if features is not None and self.library.readout_v4
+                else 0.1
+            )
+        color = top if margin >= threshold and valid else None
         return Reading(scores, color, margin, color)

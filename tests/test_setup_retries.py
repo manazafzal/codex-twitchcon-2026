@@ -119,3 +119,22 @@ def test_alarm_overlap_guard_still_rejects_a_faulty_generator(monkeypatch):
     monkeypatch.setattr(builder, "neutral_set", faulty)
     with pytest.raises(ValueError, match="overlap"):
         builder.calibrate_alarm(RefusingModel(), library, seed=1)
+
+
+def test_saved_fit_contains_idle_margin_calibration(monkeypatch, tmp_path):
+    import nous.model.hf_backend as hf
+
+    monkeypatch.setattr(hf, "HFBackend", lambda **kwargs: RefusingModel())
+    library = mock_library(all_concepts=False)
+    library.config.update(probe_layers=[7, 11], injection_layer=7, readout_layer=11)
+    path = tmp_path / "library.npz"
+    library.save(path)
+    main(["fit-readout", "--library", str(path)])
+    fitted = ConceptLibrary.load(path)
+    calibration = fitted.provenance["readout_v4"]["margin_calibration"]
+    assert calibration["status"] == "calibrated" and calibration["idle_n"] == 60
+    assert len(set(calibration["text_hashes"])) == 60
+    assert text_hash(REFUSAL) not in calibration["text_hashes"]
+    cutoff = fitted.config["readout_v4_margin_threshold"]
+    main(["fit-readout", "--library", str(path), "--data", str(tmp_path / "readout-training.npz")])
+    assert ConceptLibrary.load(path).config["readout_v4_margin_threshold"] == cutoff

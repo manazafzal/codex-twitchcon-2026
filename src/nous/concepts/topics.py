@@ -15,7 +15,7 @@ import yaml
 from nous.concepts.builder import calibrate_alarm, mean_hidden, neutral_set, trace_answer
 from nous.concepts.library import Concept, ConceptLibrary, config_hash, match_concept
 from nous.concepts.policy import validate_name
-from nous.concepts.probe import text_hash
+from nous.concepts.probe import Example, text_hash
 from nous.engine.generate import PROMPTS
 from nous.engine.immune import unit
 from nous.evaluation import embedding_thresholds, fit_readout, generate_training, run_trial
@@ -255,8 +255,10 @@ class TopicBuilder:
         library.config["readout_calibration_seed"] = self.seed + 40000
         library.provenance["calibration_text_hashes"] = [text_hash(row[0]) for row in neutral]
         calibrate_alarm(self.backend, library, count=60, seed=self.seed + 50000)
+        calibration: list[Example] = []
+        parts = generate_training(self.backend, library, calibration=calibration)
         library.provenance["readout_fit"] = fit_readout(
-            library, *generate_training(self.backend, library), seed=self.seed
+            library, *parts, seed=self.seed, calibration=calibration
         )
         if not library.readout_v4 or library.readout_v4["weights"].shape[0] != len(library.ids):
             raise ValueError("The expanded Mind-Reader was not fitted")
